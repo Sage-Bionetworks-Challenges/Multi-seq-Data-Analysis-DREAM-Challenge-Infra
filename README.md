@@ -1,4 +1,5 @@
-# Model-to-Data Workflow
+# scRNA-seq and ATAC-seq Data Analysis Dream Challenge Workflow
+
 This repository will serve as a template for the `CWL` workflow and tools required to set up a `model-to-data` challenge infrastructure.
 
 For more information about the tools, refer to [ChallengeWorkflowTemplates](https://github.com/Sage-Bionetworks/ChallengeWorkflowTemplates).
