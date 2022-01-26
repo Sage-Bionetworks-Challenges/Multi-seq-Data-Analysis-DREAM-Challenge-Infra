@@ -37,8 +37,8 @@ steps:
       - id: entityid
         source: "#submitterUploadSynId"
       # TODO: replace `valueFrom` with the admin user ID or admin team ID
-      - id: "3441739"
-        valueFrom: "3379097"
+      - id: principalid
+        valueFrom: "3441739"
       - id: permissions
         valueFrom: "download"
       - id: synapse_config
@@ -51,8 +51,8 @@ steps:
       - id: entityid
         source: "#adminUploadSynId"
       # TODO: replace `valueFrom` with the admin user ID or admin team ID
-      - id: "3441739"
-        valueFrom: "3379097"
+      - id: principalid
+        valueFrom: "3441739"
       - id: permissions
         valueFrom: "download"
       - id: synapse_config
