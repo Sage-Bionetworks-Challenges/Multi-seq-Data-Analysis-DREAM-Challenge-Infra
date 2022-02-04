@@ -83,16 +83,16 @@ steps:
       - id: docker_registry
       - id: docker_authentication
 
-  download_goldstandard:
-    run: https://raw.githubusercontent.com/Sage-Bionetworks-Workflows/cwl-tool-synapseclient/v1.4/cwl/synapse-get-tool.cwl
-    in:
-      # TODO: replace `valueFrom` with the Synapse ID to the challenge goldstandard
-      - id: synapseid
-        valueFrom: "syn18081597"
-      - id: synapse_config
-        source: "#synapseConfig"
-    out:
-      - id: filepath
+  # download_goldstandard:
+  #   run: https://raw.githubusercontent.com/Sage-Bionetworks-Workflows/cwl-tool-synapseclient/v1.4/cwl/synapse-get-tool.cwl
+  #   in:
+  #     # TODO: replace `valueFrom` with the Synapse ID to the challenge goldstandard
+  #     - id: synapseid
+  #       valueFrom: "syn18081597"
+  #     - id: synapse_config
+  #       source: "#synapseConfig"
+  #   out:
+  #     - id: filepath
 
   validate_docker:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/validate_docker.cwl
@@ -172,7 +172,7 @@ steps:
         default: true
       # TODO: replace `valueFrom` with the absolute path to the data directory to be mounted
       - id: input_dir
-        valueFrom: "/tmp"
+        valueFrom: "/home/ec2-user/challenge-data/downsampled"
       - id: docker_script
         default:
           class: File
@@ -277,7 +277,7 @@ steps:
       - id: input_file
         source: "#run_docker/predictions"
       - id: goldstandard
-        source: "#download_goldstandard/filepath"
+        valueFrom: "/home/ec2-user/challenge-data/paclitaxel_realigned"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:
@@ -313,4 +313,3 @@ steps:
       - id: previous_annotation_finished
         source: "#annotate_validation_with_output/finished"
     out: [finished]
- 
