@@ -92,7 +92,7 @@ def main(syn, args):
     client.login(username=authen['username'],
                  password=authen['password'],
                  registry="https://docker.synapse.org")
-                 # dockercfg_path=".docker/config.json")
+    # dockercfg_path=".docker/config.json")
 
     print(getpass.getuser())
 
@@ -177,10 +177,10 @@ def main(syn, args):
 
     output_folder = os.listdir(output_dir)
     if not output_folder:
-        raise Exception("No 'predictions.csv' file written to /output, "
+        raise Exception("No 'predictions.zip' file written to /output, "
                         "please check inference docker")
-    elif "predictions.csv" not in output_folder:
-        raise Exception("No 'predictions.csv' file written to /output, "
+    elif "predictions.zip" not in output_folder:
+        raise Exception("No 'predictions.zip' file written to /output, "
                         "please check inference docker")
     # CWL has a limit of the array of files it can accept in a folder
     # therefore creating a tarball is sometimes necessary

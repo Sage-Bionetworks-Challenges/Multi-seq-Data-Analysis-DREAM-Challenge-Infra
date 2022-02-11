@@ -34,26 +34,37 @@ requirements:
           #!/usr/bin/env python
           import argparse
           import json
+          # import pandas as pd
+          from zipfile import ZipFile
+
           parser = argparse.ArgumentParser()
           parser.add_argument("-r", "--results", required=True, help="validation results")
           parser.add_argument("-e", "--entity_type", required=True, help="synapse entity type downloaded")
           parser.add_argument("-s", "--submission_file", help="Submission File")
 
-          # what needs to be valided, any e.g for exp file?
-          # is gs file needed?
           args = parser.parse_args()
-          
+          invalid_reasons = []
+          prediction_file_status = "VALIDATED"
+
           if args.submission_file is None:
               prediction_file_status = "INVALID"
               invalid_reasons = ['Expected FileEntity type but found ' + args.entity_type]
           else:
-              with open(args.submission_file,"r") as sub_file:
-                  message = sub_file.read()
-              invalid_reasons = []
-              prediction_file_status = "VALIDATED"
-              # if not message.startswith("test"):
-              #     invalid_reasons.append("Submission must have test column")
-              #     prediction_file_status = "INVALID"
+              ds_props = ("0_125", "0_5")
+              exp_ids = ("LH2400", "LH2401", "LH7200", "LH7201")
+              all_files = ["pac_real_ds_" + p + "_" + id + ".csv" for p in ds_props for id in exp_ids]
+
+              zip_file = ZipFile("output/predictions.zip", "r")
+              pred_files = zip_file.namelist()
+              diff = list(set(all_files) - set(pred_files))
+              if diff:
+                  invalid_reasons.append("File not found : " + "', '".join(diff))
+                  prediction_file_status = "INVALID"
+              # else:
+              #     for f in pred_files:
+              #       if zip_file.read(f) < 0:
+              #           invalid_reasons.append("Negative value is not allowed : " + f)
+              #           prediction_file_status = "INVALID"
           result = {'submission_errors': "\n".join(invalid_reasons),
                     'submission_status': prediction_file_status}
           with open(args.results, 'w') as o:
