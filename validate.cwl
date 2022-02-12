@@ -8,7 +8,7 @@ baseCommand: python
 
 hints:
   DockerRequirement:
-    dockerPull: docker pull amancevice/pandas:1.4.0-slim
+    dockerPull: amancevice/pandas:1.4.0-slim
 
 inputs:
   - id: input_file
