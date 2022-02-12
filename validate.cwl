@@ -8,7 +8,7 @@ baseCommand: python
 
 hints:
   DockerRequirement:
-    dockerPull: python:3.8.8-slim-buster
+    dockerPull: docker pull amancevice/pandas:1.4.0-slim
 
 inputs:
   - id: input_file
@@ -34,7 +34,7 @@ requirements:
           #!/usr/bin/env python
           import argparse
           import json
-          # import pandas as pd
+          import pandas as pd
           from zipfile import ZipFile
 
           parser = argparse.ArgumentParser()
@@ -43,6 +43,7 @@ requirements:
           parser.add_argument("-s", "--submission_file", help="Submission File")
 
           args = parser.parse_args()
+
           invalid_reasons = []
           prediction_file_status = "VALIDATED"
 
@@ -50,21 +51,23 @@ requirements:
               prediction_file_status = "INVALID"
               invalid_reasons = ['Expected FileEntity type but found ' + args.entity_type]
           else:
+              zip_file = ZipFile(args.submission_file, "r")
               ds_props = ("0_125", "0_5")
               exp_ids = ("LH2400", "LH2401", "LH7200", "LH7201")
               all_files = ["pac_real_ds_" + p + "_" + id + ".csv" for p in ds_props for id in exp_ids]
-
-              zip_file = ZipFile("output/predictions.zip", "r")
               pred_files = zip_file.namelist()
               diff = list(set(all_files) - set(pred_files))
+              # check if all required data exists
               if diff:
                   invalid_reasons.append("File not found : " + "', '".join(diff))
                   prediction_file_status = "INVALID"
-              # else:
-              #     for f in pred_files:
-              #       if zip_file.read(f) < 0:
-              #           invalid_reasons.append("Negative value is not allowed : " + f)
-              #           prediction_file_status = "INVALID"
+              else:
+                  for f in pred_files:
+                    df = pd.read_csv(zip_file.open(f), index_col=0)
+                    # check if all value is not less than 0
+                    if (df < 0).any().any():
+                        invalid_reasons.append(f + ": Negative value is not allowed")
+                        prediction_file_status = "INVALID"
           result = {'submission_errors': "\n".join(invalid_reasons),
                     'submission_status': prediction_file_status}
           with open(args.results, 'w') as o:
