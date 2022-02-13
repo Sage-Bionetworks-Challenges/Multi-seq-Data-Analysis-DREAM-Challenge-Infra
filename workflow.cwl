@@ -83,16 +83,11 @@ steps:
       - id: docker_registry
       - id: docker_authentication
 
-  # download_goldstandard:
-  #   run: https://raw.githubusercontent.com/Sage-Bionetworks-Workflows/cwl-tool-synapseclient/v1.4/cwl/synapse-get-tool.cwl
-  #   in:
-  #     # TODO: replace `valueFrom` with the Synapse ID to the challenge goldstandard
-  #     - id: synapseid
-  #       valueFrom: "syn18081597"
-  #     - id: synapse_config
-  #       source: "#synapseConfig"
-  #   out:
-  #     - id: filepath
+  get_goldstandard:
+    run: get_goldstandard.cwl
+    in: []
+    out:
+      - id: goldstandard
 
   validate_docker:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/validate_docker.cwl
@@ -131,7 +126,7 @@ steps:
         source: "#validate_docker/results"
       - id: to_public
         default: true
-      - id: force_change_annotation_acl
+      - id: force
         default: true
       - id: synapse_config
         source: "#synapseConfig"
@@ -222,6 +217,8 @@ steps:
         source: "#run_docker/predictions"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
+      - id: goldstandard
+        source: "#get_goldstandard/goldstandard"
     out:
       - id: results
       - id: status
@@ -277,7 +274,7 @@ steps:
       - id: input_file
         source: "#run_docker/predictions"
       - id: goldstandard
-        valueFrom: "/home/ec2-user/challenge-data/paclitaxel_realigned"
+        source: "#get_goldstandard/goldstandard"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:
