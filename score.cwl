@@ -8,7 +8,7 @@ baseCommand: Rscript
 
 hints:
   DockerRequirement:
-    dockerPull: docker.synapse.org/
+    dockerPull: docker.synapse.org/syn26720835/scoring-test:v1
 
 inputs:
   - id: pred_file
