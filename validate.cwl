@@ -85,7 +85,7 @@ requirements:
                   prediction_file_status = False
               else:
                   true_dims = gs_dims * len(ds_props)
-                  for index, pred_f in enumerate(pred_files):
+                  for index, pred_f in enumerate(true_pred_files):
                       pred_df = pd.read_csv(pred_zip_file.open(pred_f), index_col=0)
                       # check if all value is not less than 0
                       if (pred_df < 0).any().any():
