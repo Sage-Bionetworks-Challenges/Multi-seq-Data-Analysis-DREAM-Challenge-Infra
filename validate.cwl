@@ -52,8 +52,8 @@ requirements:
           invalid_reasons = []
           gs_file_status = True
           prediction_file_status = True
-          exp_ids = ("2400", "2401", "7200", "7201")
-          ds_props = ("0_125")
+          exp_ids = ["2400", "2401", "7200", "7201"]
+          ds_props = ["0_125"]
 
           ## validate goldstandard file
           if args.goldstandard is None:
