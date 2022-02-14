@@ -68,7 +68,7 @@ requirements:
                   invalid_reasons.append("File not found : " + "', '".join(gs_diff))
                   gs_file_status = False
               else:
-                  gs_dims = [pd.read_csv(zip_file.open(gs_f), index_col=0).shape for gs_f in true_gs_files]
+                  gs_dims = [pd.read_csv(gs_zip_file.open(gs_f), index_col=0).shape for gs_f in true_gs_files]
           ## validate prediction file
           if args.submission_file is None:
               prediction_file_status = False
@@ -86,7 +86,7 @@ requirements:
               else:
                   true_dims = gs_dims * len(ds_props)
                   for index, pred_f in enumerate(pred_files):
-                      pred_df = pd.read_csv(zip_file.open(pred_f), index_col=0)
+                      pred_df = pd.read_csv(pred_zip_file.open(pred_f), index_col=0)
                       # check if all value is not less than 0
                       if (pred_df < 0).any().any():
                           invalid_reasons.append(pred_f + ": Negative value is not allowed")
