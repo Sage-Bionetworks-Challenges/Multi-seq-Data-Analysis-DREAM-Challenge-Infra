@@ -53,7 +53,7 @@ requirements:
           gs_file_status = True
           prediction_file_status = True
           exp_ids = ("2400", "2401", "7200", "7201")
-          ds_props = ("0_125", "0_5")
+          ds_props = ("0_125")
 
           ## validate goldstandard file
           if args.goldstandard is None:
@@ -92,7 +92,7 @@ requirements:
                           invalid_reasons.append(pred_f + ": Negative value is not allowed")
                           prediction_file_status = False
                       # check if num of row/col match with what in goldstandard for each experiment
-                      elif pred_df.shape == true_dims[index]:
+                      elif pred_df.shape != true_dims[index]:
                           invalid_reasons.append(pred_f + ": Number of genes or cells not match")
                           prediction_file_status = False
           validate_status = "VALIDATED" if gs_file_status & prediction_file_status else "INVALID"

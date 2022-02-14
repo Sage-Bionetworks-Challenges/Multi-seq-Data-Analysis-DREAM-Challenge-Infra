@@ -271,10 +271,12 @@ steps:
   score:
     run: score.cwl
     in:
-      - id: input_file
+      - id: pred_file
         source: "#run_docker/predictions"
       - id: goldstandard
         source: "#get_goldstandard/goldstandard"
+      - id: input_dir
+        valueFrom: "/home/ec2-user/challenge-data/downsampled"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:
