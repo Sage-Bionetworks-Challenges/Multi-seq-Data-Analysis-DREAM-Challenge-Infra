@@ -4,7 +4,7 @@
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: Rscript
+baseCommand: [Rscript, /score.R]
 
 hints:
   DockerRequirement:
@@ -21,7 +21,6 @@ inputs:
     type: boolean?
 
 arguments:
-  - valueFrom: score.R
   - valueFrom: $(inputs.pred_file.path)
     prefix: -f
   - valueFrom: $(inputs.input_dir)
