@@ -173,6 +173,7 @@ steps:
           class: File
           location: "run_docker.py"
     out:
+      - id: input_dir
       - id: predictions
 
   upload_results:
@@ -290,7 +291,7 @@ steps:
       - id: goldstandard
         source: "#unzip_goldstandard/unzipped_file"
       - id: input_dir
-        valueFrom: "/home/ec2-user/challenge-data/downsampled"
+        source: "#run_docker/input_dir"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:

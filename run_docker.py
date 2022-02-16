@@ -7,6 +7,7 @@ import tarfile
 import time
 
 import docker
+import subprocess
 import synapseclient
 
 
@@ -139,6 +140,8 @@ def main(syn, args):
                                               name=args.submissionid,
                                               network_disabled=True,
                                               mem_limit='6g', stderr=True)
+            # copy all training files that will be used for scoring into input_data/
+            subprocess.check_call(["docker", "cp", "/data/.", "input_data/"])
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             errors = str(err) + "\n"

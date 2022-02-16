@@ -59,6 +59,12 @@ requirements:
   - class: InlineJavascriptRequirement
 
 outputs:
+  input_dir:
+    type: Directory
+    outputBinding:
+      glob: input_data
+
+outputs:
   predictions:
     type: File
     outputBinding:
