@@ -23,7 +23,7 @@ inputs:
 arguments:
   - valueFrom: $(inputs.pred_file)
     prefix: -f
-  - valueFrom: $(inputs.input_dir.basename)
+  - valueFrom: $(inputs.input_dir)
     prefix: -i  
   - valueFrom: $(inputs.goldstandard)
     prefix: -g
