@@ -34,7 +34,7 @@ requirements:
   - class: InlineJavascriptRequirement
   - class: InitialWorkDirRequirement
     listing:
-      - $(inputs.input_dir)
+      - $(inputs.input_dir.listing)
       - $(inputs.pred_file)
       - $(inputs.goldstandard)
 outputs:
