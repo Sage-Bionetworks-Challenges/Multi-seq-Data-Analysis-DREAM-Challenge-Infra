@@ -63,8 +63,6 @@ outputs:
     type: Directory
     outputBinding:
       glob: input_data
-
-outputs:
   predictions:
     type: File
     outputBinding:
