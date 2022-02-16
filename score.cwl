@@ -12,27 +12,30 @@ hints:
 
 inputs:
   - id: pred_file
-    type: File
+    type: File[]?
   - id: input_dir
     type: string
   - id: goldstandard
-    type: File
+    type: File[]?
   - id: check_validation_finished
     type: boolean?
 
 arguments:
-  - valueFrom: $(inputs.pred_file.path)
+  - valueFrom: $(inputs.pred_file)
     prefix: -f
   - valueFrom: $(inputs.input_dir)
     prefix: -i  
-  - valueFrom: $(inputs.goldstandard.path)
+  - valueFrom: $(inputs.goldstandard)
     prefix: -g
   - valueFrom: results.json
     prefix: -r
 
 requirements:
   - class: InlineJavascriptRequirement
-
+  - class: InitialWorkDirRequirement
+    listing: 
+      - $(inputs.pred_file)
+      - $(inputs.goldstandard)
 outputs:
   - id: results
     type: File

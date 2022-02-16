@@ -268,13 +268,27 @@ steps:
         source: "#email_validation/finished"
     out: [finished]
 
+  unzip_predictions:
+    run: unzip.cwl
+    in:
+      - id: zipped_file
+        source: "#run_docker/predictions"
+    out: [unzipped_file]
+
+  unzip_goldstandard:
+    run: unzip.cwl
+    in:
+      - id: zipped_file
+        source: "#get_goldstandard/goldstandard"
+    out: [unzipped_file]
+
   score:
     run: score.cwl
     in:
       - id: pred_file
-        source: "#run_docker/predictions"
+        source: "#unzip_predictions/unzipped_file"
       - id: goldstandard
-        source: "#get_goldstandard/goldstandard"
+        source: "#unzip_goldstandard/unzipped_file"
       - id: input_dir
         valueFrom: "/home/ec2-user/challenge-data/downsampled"
       - id: check_validation_finished 
