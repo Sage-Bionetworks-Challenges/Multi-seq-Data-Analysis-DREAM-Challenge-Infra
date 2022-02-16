@@ -77,7 +77,7 @@ requirements:
               pred_zip_file = ZipFile(args.submission_file, "r")
               # exp names, e.g. pac_2400_ds_0_125, pac_2401_ds_0_125, pac_7200_ds_0_125, 
               # pac_7201_ds_0_5, pac_2400_ds_0_5, ...
-              true_pred_files = ["pac_" + id  + "_ds_" + p + ".csv" for p in ds_props for id in exp_ids]
+              true_pred_files = ["pac_" + id  + "_ds_" + p + "_impute.csv" for p in ds_props for id in exp_ids]
               pred_diff = list(set(true_pred_files) - set(pred_zip_file.namelist()))
               # check if all required data exists
               if pred_diff:

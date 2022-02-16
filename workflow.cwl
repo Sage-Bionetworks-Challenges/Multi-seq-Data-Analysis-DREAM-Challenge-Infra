@@ -173,7 +173,7 @@ steps:
           class: File
           location: "run_docker.py"
     out:
-      - id: input_dir
+      - id: input_files
       - id: predictions
 
   upload_results:
@@ -290,8 +290,8 @@ steps:
         source: "#unzip_predictions/unzipped_file"
       - id: goldstandard
         source: "#unzip_goldstandard/unzipped_file"
-      - id: input_dir
-        source: "#run_docker/input_dir"
+      - id: input_files
+        source: "#run_docker/input_files"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:

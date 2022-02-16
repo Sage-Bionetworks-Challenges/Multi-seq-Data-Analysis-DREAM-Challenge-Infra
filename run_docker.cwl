@@ -59,10 +59,10 @@ requirements:
   - class: InlineJavascriptRequirement
 
 outputs:
-  input_dir:
-    type: Directory
+  input_files:
+    type: File[]
     outputBinding:
-      glob: input_data
+      glob: input_data/*.csv
   predictions:
     type: File
     outputBinding:

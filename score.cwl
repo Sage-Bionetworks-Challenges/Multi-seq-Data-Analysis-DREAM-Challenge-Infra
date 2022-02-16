@@ -13,8 +13,8 @@ hints:
 inputs:
   - id: pred_file
     type: File[]?
-  - id: input_dir
-    type: Directory?
+  - id: input_files
+    type: File[]?
   - id: goldstandard
     type: File[]?
   - id: check_validation_finished
@@ -23,7 +23,7 @@ inputs:
 arguments:
   - valueFrom: $(inputs.pred_file)
     prefix: -f
-  - valueFrom: $(inputs.input_dir)
+  - valueFrom: $(inputs.input_files)
     prefix: -i  
   - valueFrom: $(inputs.goldstandard)
     prefix: -g
@@ -34,7 +34,7 @@ requirements:
   - class: InlineJavascriptRequirement
   - class: InitialWorkDirRequirement
     listing:
-      - $(inputs.input_dir.listing)
+      - $(inputs.input_files)
       - $(inputs.pred_file)
       - $(inputs.goldstandard)
 outputs:
