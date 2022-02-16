@@ -286,7 +286,7 @@ steps:
   score:
     run: score.cwl
     in:
-      - id: pred_file
+      - id: predictions
         source: "#unzip_predictions/unzipped_file"
       - id: goldstandard
         source: "#unzip_goldstandard/unzipped_file"
