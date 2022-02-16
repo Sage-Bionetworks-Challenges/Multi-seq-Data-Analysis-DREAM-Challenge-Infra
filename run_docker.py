@@ -142,7 +142,7 @@ def main(syn, args):
                                               mem_limit='6g', stderr=True)
             # copy all training files that will be used for scoring into input_data/
             subprocess.check_call(
-                ["docker", "cp", input_dir + "/.", "input_data/"])
+                ["docker", "cp", args.submissionid + ":/data/.", "input_data/"])
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             errors = str(err) + "\n"
