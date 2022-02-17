@@ -139,7 +139,7 @@ def main(syn, args):
                                               detach=True, volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
-                                              mem_limit='6g', stderr=True)
+                                              mem_limit='60g', stderr=True)
             # copy all training files that will be used for scoring into input_data/
             subprocess.check_call(
                 ["docker", "cp", args.submissionid + ":/data/.", "input_data/"])
