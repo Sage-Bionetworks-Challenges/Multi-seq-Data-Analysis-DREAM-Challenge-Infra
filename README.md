@@ -1,4 +1,4 @@
-# scRNA-seq and ATAC-seq Data Analysis Dream Challenge Workflow
+# Single-cell RNA-seq and ATAC-seq Data Analysis DREAM Challenge Workflow
 
 This repository will serve as a template for the `CWL` workflow and tools required to set up a `model-to-data` challenge infrastructure.
 
