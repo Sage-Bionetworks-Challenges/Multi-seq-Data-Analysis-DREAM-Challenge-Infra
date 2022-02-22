@@ -222,7 +222,7 @@ steps:
         source: "#run_docker/predictions"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
-      - id: gs_file
+      - id: goldstandard
         source: "#download_goldstandard/filepath"
     out:
       - id: results
@@ -273,27 +273,13 @@ steps:
         source: "#email_validation/finished"
     out: [finished]
 
-  unzip_predictions:
-    run: unzip.cwl
-    in:
-      - id: zipped_file
-        source: "#run_docker/predictions"
-    out: [unzipped_file]
-
-  unzip_goldstandard:
-    run: unzip.cwl
-    in:
-      - id: zipped_file
-        source: "#get_goldstandard/goldstandard"
-    out: [unzipped_file]
-
   score:
     run: score.cwl
     in:
       - id: predictions
-        source: "#unzip_predictions/unzipped_file"
+        source: "#run_docker/predictions"
       - id: goldstandard
-        source: "#unzip_goldstandard/unzipped_file"
+        source: "#download_goldstandard/filepath"
       - id: input_files
         source: "#run_docker/input_files"
       - id: check_validation_finished 

@@ -15,7 +15,7 @@ inputs:
     type: File?
   - id: entity_type
     type: string
-  - id: gs_file
+  - id: goldstandard
     type: File?
 
 arguments:
@@ -24,7 +24,7 @@ arguments:
     prefix: -s
   - valueFrom: $(inputs.entity_type)
     prefix: -e
-  - valueFrom: $(inputs.gs_file)
+  - valueFrom: $(inputs.goldstandard)
     prefix: -g
   - valueFrom: results.json
     prefix: -r

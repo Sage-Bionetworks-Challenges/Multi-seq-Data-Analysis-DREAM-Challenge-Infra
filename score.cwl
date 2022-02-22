@@ -12,25 +12,29 @@ hints:
 
 inputs:
   - id: goldstandard
-    type: File[]?
+    type: File?
   - id: input_files
     type: File[]?
   - id: predictions
-    type: File[]?
+    type: File?
   - id: check_validation_finished
     type: boolean?
 
 arguments:
+  - valueFrom: $(inputs.goldstandard.path)
+    prefix: -g
+  # - valueFrom: $(inputs.input_file.path)
+  #   prefix: -i
+  - valueFrom: $(inputs.predictions.path)
+    prefix: -p
   - valueFrom: results.json
-    prefix: -r
+    prefix: -o
 
 requirements:
   - class: InlineJavascriptRequirement
   - class: InitialWorkDirRequirement
     listing:
-      - $(inputs.goldstandard)
       - $(inputs.input_files)
-      - $(inputs.predictions)
 outputs:
   - id: results
     type: File
