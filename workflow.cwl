@@ -83,12 +83,6 @@ steps:
       - id: docker_registry
       - id: docker_authentication
 
-  get_goldstandard:
-    run: get_goldstandard.cwl
-    in: []
-    out:
-      - id: goldstandard
-
   validate_docker:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/validate_docker.cwl
     in:
@@ -211,6 +205,16 @@ steps:
         source: "#annotate_docker_validation_with_output/finished"
     out: [finished]
 
+  download_goldstandard:
+    run: https://raw.githubusercontent.com/Sage-Bionetworks-Workflows/cwl-tool-synapseclient/v1.4/cwl/synapse-get-tool.cwl
+    in:
+      - id: synapseid
+        valueFrom: "syn27211635"
+      - id: synapse_config
+        source: "#synapseConfig"
+    out:
+      - id: filepath
+
   validate:
     run: validate.cwl
     in:
@@ -218,8 +222,8 @@ steps:
         source: "#run_docker/predictions"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
-      - id: goldstandard
-        source: "#get_goldstandard/goldstandard"
+      - id: gs_file
+        source: "#download_goldstandard/filepath"
     out:
       - id: results
       - id: status
