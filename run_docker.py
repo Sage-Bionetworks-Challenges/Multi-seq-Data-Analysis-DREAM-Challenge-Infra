@@ -181,10 +181,10 @@ def main(syn, args):
 
     output_folder = os.listdir(output_dir)
     if not output_folder:
-        raise Exception("No 'predictions.zip' file written to /output, "
+        raise Exception("No 'predictions.tar.zip' file written to /output, "
                         "please check inference docker")
     elif "predictions.zip" not in output_folder:
-        raise Exception("No 'predictions.zip' file written to /output, "
+        raise Exception("No 'predictions.tar.zip' file written to /output, "
                         "please check inference docker")
     # CWL has a limit of the array of files it can accept in a folder
     # therefore creating a tarball is sometimes necessary
