@@ -66,4 +66,4 @@ outputs:
   predictions:
     type: File
     outputBinding:
-      glob: predictions.zip
+      glob: predictions.tar.gz
