@@ -161,7 +161,7 @@ steps:
         default: true
       # TODO: replace `valueFrom` with the absolute path to the data directory to be mounted
       - id: input_dir
-        valueFrom: "/Users/rchai/Projects/Challenges/scRNAseq-and-ATACseq/data/downsampled"
+        valueFrom: "/home/ec2-user/challenge-data/downsampled"
       - id: docker_script
         default:
           class: File
