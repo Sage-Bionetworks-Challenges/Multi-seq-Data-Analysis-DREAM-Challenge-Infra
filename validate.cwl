@@ -11,7 +11,7 @@ hints:
     dockerPull: docker.synapse.org/syn26720835/scoring-test:v1
 
 inputs:
-  - id: input_file
+  - id: submission_file
     type: File?
   - id: entity_type
     type: string
@@ -19,8 +19,7 @@ inputs:
     type: File?
 
 arguments:
-  - valueFrom: validate.py
-  - valueFrom: $(inputs.input_file)
+  - valueFrom: $(inputs.submission_file)
     prefix: -s
   - valueFrom: $(inputs.entity_type)
     prefix: -e

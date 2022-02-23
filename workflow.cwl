@@ -161,7 +161,7 @@ steps:
         default: true
       # TODO: replace `valueFrom` with the absolute path to the data directory to be mounted
       - id: input_dir
-        valueFrom: "/home/ec2-user/challenge-data/downsampled"
+        valueFrom: "/Users/rchai/Projects/Challenges/scRNAseq-and-ATACseq/data/downsampled"
       - id: docker_script
         default:
           class: File
@@ -218,7 +218,7 @@ steps:
   validate:
     run: validate.cwl
     in:
-      - id: input_file
+      - id: submission_file
         source: "#run_docker/predictions"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
