@@ -4,7 +4,7 @@
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: [python3, validate.py]
+baseCommand: [python3, /validate.py]
 
 hints:
   DockerRequirement:
