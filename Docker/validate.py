@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Validation script for scRNA-seq signal correction.
-Predictions file must be a zipped tarball archive of imputed count files:
-(*.tar.gz).
+Predictions file must be a zipped archive of imputed count files.
 Each imputed count file must have a correct file format:
 (pac_expId_ds_prop_imputed.csv).
 """
@@ -9,7 +8,9 @@ Each imputed count file must have a correct file format:
 import argparse
 import json
 import pandas as pd
-from zipfile import ZipFile
+import os
+import tarfile
+import zipfile
 
 
 def get_args():
@@ -25,12 +26,48 @@ def get_args():
     return parser.parse_args()
 
 
-def get_dim_names(df):
-    """
-    Get all row names and column names of df
-    """
-    out = {"rownames": df.index.tolist(),
-           "colnames": df.columns.values.tolist()}
+def _filter_files(members):
+    """Filter out non-csv files in zip file."""
+    filenames = filter(lambda file: file.endswith(".csv"), members)
+    filenames = list(filenames)
+    return filenames
+
+
+def unzip_file(f):
+    """Untar or unzip file."""
+    names = []
+    dfs = []
+
+    if zipfile.is_zipfile(f):
+        with zipfile.ZipFile(f) as zip_ref:
+            members = zip_ref.namelist()
+            members = _filter_files(members)
+            if members:
+                for member in members:
+                    names.append(os.path.basename(member))
+                    file = zip_ref.open(member)
+                    df = pd.read_csv(file, index_col=0)
+                    dfs.append(df)
+
+    elif tarfile.is_tarfile(f):
+        with tarfile.open(f) as zip_ref:
+            members = zip_ref.getnames()
+            members = _filter_files(members)
+            if members:
+                for member in members:
+                    names.append(os.path.basename(member))
+                    file = zip_ref.extractfile(member)
+                    df = pd.read_csv(file, index_col=0)
+                    dfs.append(df)
+
+    return {"names": names, "files": dfs}
+
+
+def get_dim_name(df):
+    """Get all row names and column names of df"""
+    out = {"rownames": list(df.index),
+           "colnames": list(df.columns.values)}
+
     return out
 
 
@@ -39,64 +76,56 @@ def main():
     args = get_args()
 
     invalid_reasons = []
-    gs_file_status = True
-    prediction_file_status = True
+
+    # set variables to name files
     exp_ids = ["2400", "2401", "7200", "7201"]
     ds_props = ["0_125"]
 
     # validate goldstandard file
-    if args.goldstandard is None:
-        gs_file_status = False
-        invalid_reasons = [args.goldstandard + ' not found']
-    else:
-        gs_zip_file = ZipFile(args.goldstandard, "r")
-        true_gs_files = ["pac_" + id + "_gs.csv" for id in exp_ids]
-        gs_diff = list(set(true_gs_files) - set(gs_zip_file.namelist()))
-        # check if all required data exists
-        if gs_diff:
-            invalid_reasons.append("File not found : " + "', '".join(gs_diff))
-            gs_file_status = False
-        else:
-            gs_names = [get_dim_names(gs_f) for gs_f in true_gs_files]
+    # check if all required data exists
+    gs_files = unzip_file(args.goldstandard)
+    true_gs_files = ["pac_" + id + "_gs.csv" for id in exp_ids]
+    diff = list(set(true_gs_files) - set(gs_files["names"]))
+    if diff:
+        invalid_reasons.append(["File not found : " + "', '".join(diff)])
 
     # validate prediction file
     if args.submission_file is None:
-        prediction_file_status = False
-        invalid_reasons = [
-            'Expected FileEntity type but found ' + args.entity_type]
+        invalid_reasons.append(
+            'Expected FileEntity type but found ' + args.entity_type
+        )
     else:
-        pred_zip_file = ZipFile(args.submission_file, "r")
+        pred_files = unzip_file(args.submission_file)
         # exp names: pac_{expId}_ds_{prop}_imputed, e.g. pac_1111_ds_0_1
-        true_pred_files = ["pac_" + id + "_ds_" + p +
-                           "_impute.csv" for p in ds_props for id in exp_ids]
-        pred_diff = list(set(true_pred_files) - set(pred_zip_file.namelist()))
+        true_pred_files = ["pac_" + id + "_ds_" + p + "_impute.csv"
+                           for p in ds_props for id in exp_ids]
         # check if all required data exists
-        if pred_diff:
-            invalid_reasons.append(
-                "File not found : " + "', '".join(pred_diff))
-            prediction_file_status = False
-        else:
-            true_names = gs_names * len(ds_props)
-            for index, pred_f in enumerate(true_pred_files):
-                pred_df = pd.read_csv(pred_zip_file.open(pred_f), index_col=0)
-                pred_names = get_dim_names(pred_df)
-                true_names = gs_names[index]
-                cp1 = set(pred_names["rownames"]).issubset(
-                    true_names["rownames"])
-                cp2 = set(pred_names["colnames"]).issubset(
-                    true_names["colnames"])
-                # check if names of row/col match with what in goldstandard for each exp
-                if not (cp1 and cp2):
-                    invalid_reasons.append(
-                        pred_f + ": do not contain all genes or cells")
-                    prediction_file_status = False
-                # check if all value is not less than 0
-                elif (pred_df < 0).any().any():
-                    invalid_reasons.append(
-                        pred_f + ": Negative value is not allowed")
-                    prediction_file_status = False
+        diff = list(set(true_pred_files) - set(pred_files["names"]))
+        if diff:
+            invalid_reasons.append(["File not found : " + "', '".join(diff)])
 
-    validate_status = "VALIDATED" if gs_file_status & prediction_file_status else "INVALID"
+    if not invalid_reasons:
+        # get all rownames and colnames of gs files
+        gs_names = [get_dim_name(gs_df) for gs_df in gs_files["files"]]
+        # multiply number of downsampling props to match index of pred files
+        true_names = gs_names * len(ds_props)
+        # validate each prediction file
+        for index, pred_f in enumerate(pred_files["files"]):
+            # check if names of row/col match with what in goldstandard for each exp
+            pred_names = get_dim_name(pred_f)
+            cp1 = set(pred_names["rownames"]).issubset(
+                true_names[index]["rownames"])
+            cp2 = set(pred_names["colnames"]).issubset(
+                true_names[index]["colnames"])
+            if not (cp1 and cp2):
+                invalid_reasons.append(
+                    pred_f + ": Do not contain all genes or cells")
+            # TODO: check data type
+            # check if all value is >= 0
+            elif (pred_f < 0).any().any():
+                invalid_reasons.append(
+                    pred_f + ": Negative value is not allowed")
+    validate_status = "INVALID" if invalid_reasons else "VALIDATED"
     result = {'submission_errors': "\n".join(invalid_reasons),
               'submission_status': validate_status}
     with open(args.results, 'w') as o:
