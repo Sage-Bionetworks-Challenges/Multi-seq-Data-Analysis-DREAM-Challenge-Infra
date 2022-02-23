@@ -8,7 +8,7 @@ baseCommand: [python3, validate.py]
 
 hints:
   DockerRequirement:
-    dockerPull: amancevice/pandas:1.4.0-slim
+    dockerPull: docker.synapse.org/syn26720835/scoring-test:v1
 
 inputs:
   - id: input_file
