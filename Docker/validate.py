@@ -77,7 +77,7 @@ def main():
 
     # set variables to name files
     exp_ids = ["2400", "2401", "7200", "7201"]
-    ds_props = ["0_125"]
+    ds_props = ["0_125", "0_5", "drpc_20k", "drpc_50k"]
 
     # validate goldstandard file
     # check if all required data exists
