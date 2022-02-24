@@ -105,8 +105,8 @@ def main():
     if not invalid_reasons:
         # get all rownames and colnames of gs files
         gs_names = [get_dim_name(gs_df) for gs_df in gs_files["files"]]
-        # multiply number of downsampling props to match index of pred files
-        true_names = gs_names * len(ds_props)
+        # multiply number of downsampling props to match number of pred files
+        true_names = [x for x in gs_names for i in range(len(ds_props))]
         # validate each prediction file
         for index, pred_df in enumerate(pred_files["files"]):
             file_name = pred_files["names"][index]
