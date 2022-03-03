@@ -76,8 +76,10 @@ def main():
     invalid_reasons = []
 
     # set variables to name files
-    exp_ids = ["2400", "2401", "7200", "7201"]
-    ds_props = ["0_125", "0_5", "drpc_20k", "drpc_50k"]
+    # exp_ids = ["2400", "2401", "7200", "7201"]
+    # ds_props = ["0_125", "0_5", "drpc_20k", "drpc_50k"]
+    exp_ids = ["2400"]
+    ds_props = ["0_5"]
 
     # validate goldstandard file
     # check if all required data exists
