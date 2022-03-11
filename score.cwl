@@ -19,6 +19,12 @@ inputs:
     type: File?
   - id: check_validation_finished
     type: boolean?
+  - id: condition
+    type: string[]?
+  - id: proportion
+    type: string[]?
+  - id: file_prefix
+    type: string?
 
 arguments:
   - valueFrom: $(inputs.goldstandard.path)
@@ -27,6 +33,12 @@ arguments:
   #   prefix: -i
   - valueFrom: $(inputs.predictions.path)
     prefix: -p
+  - valueFrom: $(inputs.condition)
+    prefix: -c
+  - valueFrom: $(inputs.proportion)
+    prefix: -p
+  - valueFrom: $(inputs.file_prefix)
+    prefix: -x
   - valueFrom: results.json
     prefix: -o
 

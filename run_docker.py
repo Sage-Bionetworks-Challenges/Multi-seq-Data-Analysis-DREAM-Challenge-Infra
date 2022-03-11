@@ -106,9 +106,20 @@ def main(syn, args):
     docker_image = args.docker_repository + "@" + args.docker_digest
 
     # These are the volumes that you want to mount onto your docker container
-    #output_dir = os.path.join(os.getcwd(), "output")
+    # Assign different input_dir for different questions
+    if args.question == "1A":
+        input_dir = os.path.join(args.input_dir, "scRNAseq/dataset1")
+    elif args.question == "1B":
+        input_dir = os.path.join(args.input_dir, "scATACseq")
+    # TODO: assign different input_dir for subchallenge 2 & 3 + add real queueIds
+
     output_dir = os.getcwd()
-    input_dir = args.input_dir
+
+    # Assign different memory limit for different questions
+    if args.question == "1A":
+        docker_mem = "24g"
+    else:
+        docker_mem = "6g"
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
@@ -144,7 +155,7 @@ def main(syn, args):
                                               detach=True, volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
-                                              mem_limit='24g', stderr=True)
+                                              mem_limit=docker_mem, stderr=True)
             # copy all training files that will be used for scoring into input_data/
             subprocess.check_call(
                 ["docker", "cp", args.submissionid + ":/data/.", "input_data/"])
@@ -213,6 +224,8 @@ if __name__ == '__main__':
     parser.add_argument("--parentid", required=True,
                         help="Parent Id of submitter directory")
     parser.add_argument("--status", required=True, help="Docker image status")
+    parser.add_argument("--question", required=True,
+                        help="Challenge question")
     args = parser.parse_args()
     syn = synapseclient.Synapse(configPath=args.synapse_config)
     syn.login()

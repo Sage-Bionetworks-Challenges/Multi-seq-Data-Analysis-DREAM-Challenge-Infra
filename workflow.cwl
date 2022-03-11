@@ -137,6 +137,17 @@ steps:
         source: "#email_docker_validation/finished"
     out: [finished]
 
+  utils:
+    run: utils.cwl
+    in:
+      - id: queue
+        source: "#get_docker_submission/evaluation_id"
+    out:
+      - id: question
+      - id: condition
+      - id: proportion
+      - id: file_prefix
+  
   run_docker:
     run: run_docker.cwl
     in:
@@ -159,6 +170,8 @@ steps:
       # OPTIONAL: set `default` to `false` if log file should not be uploaded to Synapse
       - id: store
         default: true
+      - id: question
+        source: "#utils/question"
       # TODO: replace `valueFrom` with the absolute path to the data directory to be mounted
       - id: input_dir
         valueFrom: "/home/ec2-user/challenge-data/downsampled"
@@ -224,6 +237,12 @@ steps:
         source: "#get_docker_submission/entity_type"
       - id: goldstandard
         source: "#download_goldstandard/filepath"
+      - id: condition
+        source: "#utils/condition"
+      - id: proportion
+        source: "#utils/proportion"
+      - id: file_prefix
+        source: "#utils/file_prefix"
     out:
       - id: results
       - id: status
@@ -282,6 +301,12 @@ steps:
         source: "#download_goldstandard/filepath"
       - id: input_files
         source: "#run_docker/input_files"
+      - id: condition
+        source: "#utils/condition"
+      - id: proportion
+        source: "#utils/proportion"
+      - id: file_prefix
+        source: "#utils/file_prefix"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:

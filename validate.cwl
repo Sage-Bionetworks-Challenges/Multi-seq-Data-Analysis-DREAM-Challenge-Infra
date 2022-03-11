@@ -17,6 +17,12 @@ inputs:
     type: string
   - id: goldstandard
     type: File?
+  - id: condition
+    type: string[]?
+  - id: proportion
+    type: string[]?
+  - id: file_prefix
+    type: string?
 
 arguments:
   - valueFrom: $(inputs.submission_file)
@@ -25,6 +31,12 @@ arguments:
     prefix: -e
   - valueFrom: $(inputs.goldstandard)
     prefix: -g
+  - valueFrom: $(inputs.condition)
+    prefix: -c
+  - valueFrom: $(inputs.proportion)
+    prefix: -p
+  - valueFrom: $(inputs.file_prefix)
+    prefix: -x
   - valueFrom: results.json
     prefix: -r
 

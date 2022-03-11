@@ -23,6 +23,12 @@ def get_args():
     parser.add_argument("-s", "--submission_file", help="Submission File")
     parser.add_argument("-g", "--goldstandard", required=True,
                         help="Goldstandard for scoring")
+    parser.add_argument("-c", "--condition", required=True, nargs='+',
+                        help="Experiment condition")
+    parser.add_argument("-p", "--proportion", required=True, nargs='+',
+                        help="Downsampling proportion")
+    parser.add_argument("-x", "--file_prefix", required=True,
+                        help="Prefix of filename")
     return parser.parse_args()
 
 
@@ -78,13 +84,13 @@ def main():
     # set variables to name files
     # exp_ids = ["2400", "2401", "7200", "7201"]
     # ds_props = ["0_125", "0_5", "drpc_20k", "drpc_50k"]
-    exp_ids = ["2400"]
-    ds_props = ["0_5"]
+    ds_props = args.proportion
+    conditions = args.condition
 
     # validate goldstandard file
     # check if all required data exists
     gs_files = unzip_file(args.goldstandard)
-    true_gs_files = ["pac_" + id + "_gs.csv" for id in exp_ids]
+    true_gs_files = [args.file_prefix + c + "_gs.csv" for c in conditions]
     diff = list(set(true_gs_files) - set(gs_files["names"]))
     if diff:
         invalid_reasons.append("File not found : " + "', '".join(diff))
@@ -96,15 +102,16 @@ def main():
         )
     else:
         pred_files = unzip_file(args.submission_file)
-        # exp names: pac_{expId}_ds_{prop}_imputed, e.g. pac_1111_ds_0_1
-        true_pred_files = ["pac_" + id + "_ds_" + p + "_impute.csv"
-                           for p in ds_props for id in exp_ids]
+        true_pred_files = [args.file_prefix + c + "_ds_" + p + "_imputed.csv"
+                           for p in ds_props for c in conditions]
         # check if all required data exists
         diff = list(set(true_pred_files) - set(pred_files["names"]))
         if diff:
             invalid_reasons.append("File not found : " + "', '".join(diff))
 
     if not invalid_reasons:
+        # TODO: make it as a validation function for scRNAseq
+        # TODO: add another validation function for scATACseq when reference script is provided
         # get all rownames and colnames of gs files
         gs_names = [get_dim_name(gs_df) for gs_df in gs_files["files"]]
         # multiply number of downsampling props to match number of pred files
@@ -132,7 +139,7 @@ def main():
                 elif (pred_df < 0).any().any():
                     invalid_reasons.append(
                         file_name + ": Negative value is not allowed")
-    print(invalid_reasons)
+
     validate_status = "INVALID" if invalid_reasons else "VALIDATED"
     result = {'submission_errors': "\n".join(invalid_reasons),
               'submission_status': validate_status}
