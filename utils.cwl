@@ -48,13 +48,13 @@ expression: |
     // };
 
     if (inputs.queue == "9614943") {
-      var ds_prop = ["0_1"]; // tmp
+      var ds_prop = ["0_01"]; // tmp
       var condition = ["c1", "c2"]; // tmp
       var prefix = "scRNAseq/dataset1/dataset1"
       var question = "1A"
       
     } else if (inputs.queue == "9615021") {
-      var ds_prop = ["0_1"]; // tmp
+      var ds_prop = ["0_01"]; // tmp
       var condition = ["c1", "c2"]; // tmp
       var prefix = "scATACseq/peak"
       var question = "1B"
