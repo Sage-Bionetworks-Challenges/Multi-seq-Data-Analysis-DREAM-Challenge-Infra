@@ -1,7 +1,7 @@
 #!/usr/bin/env cwl-runner
 #
 # Throws invalid error which invalidates the workflow
-# Based on the question, return expected all groudtruth and prediction filenames,
+# Based on the question, return all exp conditions, proportions, questions,
 # which will be used for validation and scoring
 
 cwlVersion: v1.0
@@ -48,16 +48,17 @@ expression: |
     // };
 
     if (inputs.queue == "9614943") {
-      var ds_prop = ["0_125"]; // tmp
+      var ds_prop = ["0_1"]; // tmp
       var condition = ["c1", "c2"]; // tmp
-      var prefix = "dataset1"
+      var prefix = "scRNAseq/dataset1/dataset1"
       var question = "1A"
       
     } else if (inputs.queue == "9615021") {
-      var ds_prop = ["0_125"]; // tmp
+      var ds_prop = ["0_1"]; // tmp
       var condition = ["c1", "c2"]; // tmp
+      var prefix = "scATACseq/peak"
       var question = "1B"
-      var prefix = "peak"
+
     } else {
       throw 'invalid queue';
     }
