@@ -72,6 +72,7 @@ steps:
       - id: docker_digest
       - id: entity_id
       - id: entity_type
+      - id: evaluation_id
       - id: results
 
   get_docker_config:
