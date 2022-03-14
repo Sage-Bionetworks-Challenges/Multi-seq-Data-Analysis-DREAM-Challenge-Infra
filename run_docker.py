@@ -215,6 +215,8 @@ if __name__ == '__main__':
                         help="Docker Repository")
     parser.add_argument("-d", "--docker_digest", required=True,
                         help="Docker Digest")
+    parser.add_argument("-q", "--question", required=True,
+                        help="Challenge question")
     parser.add_argument("-i", "--input_dir", required=True,
                         help="Input Directory")
     parser.add_argument("-c", "--synapse_config", required=True,
@@ -224,8 +226,6 @@ if __name__ == '__main__':
     parser.add_argument("--parentid", required=True,
                         help="Parent Id of submitter directory")
     parser.add_argument("--status", required=True, help="Docker image status")
-    parser.add_argument("--question", required=True,
-                        help="Challenge question")
     args = parser.parse_args()
     syn = synapseclient.Synapse(configPath=args.synapse_config)
     syn.login()
