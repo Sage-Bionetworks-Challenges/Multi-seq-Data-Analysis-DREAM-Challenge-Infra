@@ -19,6 +19,8 @@ outputs:
     type: string[]
   - id: condition
     type: string[]
+  - id: input_dir
+    type: string
   - id: file_prefix
     type: string
 

@@ -147,8 +147,9 @@ steps:
       - id: question
       - id: condition
       - id: proportion
-      - id: input_dir
       - id: file_prefix
+      - id: input_dir
+
   
   run_docker:
     run: run_docker.cwl
@@ -174,9 +175,8 @@ steps:
         default: true
       - id: question
         source: "#utils/question"
-      # TODO: replace `valueFrom` with the absolute path to the data directory to be mounted
       - id: input_dir
-        valueFrom: "#utils/input_dir"
+        source: "#utils/input_dir"
       - id: docker_script
         default:
           class: File
