@@ -147,6 +147,7 @@ steps:
       - id: question
       - id: condition
       - id: proportion
+      - id: input_dir
       - id: file_prefix
   
   run_docker:
@@ -175,7 +176,7 @@ steps:
         source: "#utils/question"
       # TODO: replace `valueFrom` with the absolute path to the data directory to be mounted
       - id: input_dir
-        valueFrom: "/home/ec2-user/challenge-data/downsampled"
+        valueFrom: "#utils/input_dir"
       - id: docker_script
         default:
           class: File

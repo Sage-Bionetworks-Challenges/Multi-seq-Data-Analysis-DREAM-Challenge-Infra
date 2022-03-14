@@ -106,13 +106,8 @@ def main(syn, args):
     docker_image = args.docker_repository + "@" + args.docker_digest
 
     # These are the volumes that you want to mount onto your docker container
-    # Assign different input_dir for different questions
-    if args.question == "1A":
-        input_dir = os.path.join(args.input_dir, "scRNAseq/dataset1")
-    elif args.question == "1B":
-        input_dir = os.path.join(args.input_dir, "scATACseq")
     # TODO: assign different input_dir for subchallenge 2 & 3 + add real queueIds
-
+    input_dir = args.input_dir
     output_dir = os.getcwd()
 
     # Assign different memory limit for different questions

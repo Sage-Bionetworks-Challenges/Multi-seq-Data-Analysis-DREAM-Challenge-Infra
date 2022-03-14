@@ -1,8 +1,9 @@
 #!/usr/bin/env cwl-runner
 #
 # Throws invalid error which invalidates the workflow
-# Based on the question, return all exp conditions, proportions, questions,
-# which will be used for validation and scoring
+# This workflow will return:
+# 1. questions, downsampling folder, which will be used for the model
+# 2. experimental conditions and proportions, which will be used for validation and scoring
 
 cwlVersion: v1.0
 class: ExpressionTool
@@ -46,17 +47,19 @@ expression: |
     //   }
     //   return out;
     // };
-
+    var ds_folder = "/home/ec2-user/challenge-data/downsampled"
     if (inputs.queue == "9614943") {
       var ds_prop = ["0_01"]; // tmp
       var condition = ["c1", "c2"]; // tmp
-      var prefix = "scRNAseq/dataset1/dataset1"
+      var input_dir = `${ds_folder}/scRNAseq/dataset1`
+      var prefix = "dataset1"
       var question = "1A"
       
     } else if (inputs.queue == "9615021") {
       var ds_prop = ["0_01"]; // tmp
       var condition = ["c1", "c2"]; // tmp
-      var prefix = "scATACseq/peak"
+      var input_dir = `${ds_folder}/scATACseq`
+      var prefix = "peak"
       var question = "1B"
 
     } else {
@@ -64,6 +67,7 @@ expression: |
     }
     return {question: question, 
             proportion: ds_prop, 
-            condition: condition, 
+            condition: condition,
+            input_dir: input_dir, 
             file_prefix: prefix};
   }
