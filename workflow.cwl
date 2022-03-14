@@ -183,13 +183,13 @@ steps:
           location: "run_docker.py"
     out:
       - id: input_files
-      - id: predictions
+      - id: submission_file
 
   upload_results:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/upload_to_synapse.cwl
     in:
       - id: infile
-        source: "#run_docker/predictions"
+        source: "#run_docker/submission_file"
       - id: parentid
         source: "#adminUploadSynId"
       - id: used_entity
@@ -234,7 +234,7 @@ steps:
     run: validate.cwl
     in:
       - id: submission_file
-        source: "#run_docker/predictions"
+        source: "#run_docker/submission_file"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
       - id: goldstandard
@@ -297,8 +297,8 @@ steps:
   score:
     run: score.cwl
     in:
-      - id: predictions
-        source: "#run_docker/predictions"
+      - id: submission_file
+        source: "#run_docker/submission_file"
       - id: goldstandard
         source: "#download_goldstandard/filepath"
       - id: input_files

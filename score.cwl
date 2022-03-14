@@ -15,7 +15,7 @@ inputs:
     type: File?
   - id: input_files
     type: File[]?
-  - id: predictions
+  - id: submission_file
     type: File?
   - id: check_validation_finished
     type: boolean?
@@ -31,8 +31,8 @@ arguments:
     prefix: -g
   # - valueFrom: $(inputs.input_file.path)
   #   prefix: -i
-  - valueFrom: $(inputs.predictions.path)
-    prefix: -p
+  - valueFrom: $(inputs.submission_file.path)
+    prefix: -s
   - valueFrom: $(inputs.condition)
     prefix: -c
   - valueFrom: $(inputs.proportion)

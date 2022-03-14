@@ -67,7 +67,7 @@ outputs:
     type: File[]
     outputBinding:
       glob: input_data/*.csv
-  predictions:
+  submission_file:
     type: File
     outputBinding:
       glob: predictions.tar.gz
