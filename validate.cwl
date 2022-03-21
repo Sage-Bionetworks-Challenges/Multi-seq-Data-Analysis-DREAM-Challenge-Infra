@@ -23,6 +23,8 @@ inputs:
     type: string[]?
   - id: file_prefix
     type: string?
+  - id: question
+    type: string?
 
 arguments:
   - valueFrom: $(inputs.submission_file)
@@ -35,6 +37,8 @@ arguments:
     prefix: -p
   - valueFrom: $(inputs.file_prefix)
     prefix: -x
+  - valueFrom: $(inputs.question)
+    prefix: -q
   - valueFrom: results.json
     prefix: -r
 

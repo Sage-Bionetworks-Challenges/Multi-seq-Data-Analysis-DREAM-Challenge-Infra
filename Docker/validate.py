@@ -27,6 +27,8 @@ def get_args():
                         help="Downsampling proportion")
     parser.add_argument("-x", "--file_prefix", required=True,
                         help="Prefix of filename")
+    parser.add_argument("-q", "--question", required=True,
+                        help="Challenge question")
     return parser.parse_args()
 
 
@@ -73,18 +75,17 @@ def get_dim_name(df):
     return out
 
 
-def validate_scRNA(ds_files, pred_files):
+def validate_scRNA(ds_files, pred_files, pred_filenames):
     """validate on scRNA-seq data"""
     invalid_reasons = []
     # get all rownames and colnames of downsampled data
     ds_names = []
     for ds_f in ds_files:
-        df = pd.read_csv(ds_f, index_col=0)
-        ds_names.append(get_dim_name(df))
+        ds_names.append(get_dim_name(ds_f))
 
     # validate each prediction file
     for index, pred_df in enumerate(pred_files):
-        file_name = pred_files["names"][index]
+        file_name = pred_filenames[index]
         # check if all genes/cells exist in predictions
         pred_names = get_dim_name(pred_df)
         cp1 = set(pred_names["rownames"]).issubset(
@@ -120,10 +121,10 @@ def main():
     file_prefix = args.file_prefix
 
     # check if all required downsampled data exists
-    true_ds_files = [file_prefix + "_" + c + "_" + p + ".csv"
-                     for p in ds_props for c in conditions]
+    true_ds_fs = [file_prefix + "_" + c + "_" + p + ".csv"
+                  for p in ds_props for c in conditions]
     # downsampled files should be copied to working dir
-    diff = list(set(true_ds_files) - set(os.listdir(".")))
+    diff = list(set(true_ds_fs) - set(os.listdir(".")))
     if diff:
         invalid_reasons.append("File not found : " + "', '".join(diff))
 
@@ -133,23 +134,27 @@ def main():
             'Expected FileEntity type but found ' + args.entity_type
         )
     else:
-        pred_files = unzip_file(args.submission_file)
-        true_pred_files = [file_prefix + "_" + c + "_" + p + "_imputed.csv"
-                           for p in ds_props for c in conditions]
+        pred_fs = unzip_file(args.submission_file)
+        true_pred_fs = [file_prefix + "_" + c + "_" + p + "_imputed.csv"
+                        for p in ds_props for c in conditions]
         # check if all required data exists
-        diff = list(set(true_pred_files) - set(pred_files["names"]))
+        diff = list(set(true_pred_fs) - set(pred_fs["names"]))
         if diff:
             invalid_reasons.append("File not found : " + "', '".join(diff))
 
-    # validate predicted data
     if not invalid_reasons:
-        # read downsampled data
-        ds_df = []
-        for ds_f in true_ds_files:
-            ds_df.append(pd.read_csv(ds_f, index_col=0))
-        scRNA_res = validate_scRNA(ds_df, pred_files["files"])
-        invalid_reasons.extend(scRNA_res)
-        # TODO: add another validation function for scATACseq when reference script is provided
+        if args.question == "1A":
+            # read downsampled data
+            ds_df = []
+            for ds_f in true_ds_fs:
+                ds_df.append(pd.read_csv(ds_f, index_col=0))
+            # validate predicted data
+            scRNA_res = validate_scRNA(
+                ds_df, pred_fs["files"], pred_fs["names"])
+            invalid_reasons.extend(scRNA_res)
+        elif args.question == "1B":
+            # TODO: add validation function for scATACseq when reference script is provided
+            pass
 
     validate_status = "INVALID" if invalid_reasons else "VALIDATED"
     result = {'submission_errors': "\n".join(invalid_reasons),
