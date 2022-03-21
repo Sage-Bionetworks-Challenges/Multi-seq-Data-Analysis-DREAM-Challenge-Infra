@@ -23,6 +23,8 @@ outputs:
     type: string
   - id: file_prefix
     type: string
+  - id: gs_synId
+    type: string
 
 requirements:
   - class: InlineJavascriptRequirement
@@ -55,12 +57,14 @@ expression: |
       var condition = ["c1", "c2"]; // tmp
       var input_dir = `${ds_folder}/scRNAseq/dataset1`
       var prefix = "dataset1"
+      var gs_synId = "syn27919058"
       var question = "1A"
       
     } else if (inputs.queue == "9615021") {
       var ds_prop = ["0_01"]; // tmp
       var condition = ["c1", "c2"]; // tmp
       var input_dir = `${ds_folder}/scATACseq`
+      var gs_synId = "syn123"
       var prefix = "peak"
       var question = "1B"
 
@@ -70,6 +74,7 @@ expression: |
     return {question: question, 
             proportion: ds_prop, 
             condition: condition,
-            input_dir: input_dir, 
+            input_dir: input_dir,
+            gs_synId: gs_synId, 
             file_prefix: prefix};
   }
