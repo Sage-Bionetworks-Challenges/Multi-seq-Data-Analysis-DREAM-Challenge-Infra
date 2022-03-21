@@ -35,26 +35,10 @@ expression: |
     // since cwl only support ES5
     // using 'let' will have warning
     // using big fat arrow will have waring
-    // function get_gs_name(condition, prefix="") {
-    //   const out = [];
-    //   for (const c of condition) {
-    //     out.push(`${prefix}_${c}_gs.csv`);
-    //   };
-    //   return out;
-    // };
-    // function get_pred_name(condition, proportion, prefix="") {
-    //   const out = [];
-    //   for (const p of proportion) {
-    //     for (const c of condition) {
-    //       out.push(`${prefix}_${c}_${p}_imputed.csv`);
-    //     }
-    //   }
-    //   return out;
-    // };
     var ds_folder = "/home/ec2-user/challenge-data/downsampled"
     if (inputs.queue == "9614943") {
-      var ds_prop = ["0_01"]; // tmp
-      var condition = ["c1", "c2"]; // tmp
+      var ds_prop = ["20k", "50k"]; // tmp
+      var condition = ["c1", "c2", "c3", "c4"];
       var input_dir = `${ds_folder}/scRNAseq/dataset1`
       var prefix = "dataset1"
       var gs_synId = "syn27919058"
