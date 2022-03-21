@@ -20,9 +20,9 @@ def get_args():
                         help="validation results")
     parser.add_argument("-e", "--entity_type", required=True,
                         help="synapse entity type downloaded")
-    parser.add_argument("-s", "--submission_file", help="Submission File")
-    parser.add_argument("-g", "--goldstandard", required=True,
-                        help="Goldstandard for scoring")
+    parser.add_argument("-s", "--submission_file", help="Submission file")
+    parser.add_argument("-i", "--input_dir", required=True,
+                        help="Input directory for downsampled data")
     parser.add_argument("-c", "--condition", required=True, nargs='+',
                         help="Experiment condition")
     parser.add_argument("-p", "--proportion", required=True, nargs='+',
@@ -75,23 +75,56 @@ def get_dim_name(df):
     return out
 
 
+def validate_scRNA(ds_files, pred_files):
+    """validate on scRNA-seq data"""
+    invalid_reasons = []
+    # get all rownames and colnames of downsampled data
+    ds_names = []
+    for ds_f in ds_files:
+        df = pd.read_csv(ds_f, index_col=0)
+        ds_names.append(get_dim_name(df))
+
+    # validate each prediction file
+    for index, pred_df in enumerate(pred_files):
+        file_name = pred_files["names"][index]
+        # check if all genes/cells exist in predictions
+        pred_names = get_dim_name(pred_df)
+        cp1 = set(pred_names["rownames"]).issubset(
+            ds_names[index]["rownames"])
+        cp2 = set(pred_names["colnames"]).issubset(
+            ds_names[index]["colnames"])
+        if not (cp1 and cp2):
+            invalid_reasons.append(
+                file_name + ": Do not contain all genes or cells")
+        else:
+            # check if all values are numeric
+            cp3 = pred_df.apply(lambda s: pd.to_numeric(
+                s, errors='coerce').isnull().any())
+            if cp3.any():
+                invalid_reasons.append(
+                    file_name + ": Not all values are numeric")
+            # check if all values are >= 0
+            elif (pred_df < 0).any().any():
+                invalid_reasons.append(
+                    file_name + ": Negative value is not allowed")
+    return invalid_reasons
+
+
 def main():
     """Main function."""
     args = get_args()
 
     invalid_reasons = []
 
-    # set variables to name files
-    # exp_ids = ["2400", "2401", "7200", "7201"]
-    # ds_props = ["0_125", "0_5", "drpc_20k", "drpc_50k"]
+    # set variables to find files
     ds_props = args.proportion
     conditions = args.condition
+    file_prefix = args.file_prefix
 
-    # validate goldstandard file
-    # check if all required data exists
-    gs_files = unzip_file(args.goldstandard)
-    true_gs_files = [args.file_prefix + c + "_gs.csv" for c in conditions]
-    diff = list(set(true_gs_files) - set(gs_files["names"]))
+    # check if all required downsampled data exists
+    true_ds_files = [file_prefix + "_" + c + "_" + p + ".csv"
+                     for p in ds_props for c in conditions]
+    diff = list(set(true_ds_files) - set(os.listdir(args.input_dir)))
     if diff:
         invalid_reasons.append("File not found : " + "', '".join(diff))
 
@@ -102,43 +135,22 @@ def main():
         )
     else:
         pred_files = unzip_file(args.submission_file)
-        true_pred_files = [args.file_prefix + c + "_ds_" + p + "_imputed.csv"
+        true_pred_files = [file_prefix + "_" + c + "_" + p + "_imputed.csv"
                            for p in ds_props for c in conditions]
         # check if all required data exists
         diff = list(set(true_pred_files) - set(pred_files["names"]))
         if diff:
             invalid_reasons.append("File not found : " + "', '".join(diff))
 
+    # validate predicted data
     if not invalid_reasons:
-        # TODO: make it as a validation function for scRNAseq
+        # read downsampled data
+        ds_df = []
+        for ds_f in true_ds_files:
+            ds_df.append(pd.read_csv(ds_f, index_col=0))
+        scRNA_res = validate_scRNA(ds_df, pred_files["files"])
+        invalid_reasons.extend(scRNA_res)
         # TODO: add another validation function for scATACseq when reference script is provided
-        # get all rownames and colnames of gs files
-        gs_names = [get_dim_name(gs_df) for gs_df in gs_files["files"]]
-        # multiply number of downsampling props to match number of pred files
-        true_names = [x for x in gs_names for i in range(len(ds_props))]
-        # validate each prediction file
-        for index, pred_df in enumerate(pred_files["files"]):
-            file_name = pred_files["names"][index]
-            # check if names of row/col match with what in goldstandard for each exp
-            pred_names = get_dim_name(pred_df)
-            cp1 = set(pred_names["rownames"]).issubset(
-                true_names[index]["rownames"])
-            cp2 = set(pred_names["colnames"]).issubset(
-                true_names[index]["colnames"])
-            if not (cp1 and cp2):
-                invalid_reasons.append(
-                    file_name + ": Do not contain all genes or cells")
-            else:
-                # check if all values are numeric
-                cp3 = pred_df.apply(lambda s: pd.to_numeric(
-                    s, errors='coerce').isnull().any())
-                if cp3.any():
-                    invalid_reasons.append(
-                        file_name + ": Not all values are numeric")
-                # check if all values are >= 0
-                elif (pred_df < 0).any().any():
-                    invalid_reasons.append(
-                        file_name + ": Negative value is not allowed")
 
     validate_status = "INVALID" if invalid_reasons else "VALIDATED"
     result = {'submission_errors': "\n".join(invalid_reasons),

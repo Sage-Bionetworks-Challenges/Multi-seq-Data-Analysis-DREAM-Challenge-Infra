@@ -207,13 +207,13 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--submissionid", required=True,
                         help="Submission Id")
     parser.add_argument("-p", "--docker_repository", required=True,
-                        help="Docker Repository")
+                        help="Docker repository")
     parser.add_argument("-d", "--docker_digest", required=True,
-                        help="Docker Digest")
+                        help="Docker digest")
     parser.add_argument("-q", "--question", required=True,
                         help="Challenge question")
     parser.add_argument("-i", "--input_dir", required=True,
-                        help="Input Directory")
+                        help="Input directory for downsampled data")
     parser.add_argument("-c", "--synapse_config", required=True,
                         help="credentials file")
     parser.add_argument("--store", action='store_true',

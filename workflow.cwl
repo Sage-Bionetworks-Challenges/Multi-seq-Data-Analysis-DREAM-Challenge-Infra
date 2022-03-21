@@ -237,8 +237,8 @@ steps:
         source: "#run_docker/submission_file"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
-      - id: goldstandard
-        source: "#download_goldstandard/filepath"
+      - id: input_dir
+        source: "#utils/input_dir"
       - id: condition
         source: "#utils/condition"
       - id: proportion

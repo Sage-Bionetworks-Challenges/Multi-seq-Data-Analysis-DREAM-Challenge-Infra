@@ -15,8 +15,8 @@ inputs:
     type: File?
   - id: entity_type
     type: string
-  - id: goldstandard
-    type: File?
+  - id: input_dir
+    type: File[]?
   - id: condition
     type: string[]?
   - id: proportion
