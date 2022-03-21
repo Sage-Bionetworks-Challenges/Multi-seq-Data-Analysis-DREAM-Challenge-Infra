@@ -29,8 +29,8 @@ arguments:
     prefix: -s
   - valueFrom: $(inputs.entity_type)
     prefix: -e
-  - valueFrom: $(inputs.goldstandard)
-    prefix: -g
+  - valueFrom: $(inputs.input_dir)
+    prefix: -i
   - valueFrom: $(inputs.condition)
     prefix: -c
   - valueFrom: $(inputs.proportion)
