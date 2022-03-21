@@ -15,8 +15,8 @@ inputs:
     type: File?
   - id: entity_type
     type: string
-  - id: input_dir
-    type: string?
+  - id: input_files
+    type: File[]?
   - id: condition
     type: string[]?
   - id: proportion
@@ -29,8 +29,6 @@ arguments:
     prefix: -s
   - valueFrom: $(inputs.entity_type)
     prefix: -e
-  - valueFrom: $(inputs.input_dir)
-    prefix: -i
   - valueFrom: $(inputs.condition)
     prefix: -c
   - valueFrom: $(inputs.proportion)
@@ -42,7 +40,9 @@ arguments:
 
 requirements:
   - class: InlineJavascriptRequirement
-
+  - class: InitialWorkDirRequirement
+    listing:
+      - $(inputs.input_files)
 outputs:
   - id: results
     type: File

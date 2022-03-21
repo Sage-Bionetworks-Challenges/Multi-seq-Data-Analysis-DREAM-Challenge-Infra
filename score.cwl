@@ -29,8 +29,6 @@ inputs:
 arguments:
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
-  # - valueFrom: $(inputs.input_file.path)
-  #   prefix: -i
   - valueFrom: $(inputs.submission_file.path)
     prefix: -s
   - valueFrom: $(inputs.condition)

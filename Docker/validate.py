@@ -21,8 +21,6 @@ def get_args():
     parser.add_argument("-e", "--entity_type", required=True,
                         help="synapse entity type downloaded")
     parser.add_argument("-s", "--submission_file", help="Submission file")
-    parser.add_argument("-i", "--input_dir", required=True,
-                        help="Input directory for downsampled data")
     parser.add_argument("-c", "--condition", required=True, nargs='+',
                         help="Experiment condition")
     parser.add_argument("-p", "--proportion", required=True, nargs='+',
@@ -124,7 +122,8 @@ def main():
     # check if all required downsampled data exists
     true_ds_files = [file_prefix + "_" + c + "_" + p + ".csv"
                      for p in ds_props for c in conditions]
-    diff = list(set(true_ds_files) - set(os.listdir(args.input_dir)))
+    # downsampled files should be copied to working dir
+    diff = list(set(true_ds_files) - set(os.listdir(".")))
     if diff:
         invalid_reasons.append("File not found : " + "', '".join(diff))
 
