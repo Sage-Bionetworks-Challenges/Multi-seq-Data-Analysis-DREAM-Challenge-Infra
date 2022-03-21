@@ -16,7 +16,7 @@ inputs:
   - id: entity_type
     type: string
   - id: input_dir
-    type: File[]?
+    type: string?
   - id: condition
     type: string[]?
   - id: proportion
