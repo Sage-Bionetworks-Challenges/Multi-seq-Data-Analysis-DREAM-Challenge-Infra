@@ -2,7 +2,7 @@
 """Validation script for scRNA-seq signal correction.
 Predictions file must be a zipped archive of imputed count files.
 Each imputed count file must have a correct file format:
-(pac_expId_ds_prop_imputed.csv).
+(e.g. dataset1_c1_0_1_imputed.csv).
 """
 
 import argparse
@@ -42,30 +42,32 @@ def _filter_files(members):
 def unzip_file(f):
     """Untar or unzip file."""
     names = []
-    dfs = []
+    # dfs = []
     if zipfile.is_zipfile(f):
         with zipfile.ZipFile(f) as zip_ref:
             members = zip_ref.namelist()
             members = _filter_files(members)
             if members:
+                zip_ref.extractall()
                 for member in members:
                     # save basename as file names used to validate
                     # in case root dir is zipped
                     names.append(os.path.basename(member))
-                    file = zip_ref.open(member)
-                    df = pd.read_csv(file, index_col=0)
-                    dfs.append(df)
+                    # file = zip_ref.open(member)
+                    # df = pd.read_csv(file, index_col=0)
+                    # dfs.append(df)
     elif tarfile.is_tarfile(f):
         with tarfile.open(f) as zip_ref:
             members = zip_ref.getnames()
             members = _filter_files(members)
             if members:
+                zip_ref.extractall()
                 for member in members:
                     names.append(os.path.basename(member))
-                    file = zip_ref.extractfile(member)
-                    df = pd.read_csv(file, index_col=0)
-                    dfs.append(df)
-    return {"names": names, "files": dfs}
+                    # file = zip_ref.extractfile(member)
+                    # df = pd.read_csv(file, index_col=0)
+                    # dfs.append(df)
+    return names
 
 
 def get_dim_name(df):
@@ -75,37 +77,34 @@ def get_dim_name(df):
     return out
 
 
-def validate_scRNA(ds_files, pred_files, pred_filenames):
+def validate_scRNA(ds_files, pred_files):
     """validate on scRNA-seq data"""
     invalid_reasons = []
-    # get all rownames and colnames of downsampled data
-    ds_names = []
-    for ds_f in ds_files:
-        ds_names.append(get_dim_name(ds_f))
-
     # validate each prediction file
-    for index, pred_df in enumerate(pred_files):
-        file_name = pred_filenames[index]
-        # check if all genes/cells exist in predictions
-        pred_names = get_dim_name(pred_df)
-        cp1 = set(pred_names["rownames"]).issubset(
-            ds_names[index]["rownames"])
-        cp2 = set(pred_names["colnames"]).issubset(
-            ds_names[index]["colnames"])
+    for index, pred_f in enumerate(pred_files):
+        # read ds file
+        ds_df = pd.read_csv(ds_files[index], index_col=0)
+        # read corresponding pred file
+        pred_df = pd.read_csv(pred_f, index_col=0)
+        # check if all genes exist in predictions
+        cp1 = set(list(pred_df.index)).issubset(list(ds_df.index))
+        # check if all cells exist in predictions
+        cp2 = set(list(pred_df.columns.values)).issubset(
+            list(ds_df.columns.values))
         if not (cp1 and cp2):
             invalid_reasons.append(
-                file_name + ": Do not contain all genes or cells")
+                pred_f + ": Do not contain all genes or cells")
         else:
             # check if all values are numeric
             cp3 = pred_df.apply(lambda s: pd.to_numeric(
                 s, errors='coerce').isnull().any())
             if cp3.any():
                 invalid_reasons.append(
-                    file_name + ": Not all values are numeric")
+                    pred_f + ": Not all values are numeric")
             # check if all values are >= 0
             elif (pred_df < 0).any().any():
                 invalid_reasons.append(
-                    file_name + ": Negative value is not allowed")
+                    pred_f + ": Negative value is not allowed")
     return invalid_reasons
 
 
@@ -138,19 +137,14 @@ def main():
         true_pred_fs = [file_prefix + "_" + c + "_" + p + "_imputed.csv"
                         for p in ds_props for c in conditions]
         # check if all required data exists
-        diff = list(set(true_pred_fs) - set(pred_fs["names"]))
+        diff = list(set(true_pred_fs) - set(pred_fs))
         if diff:
             invalid_reasons.append("File not found : " + "', '".join(diff))
 
     if not invalid_reasons:
         if args.question == "1A":
-            # read downsampled data
-            ds_df = []
-            for ds_f in true_ds_fs:
-                ds_df.append(pd.read_csv(ds_f, index_col=0))
             # validate predicted data
-            scRNA_res = validate_scRNA(
-                ds_df, pred_fs["files"], pred_fs["names"])
+            scRNA_res = validate_scRNA(true_ds_fs, true_pred_fs)
             invalid_reasons.extend(scRNA_res)
         elif args.question == "1B":
             # TODO: add validation function for scATACseq when reference script is provided
