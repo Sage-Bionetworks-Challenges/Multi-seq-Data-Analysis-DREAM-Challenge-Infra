@@ -12,19 +12,19 @@ hints:
 
 inputs:
   - id: goldstandard
-    type: File?
+    type: File
   - id: input_files
-    type: File[]?
+    type: File[]
   - id: submission_files
-    type: File[]?
+    type: File[]
   - id: check_validation_finished
     type: boolean?
   - id: condition
-    type: string[]?
+    type: string[]
   - id: proportion
-    type: string[]?
+    type: string[]
   - id: file_prefix
-    type: string?
+    type: string
 
 arguments:
   - valueFrom: $(inputs.goldstandard.path)

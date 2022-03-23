@@ -21,7 +21,8 @@ def get_args():
                         help="validation results")
     parser.add_argument("-e", "--entity_type", required=True,
                         help="synapse entity type downloaded")
-    parser.add_argument("-s", "--submission_file", help="Submission file")
+    parser.add_argument("-s", "--submission_file", required=True,
+                        help="Submission file")
     parser.add_argument("-c", "--condition", required=True, nargs='+',
                         help="Experiment condition")
     parser.add_argument("-p", "--proportion", required=True, nargs='+',

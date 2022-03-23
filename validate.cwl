@@ -16,15 +16,15 @@ inputs:
   - id: entity_type
     type: string
   - id: input_files
-    type: File[]?
+    type: File[]
   - id: condition
-    type: string[]?
+    type: string[]
   - id: proportion
-    type: string[]?
+    type: string[]
   - id: file_prefix
-    type: string?
+    type: string
   - id: question
-    type: string?
+    type: string
 
 arguments:
   - valueFrom: $(inputs.submission_file)

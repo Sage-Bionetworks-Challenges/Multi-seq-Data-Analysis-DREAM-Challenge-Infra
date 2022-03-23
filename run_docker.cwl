@@ -30,7 +30,7 @@ inputs:
   - id: store
     type: boolean?
   - id: question
-    type: string?
+    type: string
 
 arguments: 
   - valueFrom: $(inputs.docker_script.path)
