@@ -89,7 +89,8 @@ nrmse_res <- sapply(exp_conditions, function(c) {
 
 
 ## Write out the scores -----------------------------------
-result_list <- list(breakdown_test_name = sapply(exp_conditions, FUN = paste0, "_", ds_props),
+test_names <- as.character(sapply(exp_conditions, FUN = paste0, "_", ds_props))
+result_list <- list(breakdown_test_name = test_names,
                     primary_metric = "Characteristic Direction",
                     primary_metric_breakdown = round(as.numeric(chdir_res), 4),
                     secondary_metric = "NRMSE",
