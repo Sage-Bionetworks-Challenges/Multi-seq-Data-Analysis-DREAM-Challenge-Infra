@@ -17,30 +17,30 @@ import shutil
 def get_args():
     """Set up command-line interface and get arguments."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("-r", "--results", required=True,
-                        help="validation results")
-    parser.add_argument("-e", "--entity_type", required=True,
-                        help="synapse entity type downloaded")
-    parser.add_argument("-s", "--submission_file", required=True,
-                        help="Submission file")
-    parser.add_argument("-c", "--condition", required=True, nargs='+',
-                        help="Experiment condition")
-    parser.add_argument("-p", "--proportion", required=True, nargs='+',
-                        help="Downsampling proportion")
-    parser.add_argument("-x", "--file_prefix", required=True,
-                        help="Prefix of filename")
-    parser.add_argument("-q", "--question", required=True,
-                        help="Challenge question")
+    parser.add_argument('-r', '--results', required=True,
+                        help='validation results')
+    parser.add_argument('-e', '--entity_type', required=True,
+                        help='synapse entity type downloaded')
+    parser.add_argument('-s', '--submission_file', required=True,
+                        help='Submission file')
+    parser.add_argument('-c', '--condition', required=True, nargs='+',
+                        help='Experiment condition')
+    parser.add_argument('-p', '--proportion', required=True, nargs='+',
+                        help='Downsampling proportion')
+    parser.add_argument('-x', '--file_prefix', required=True,
+                        help='Prefix of filename')
+    parser.add_argument('-q', '--question', required=True,
+                        help='Challenge question')
     return parser.parse_args()
 
 
-def _filter_files(members, type="tar"):
+def _filter_files(members, type='tar'):
     """Filter out non-csv files in zip file."""
     if type == "tar":
         new_members = filter(
-            lambda member: member.name.endswith(".csv"), members)
+            lambda member: member.name.endswith('.csv'), members)
     else:
-        new_members = filter(lambda member: member.endswith(".csv"), members)
+        new_members = filter(lambda member: member.endswith('.csv'), members)
     new_members = list(new_members)
     return new_members
 
@@ -52,7 +52,7 @@ def _decompress_file(f):
     if zipfile.is_zipfile(f):
         with zipfile.ZipFile(f) as zip_ref:
             members = zip_ref.namelist()
-            members = _filter_files(members, type="zip")
+            members = _filter_files(members, type='zip')
             if members:
                 for member in members:
                     member_name = os.path.basename(member)
@@ -90,18 +90,18 @@ def _validate_scRNA(ds_files, pred_files):
             list(ds_df.columns.values))
         if not (cp1 and cp2):
             invalid_reasons.append(
-                pred_f + ": Do not contain all genes or cells")
+                f'{pred_f}: Do not contain all genes or cells')
         else:
             # check if all values are numeric
             cp3 = pred_df.apply(lambda s: pd.to_numeric(
                 s, errors='coerce').isnull().any())
             if cp3.any():
                 invalid_reasons.append(
-                    pred_f + ": Not all values are numeric")
+                    f'{pred_f}: Not all values are numeric')
             # check if all values are >= 0
             elif (pred_df < 0).any().any():
                 invalid_reasons.append(
-                    pred_f + ": Negative value is not allowed")
+                    f'{pred_f}: Negative value is not allowed')
     return invalid_reasons
 
 
@@ -117,12 +117,12 @@ def main():
     file_prefix = args.file_prefix
 
     # check if all required downsampled data exists
-    true_ds_fs = [file_prefix + "_" + c + "_" + p + ".csv"
+    true_ds_fs = [f'{file_prefix}_{c}_{p}.csv'
                   for p in ds_props for c in conditions]
     # downsampled files should be copied to working dir
     diff = list(set(true_ds_fs) - set(os.listdir(".")))
     if diff:
-        invalid_reasons.append("File not found : " + "', '".join(diff))
+        invalid_reasons.append('File not found : ' + '", "'.join(diff))
 
     # validate prediction file
     if args.submission_file is None:
@@ -132,24 +132,27 @@ def main():
     else:
         # decompress submission file
         pred_fs = _decompress_file(args.submission_file)
-        true_pred_fs = [file_prefix + "_" + c + "_" + p + "_imputed.csv"
+        true_pred_fs = [f'{file_prefix}_{c}_{p}_imputed.csv'
                         for p in ds_props for c in conditions]
         # check if all required data exists
         diff = list(set(true_pred_fs) - set(pred_fs))
         if diff:
-            invalid_reasons.append("File not found : " + "', '".join(diff))
+            invalid_reasons.append('File not found : ' + '", "'.join(diff))
 
     if not invalid_reasons:
-        if args.question == "1A":
+        if args.question == '1A':
             # validate predicted data
             scRNA_res = _validate_scRNA(true_ds_fs, true_pred_fs)
             invalid_reasons.extend(scRNA_res)
-        elif args.question == "1B":
+        elif args.question == '1B':
             # TODO: add validation function for scATACseq when reference script is provided
             pass
+        else:
+            # TBD for phase 2
+            pass
 
-    validate_status = "INVALID" if invalid_reasons else "VALIDATED"
-    result = {'submission_errors': "\n".join(invalid_reasons),
+    validate_status = 'INVALID' if invalid_reasons else 'VALIDATED'
+    result = {'submission_errors': '\n'.join(invalid_reasons),
               'submission_status': validate_status}
     with open(args.results, 'w') as o:
         o.write(json.dumps(result))
