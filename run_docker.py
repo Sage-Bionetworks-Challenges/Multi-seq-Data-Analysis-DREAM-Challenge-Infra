@@ -111,7 +111,7 @@ def main(syn, args):
     output_dir = os.getcwd()
 
     # Assign different memory limit for different questions
-    if args.question == "1A":
+    if args.question == "1":
         docker_mem = "30g"
     else:
         docker_mem = "6g"

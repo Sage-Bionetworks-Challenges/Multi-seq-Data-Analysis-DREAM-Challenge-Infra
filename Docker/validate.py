@@ -140,15 +140,12 @@ def main():
             invalid_reasons.append('File not found : ' + '", "'.join(diff))
 
     if not invalid_reasons:
-        if args.question == '1A':
+        if args.question == '1':
             # validate predicted data
             scRNA_res = _validate_scRNA(true_ds_fs, true_pred_fs)
             invalid_reasons.extend(scRNA_res)
-        elif args.question == '1B':
-            # TODO: add validation function for scATACseq when reference script is provided
-            pass
         else:
-            # TBD for phase 2
+            # TODO: add validation function for scATACseq
             pass
 
     validate_status = 'INVALID' if invalid_reasons else 'VALIDATED'

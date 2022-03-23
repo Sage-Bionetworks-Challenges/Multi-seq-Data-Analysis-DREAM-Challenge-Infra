@@ -36,21 +36,30 @@ expression: |
     // using 'let' will have warning
     // using big fat arrow will have waring
     var ds_folder = "/home/ec2-user/challenge-data/downsampled"
-    if (inputs.queue == "9614943") {
-      var ds_prop = ["20k", "50k"]; // tmp
-      var condition = ["c1", "c2", "c3", "c4"];
-      var input_dir = `${ds_folder}/scRNAseq/dataset1`
-      var prefix = "dataset1"
-      var gs_synId = "syn27919058"
-      var question = "1A"
+    if (inputs.queue == "9615023" || inputs.queue == "9614943") {
+      // TODO: may change to dictionary when we add dataset2 and dataset3
+      var ds_prop = ["20k", "50k"]; // tmp for dataset1
+      var condition = ["c1", "c2", "c3", "c4"]; // tmp for dataset1
+      var input_dir = `${ds_folder}/scRNAseq/dataset1` // tmp for dataset1
+      var prefix = "dataset1" // tmp for dataset1
+      var gs_synId = "syn27919058" // tmp for dataset1
+      var question = "1"
       
-    } else if (inputs.queue == "9615021") {
-      var ds_prop = ["0_01"]; // tmp
-      var condition = ["c1", "c2"]; // tmp
-      var input_dir = `${ds_folder}/scATACseq`
-      var gs_synId = "syn123"
-      var prefix = "peak"
-      var question = "1B"
+    } else if (inputs.queue == "9615024" || inputs.queue == "9615021") {
+      var ds_prop = ["0_01"]; // TBD
+      var condition = ["c1", "c2"]; // TBD
+      var input_dir = `${ds_folder}/scATACseq` // TBD
+      var gs_synId = "syn123" // TBD
+      var prefix = "peak2A" // TBD
+      var question = "2A"
+
+    } else if (inputs.queue == "9615025" || inputs.queue == "9615022") {
+      var ds_prop = ["0_01"]; // TBD
+      var condition = ["c1", "c2"]; // TBD
+      var input_dir = `${ds_folder}/scATACseq` // TBD
+      var gs_synId = "syn123" // TBD
+      var prefix = "peak2B" // TBD
+      var question = "2B"
 
     } else {
       throw 'invalid queue';

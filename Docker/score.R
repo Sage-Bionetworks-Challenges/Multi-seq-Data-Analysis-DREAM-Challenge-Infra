@@ -45,6 +45,8 @@ exp_conditions <- args[["condition"]]
 ds_props <- args[["proportion"]]
 file_prefix <- args[["file_prefix"]]
 
+## Note: Only work for sub-challenge 1 for now
+## TODO: add metric for scATACseq
 # read all downsampled data
 all_down <- lapply(exp_conditions, function(c) {
   lapply(ds_props, function(p) {
