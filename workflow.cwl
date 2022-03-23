@@ -251,6 +251,7 @@ steps:
       - id: results
       - id: status
       - id: invalid_reasons
+      - id: submission_files
   
   email_validation:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/validate_email.cwl
@@ -299,8 +300,8 @@ steps:
   score:
     run: score.cwl
     in:
-      - id: submission_file
-        source: "#run_docker/submission_file"
+      - id: submission_files
+        source: "#validate/submission_files"
       - id: goldstandard
         source: "#download_goldstandard/filepath"
       - id: input_files

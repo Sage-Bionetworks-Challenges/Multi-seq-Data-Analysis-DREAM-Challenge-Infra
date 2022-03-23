@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Validation script for scRNA-seq signal correction.
-Predictions file must be a zipped archive of imputed count files.
-Each imputed count file must have a correct file format:
+"""Validation script for scRNA-seq/scATAC signal correction.
+Predictions file must be a compressed archive of imputed count files.
+Each imputed count file must follow the correct file format:
 (e.g. dataset1_c1_0_1_imputed.csv).
 """
 
@@ -11,6 +11,7 @@ import pandas as pd
 import os
 import tarfile
 import zipfile
+import shutil
 
 
 def get_args():
@@ -32,52 +33,47 @@ def get_args():
     return parser.parse_args()
 
 
-def _filter_files(members):
+def _filter_files(members, type="tar"):
     """Filter out non-csv files in zip file."""
-    filenames = filter(lambda file: file.endswith(".csv"), members)
-    filenames = list(filenames)
-    return filenames
+    if type == "tar":
+        new_members = filter(
+            lambda member: member.name.endswith(".csv"), members)
+    else:
+        new_members = filter(lambda member: member.endswith(".csv"), members)
+    new_members = list(new_members)
+    return new_members
 
 
-def unzip_file(f):
+def _decompress_file(f):
     """Untar or unzip file."""
     names = []
-    # dfs = []
+    # decompress zip file
     if zipfile.is_zipfile(f):
         with zipfile.ZipFile(f) as zip_ref:
             members = zip_ref.namelist()
-            members = _filter_files(members)
+            members = _filter_files(members, type="zip")
             if members:
-                zip_ref.extractall()
                 for member in members:
-                    # save basename as file names used to validate
-                    # in case root dir is zipped
-                    names.append(os.path.basename(member))
-                    # file = zip_ref.open(member)
-                    # df = pd.read_csv(file, index_col=0)
-                    # dfs.append(df)
+                    member_name = os.path.basename(member)
+                    with zip_ref.open(member) as source, open(member_name, 'wb') as target:
+                        # copy it directly to skip the folder names
+                        shutil.copyfileobj(source, target)
+                    names.append(member_name)
+    # decompress tar file
     elif tarfile.is_tarfile(f):
-        with tarfile.open(f) as zip_ref:
-            members = zip_ref.getnames()
+        with tarfile.open(f) as tar_ref:
+            members = tar_ref.getmembers()
             members = _filter_files(members)
             if members:
-                zip_ref.extractall()
                 for member in members:
-                    names.append(os.path.basename(member))
-                    # file = zip_ref.extractfile(member)
-                    # df = pd.read_csv(file, index_col=0)
-                    # dfs.append(df)
+                    # skip the folder names
+                    member.name = os.path.basename(member.name)
+                    tar_ref.extract(member)
+                    names.append(member.name)
     return names
 
 
-def get_dim_name(df):
-    """Get all row names and column names of df"""
-    out = {"rownames": list(df.index),
-           "colnames": list(df.columns.values)}
-    return out
-
-
-def validate_scRNA(ds_files, pred_files):
+def _validate_scRNA(ds_files, pred_files):
     """validate on scRNA-seq data"""
     invalid_reasons = []
     # validate each prediction file
@@ -133,7 +129,8 @@ def main():
             'Expected FileEntity type but found ' + args.entity_type
         )
     else:
-        pred_fs = unzip_file(args.submission_file)
+        # decompress submission file
+        pred_fs = _decompress_file(args.submission_file)
         true_pred_fs = [file_prefix + "_" + c + "_" + p + "_imputed.csv"
                         for p in ds_props for c in conditions]
         # check if all required data exists
@@ -144,7 +141,7 @@ def main():
     if not invalid_reasons:
         if args.question == "1A":
             # validate predicted data
-            scRNA_res = validate_scRNA(true_ds_fs, true_pred_fs)
+            scRNA_res = _validate_scRNA(true_ds_fs, true_pred_fs)
             invalid_reasons.extend(scRNA_res)
         elif args.question == "1B":
             # TODO: add validation function for scATACseq when reference script is provided

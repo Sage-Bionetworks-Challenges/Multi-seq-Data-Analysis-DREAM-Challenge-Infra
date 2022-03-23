@@ -47,7 +47,15 @@ requirements:
   - class: InitialWorkDirRequirement
     listing:
       - $(inputs.input_files)
+
 outputs:
+  # output decompressed submission files,
+  # so we don't need to decompress again in scoring
+  - id: submission_files
+    type: File[]
+    outputBinding:
+      glob: ./*_imputed.csv
+
   - id: results
     type: File
     outputBinding:
@@ -66,3 +74,4 @@ outputs:
       glob: results.json
       loadContents: true
       outputEval: $(JSON.parse(self[0].contents)['submission_errors'])
+    

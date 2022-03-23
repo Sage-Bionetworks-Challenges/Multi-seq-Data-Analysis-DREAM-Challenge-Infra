@@ -15,8 +15,8 @@ inputs:
     type: File?
   - id: input_files
     type: File[]?
-  - id: submission_file
-    type: File?
+  - id: submission_files
+    type: File[]?
   - id: check_validation_finished
     type: boolean?
   - id: condition
@@ -29,8 +29,6 @@ inputs:
 arguments:
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
-  - valueFrom: $(inputs.submission_file.path)
-    prefix: -s
   - valueFrom: $(inputs.condition)
     prefix: -c
   - valueFrom: $(inputs.proportion)
@@ -45,6 +43,7 @@ requirements:
   - class: InitialWorkDirRequirement
     listing:
       - $(inputs.input_files)
+      - $(inputs.submission_files)
 outputs:
   - id: results
     type: File

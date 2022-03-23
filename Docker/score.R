@@ -20,9 +20,6 @@ parser <- argparse::ArgumentParser()
 parser$add_argument("-g", "--goldstandard",
                      type = "character",
                      help = "Goldstandard file")
-parser$add_argument("-s", "--submission_file",
-                    type = "character",
-                    help = "Submission file")
 parser$add_argument("-c", "--condition", nargs = '+',
                     type = "character",
                     help = "Experiment condition")
@@ -40,15 +37,7 @@ args <- parser$parse_args()
 ## Decompress required data ------------------------------------
 # decompress goldstandard file (tarball by default)
 untar(args[["goldstandard"]])
-
-# decompress submission file
-if (endsWith(args[["submission_file"]], ".tar.gz")) {
-  system(sprintf("tar zxvf %s --strip-components=1", args[["submission_file"]]))
-} else if (endsWith(args[["submission_file"]], ".zip")) {
-  unzip(args[["submission_file"]], junkpaths = TRUE)
-} else {
-  stop(args[["submission_file"]], " is not compressed as .zip or .tar.gz")
-}
+# downsampled data and imputed data are parsed to wd via workflow
 
 ## Read all data ------------------------------------
 # read conditions and downsampling props
@@ -100,12 +89,12 @@ nrmse_res <- sapply(exp_conditions, function(c) {
 
 
 ## Write out the scores -----------------------------------
-test_names <- printScore(sapply(exp_conditions, FUN = paste0, "+", ds_props))
+test_names <- printScore(sapply(exp_conditions, FUN = paste0, "_", ds_props))
 result_list <- list(breakdown_test_name = test_names,
                     primary_metric = "Characteristic Direction",
-                    primary_metric_breakdown = printScore(chdir_res),
+                    primary_metric_breakdown = round(as.numeric(chdir_res), 4),
                     secondary_metric = "NRMSE",
-                    secondary_metric_breakdown = printScore(nrmse_res),
+                    secondary_metric_breakdown = round(as.numeric(nrmse_res), 4),
                     submission_status = "SCORED")
-export_json <- toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
+export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
 write(export_json, args$results)
