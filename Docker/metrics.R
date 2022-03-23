@@ -1,9 +1,3 @@
-### Prepare scores output
-printScore <- function(scores) {
-  score <- paste0("[", paste0(scores, collapse = ", "), "]")
-  return(score)
-}
-
 
 ### Characteristic Direction
 getAngle <- function(a = NULL, b = NULL) {
