@@ -71,3 +71,27 @@ getNRMSE <- function(gs, imp) {
   return(avg_nrmse)
 }
 
+
+### Save all detailed scores to one table
+to_csv <- function(score1,
+                   score2,
+                   score_labels = c("score1", "score2")) {
+  df1 <- score1 %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column("proportion") %>%
+    mutate(metric = score_labels[1])
+
+  df2 <- score2 %>%
+    as.data.frame() %>%
+    tibble::rownames_to_column("proportion") %>%
+    mutate(metric = score_labels[2])
+
+  combined_df <- reshape2::melt(
+    rbind(df1, df2),
+    variable.name = "condition",
+    value.name = "score"
+  )
+
+  return(combined_df[c("condition", "proportion", "metric", "score")])
+}
+

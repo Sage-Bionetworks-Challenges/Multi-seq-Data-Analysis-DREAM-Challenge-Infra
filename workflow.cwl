@@ -316,16 +316,21 @@ steps:
         source: "#check_status/finished"
     out:
       - id: results
-      
+      - id: all_scores
+
   email_score:
-    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/score_email.cwl
+    run: email_score.cwl
     in:
       - id: submissionid
         source: "#submissionId"
       - id: synapse_config
         source: "#synapseConfig"
+      - id: parent_id
+        source: "#submitterUploadSynId"  
       - id: results
         source: "#score/results"
+      - id: all_scores
+        source: "#score/all_scores"
       # OPTIONAL: add annotations to be withheld from participants to `[]`
       # - id: private_annotations
       #   default: []

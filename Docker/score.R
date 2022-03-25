@@ -89,14 +89,17 @@ nrmse_res <- sapply(exp_conditions, function(c) {
   })
 })
 
-
 ## Write out the scores -----------------------------------
-test_names <- as.character(sapply(exp_conditions, FUN = paste0, "_", ds_props))
-result_list <- list(breakdown_test_name = test_names,
-                    primary_metric = "Characteristic Direction",
-                    primary_metric_breakdown = round(as.numeric(chdir_res), 4),
-                    secondary_metric = "NRMSE",
-                    secondary_metric_breakdown = round(as.numeric(nrmse_res), 4),
+# create table to record all the individual scores
+all_scores <- to_csv(chdir_res, 
+                     nrmse_res, 
+                     c("Characteristic Direction", "NRMSE"))
+write.csv(all_scores, "all_scores.csv", row.names = FALSE)
+
+# test_names <- as.character(sapply(exp_conditions, FUN = paste0, "_", ds_props))
+result_list <- list(chdir = mean(unlist(chdir_res)),
+                    chdir_avg_value = mean(unlist(chdir_res)),
+                    nrmse_avg_value = mean(unlist(nrmse_res)),
                     submission_status = "SCORED")
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
 write(export_json, args$results)
