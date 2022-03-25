@@ -29,8 +29,6 @@ inputs:
     type: File
   - id: store
     type: boolean?
-  - id: question
-    type: string
 
 arguments: 
   - valueFrom: $(inputs.docker_script.path)
@@ -48,8 +46,6 @@ arguments:
     prefix: --parentid
   - valueFrom: $(inputs.synapse_config.path)
     prefix: -c
-  - valueFrom: $(inputs.question)
-    prefix: -q
   - valueFrom: $(inputs.input_dir)
     prefix: -i
 
@@ -63,11 +59,7 @@ requirements:
   - class: InlineJavascriptRequirement
 
 outputs:
-  input_files:
-    type: File[]
-    outputBinding:
-      glob: input_data/*.csv
-  submission_file:
+  predictions:
     type: File
     outputBinding:
-      glob: predictions.tar.gz
+      glob: predictions.csv

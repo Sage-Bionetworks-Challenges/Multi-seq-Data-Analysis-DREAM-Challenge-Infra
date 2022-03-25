@@ -38,7 +38,7 @@ steps:
         source: "#submitterUploadSynId"
       # TODO: replace `valueFrom` with the admin user ID or admin team ID
       - id: principalid
-        valueFrom: "3441740"
+        valueFrom: "3379097"
       - id: permissions
         valueFrom: "download"
       - id: synapse_config
@@ -52,7 +52,7 @@ steps:
         source: "#adminUploadSynId"
       # TODO: replace `valueFrom` with the admin user ID or admin team ID
       - id: principalid
-        valueFrom: "3441740"
+        valueFrom: "3379097"
       - id: permissions
         valueFrom: "download"
       - id: synapse_config
@@ -72,7 +72,6 @@ steps:
       - id: docker_digest
       - id: entity_id
       - id: entity_type
-      - id: evaluation_id
       - id: results
 
   get_docker_config:
@@ -83,6 +82,17 @@ steps:
     out: 
       - id: docker_registry
       - id: docker_authentication
+
+  download_goldstandard:
+    run: https://raw.githubusercontent.com/Sage-Bionetworks-Workflows/cwl-tool-synapseclient/v1.4/cwl/synapse-get-tool.cwl
+    in:
+      # TODO: replace `valueFrom` with the Synapse ID to the challenge goldstandard
+      - id: synapseid
+        valueFrom: "syn18081597"
+      - id: synapse_config
+        source: "#synapseConfig"
+    out:
+      - id: filepath
 
   validate_docker:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/validate_docker.cwl
@@ -121,7 +131,7 @@ steps:
         source: "#validate_docker/results"
       - id: to_public
         default: true
-      - id: force
+      - id: force_change_annotation_acl
         default: true
       - id: synapse_config
         source: "#synapseConfig"
@@ -138,19 +148,6 @@ steps:
         source: "#email_docker_validation/finished"
     out: [finished]
 
-  utils:
-    run: utils.cwl
-    in:
-      - id: queue
-        source: "#get_docker_submission/evaluation_id"
-    out:
-      - id: question
-      - id: condition
-      - id: proportion
-      - id: file_prefix
-      - id: input_dir
-      - id: gs_synId
-  
   run_docker:
     run: run_docker.cwl
     in:
@@ -173,23 +170,21 @@ steps:
       # OPTIONAL: set `default` to `false` if log file should not be uploaded to Synapse
       - id: store
         default: true
-      - id: question
-        source: "#utils/question"
+      # TODO: replace `valueFrom` with the absolute path to the data directory to be mounted
       - id: input_dir
-        source: "#utils/input_dir"
+        valueFrom: "/tmp"
       - id: docker_script
         default:
           class: File
           location: "run_docker.py"
     out:
-      - id: input_files
-      - id: submission_file
+      - id: predictions
 
   upload_results:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/upload_to_synapse.cwl
     in:
       - id: infile
-        source: "#run_docker/submission_file"
+        source: "#run_docker/predictions"
       - id: parentid
         source: "#adminUploadSynId"
       - id: used_entity
@@ -220,38 +215,17 @@ steps:
         source: "#annotate_docker_validation_with_output/finished"
     out: [finished]
 
-  download_goldstandard:
-    run: https://raw.githubusercontent.com/Sage-Bionetworks-Workflows/cwl-tool-synapseclient/v1.4/cwl/synapse-get-tool.cwl
-    in:
-      - id: synapseid
-        source: "#utils/gs_synId"
-      - id: synapse_config
-        source: "#synapseConfig"
-    out:
-      - id: filepath
-
   validate:
     run: validate.cwl
     in:
-      - id: submission_file
-        source: "#run_docker/submission_file"
+      - id: input_file
+        source: "#run_docker/predictions"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
-      - id: input_files
-        source: "#run_docker/input_files"
-      - id: condition
-        source: "#utils/condition"
-      - id: proportion
-        source: "#utils/proportion"
-      - id: file_prefix
-        source: "#utils/file_prefix"
-      - id: question
-        source: "#utils/question"
     out:
       - id: results
       - id: status
       - id: invalid_reasons
-      - id: submission_files
   
   email_validation:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/validate_email.cwl
@@ -300,18 +274,10 @@ steps:
   score:
     run: score.cwl
     in:
-      - id: submission_files
-        source: "#validate/submission_files"
+      - id: input_file
+        source: "#run_docker/predictions"
       - id: goldstandard
         source: "#download_goldstandard/filepath"
-      - id: input_files
-        source: "#run_docker/input_files"
-      - id: condition
-        source: "#utils/condition"
-      - id: proportion
-        source: "#utils/proportion"
-      - id: file_prefix
-        source: "#utils/file_prefix"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:
@@ -347,3 +313,4 @@ steps:
       - id: previous_annotation_finished
         source: "#annotate_validation_with_output/finished"
     out: [finished]
+ 

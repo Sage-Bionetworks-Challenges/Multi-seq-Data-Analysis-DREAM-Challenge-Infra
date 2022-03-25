@@ -7,7 +7,6 @@ import tarfile
 import time
 
 import docker
-import subprocess
 import synapseclient
 
 
@@ -27,16 +26,11 @@ def store_log_file(syn, log_filename, parentid, store=True):
     statinfo = os.stat(log_filename)
     if statinfo.st_size > 0 and statinfo.st_size/1000.0 <= 50:
         ent = synapseclient.File(log_filename, parent=parentid)
-        if store:
+        if not store:
             try:
                 syn.store(ent)
             except synapseclient.exceptions.SynapseHTTPError as err:
                 print(err)
-        else:
-            subprocess.check_call(
-                ["docker", "cp", os.path.abspath(log_filename),
-                 "logging:/logging"]
-            )
 
 
 def remove_docker_container(container_name):
@@ -98,7 +92,7 @@ def main(syn, args):
     client.login(username=authen['username'],
                  password=authen['password'],
                  registry="https://docker.synapse.org")
-    # dockercfg_path=".docker/config.json")
+                 # dockercfg_path=".docker/config.json")
 
     print(getpass.getuser())
 
@@ -106,15 +100,9 @@ def main(syn, args):
     docker_image = args.docker_repository + "@" + args.docker_digest
 
     # These are the volumes that you want to mount onto your docker container
-    # TODO: assign different input_dir for subchallenge 2 & 3 + add real queueIds
-    input_dir = args.input_dir
+    #output_dir = os.path.join(os.getcwd(), "output")
     output_dir = os.getcwd()
-
-    # Assign different memory limit for different questions
-    if args.question == "1":
-        docker_mem = "30g"
-    else:
-        docker_mem = "6g"
+    input_dir = args.input_dir
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
@@ -150,10 +138,7 @@ def main(syn, args):
                                               detach=True, volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
-                                              mem_limit=docker_mem, stderr=True)
-            # copy all training files that will be used for scoring into input_data/
-            subprocess.check_call(
-                ["docker", "cp", args.submissionid + ":/data/.", "input_data/"])
+                                              mem_limit='6g', stderr=True)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             errors = str(err) + "\n"
@@ -192,10 +177,10 @@ def main(syn, args):
 
     output_folder = os.listdir(output_dir)
     if not output_folder:
-        raise Exception("No 'predictions.tar.gz' file written to /output, "
+        raise Exception("No 'predictions.csv' file written to /output, "
                         "please check inference docker")
-    elif "predictions.tar.gz" not in output_folder:
-        raise Exception("No 'predictions.tar.gz' file written to /output, "
+    elif "predictions.csv" not in output_folder:
+        raise Exception("No 'predictions.csv' file written to /output, "
                         "please check inference docker")
     # CWL has a limit of the array of files it can accept in a folder
     # therefore creating a tarball is sometimes necessary
@@ -207,13 +192,11 @@ if __name__ == '__main__':
     parser.add_argument("-s", "--submissionid", required=True,
                         help="Submission Id")
     parser.add_argument("-p", "--docker_repository", required=True,
-                        help="Docker repository")
+                        help="Docker Repository")
     parser.add_argument("-d", "--docker_digest", required=True,
-                        help="Docker digest")
-    parser.add_argument("-q", "--question", required=True,
-                        help="Challenge question")
+                        help="Docker Digest")
     parser.add_argument("-i", "--input_dir", required=True,
-                        help="Input directory for downsampled data")
+                        help="Input Directory")
     parser.add_argument("-c", "--synapse_config", required=True,
                         help="credentials file")
     parser.add_argument("--store", action='store_true',
