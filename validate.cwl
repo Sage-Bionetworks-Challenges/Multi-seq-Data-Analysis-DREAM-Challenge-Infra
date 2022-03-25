@@ -4,24 +4,41 @@
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: python
+baseCommand: [python3, /validate.py]
 
 hints:
   DockerRequirement:
-    dockerPull: python:3.8.8-slim-buster
+    dockerPull: docker.synapse.org/syn26720921/scoring:v1
 
 inputs:
-  - id: input_file
+  - id: submission_file
     type: File?
   - id: entity_type
     type: string
+  - id: input_files
+    type: File[]
+  - id: condition
+    type: string[]
+  - id: proportion
+    type: string[]
+  - id: file_prefix
+    type: string
+  - id: question
+    type: string
 
 arguments:
-  - valueFrom: validate.py
-  - valueFrom: $(inputs.input_file)
+  - valueFrom: $(inputs.submission_file)
     prefix: -s
   - valueFrom: $(inputs.entity_type)
     prefix: -e
+  - valueFrom: $(inputs.condition)
+    prefix: -c
+  - valueFrom: $(inputs.proportion)
+    prefix: -p
+  - valueFrom: $(inputs.file_prefix)
+    prefix: -x
+  - valueFrom: $(inputs.question)
+    prefix: -q
   - valueFrom: results.json
     prefix: -r
 
@@ -29,35 +46,16 @@ requirements:
   - class: InlineJavascriptRequirement
   - class: InitialWorkDirRequirement
     listing:
-      - entryname: validate.py
-        entry: |
-          #!/usr/bin/env python
-          import argparse
-          import json
-          parser = argparse.ArgumentParser()
-          parser.add_argument("-r", "--results", required=True, help="validation results")
-          parser.add_argument("-e", "--entity_type", required=True, help="synapse entity type downloaded")
-          parser.add_argument("-s", "--submission_file", help="Submission File")
+      - $(inputs.input_files)
 
-          args = parser.parse_args()
-          
-          if args.submission_file is None:
-              prediction_file_status = "INVALID"
-              invalid_reasons = ['Expected FileEntity type but found ' + args.entity_type]
-          else:
-              with open(args.submission_file,"r") as sub_file:
-                  message = sub_file.read()
-              invalid_reasons = []
-              prediction_file_status = "VALIDATED"
-              if not message.startswith("test"):
-                  invalid_reasons.append("Submission must have test column")
-                  prediction_file_status = "INVALID"
-          result = {'submission_errors': "\n".join(invalid_reasons),
-                    'submission_status': prediction_file_status}
-          with open(args.results, 'w') as o:
-              o.write(json.dumps(result))
-     
 outputs:
+  # output decompressed submission files,
+  # so we don't need to decompress again in scoring
+  - id: submission_files
+    type: File[]
+    outputBinding:
+      glob: ./*_imputed.csv
+
   - id: results
     type: File
     outputBinding:
@@ -76,3 +74,4 @@ outputs:
       glob: results.json
       loadContents: true
       outputEval: $(JSON.parse(self[0].contents)['submission_errors'])
+    
