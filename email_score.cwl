@@ -79,6 +79,8 @@ requirements:
               # upload the all_scores to synapse
               csv = synapseclient.File(args.all_scores, parent=args.parent_id)
               csv = syn.store(csv)
+              del annots['chdir_breakdown']
+              del annots['nrmse_breakdown']
               del annots['submission_status']
               subject = "Submission to '%s' scored!" % evaluation.name
               for annot in args.private_annotations:

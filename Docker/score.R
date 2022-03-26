@@ -2,11 +2,11 @@
 
 ## Load ------------------------------------
 suppressPackageStartupMessages({
-  # all packages are installed from cran
   library(argparse)
   library(data.table)
   library(tibble)
   library(purrr)
+  library(dplyr)
   library(jsonlite)
   library(GeoDE)
   library(Seurat)
@@ -98,7 +98,9 @@ write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
 # test_names <- as.character(sapply(exp_conditions, FUN = paste0, "_", ds_props))
 result_list <- list(chdir = mean(unlist(chdir_res)),
+                    chdir_breakdown = as.numeric(chdir_res)
                     chdir_avg_value = mean(unlist(chdir_res)),
+                    nrmse_breakdown = as.numeric(nrmse_res),
                     nrmse_avg_value = mean(unlist(nrmse_res)),
                     submission_status = "SCORED")
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
