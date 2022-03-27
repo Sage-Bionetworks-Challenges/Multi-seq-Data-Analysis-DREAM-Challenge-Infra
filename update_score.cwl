@@ -18,6 +18,10 @@ inputs:
     type: string
   - id: all_scores
     type: File
+  - id: submission_view_synapseid
+    type: string
+  - id: leader_board_synapseid
+    type: string
 
 arguments:
   - valueFrom: $(inputs.script.path)
@@ -29,6 +33,10 @@ arguments:
     prefix: -r
   - valueFrom: $(inputs.all_scores.path)
     prefix: -f
+  - valueFrom: $(inputs.submission_view_synapseid)
+    prefix: -s
+  - valueFrom: $(inputs.leader_board_synapseid)
+    prefix: -l
 
 requirements:
   - class: InlineJavascriptRequirement

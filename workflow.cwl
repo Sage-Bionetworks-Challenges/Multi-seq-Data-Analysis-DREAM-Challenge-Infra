@@ -333,6 +333,10 @@ steps:
         source: "#score/results"
       - id: all_scores
         source: "#score/all_scores"
+      - id: submission_view_synapseid
+        valueFrom: "3441740"
+      - id: leader_board_synapseid
+        valueFrom: "3441740"
     out: 
       - id: results
 
@@ -350,18 +354,6 @@ steps:
       #   default: []
     out: []
 
-  rank_submission:
-    run: rank_submissions.cwl
-    in:
-      - id: synapse_config
-        source: "#synapseConfig"
-      - id: results
-        source: "#score/results"
-      - id: submission_view_synapseid
-        valueFrom: "3441740"
-      - id: leader_board_synapseid
-        valueFrom: "3441740"
-    out: []
 
   annotate_submission_with_output:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/annotate_submission.cwl
