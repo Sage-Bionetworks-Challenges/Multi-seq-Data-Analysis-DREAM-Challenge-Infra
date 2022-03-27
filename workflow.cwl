@@ -316,16 +316,35 @@ steps:
         source: "#check_status/finished"
     out:
       - id: results
-      
+      - id: all_scores
+
+  update_score:
+    run: update_score.cwl
+    in:
+      - id: script
+        default:
+          class: File
+          location: "Docker/update_score.py"
+      - id: synapse_config
+        source: "#synapseConfig"
+      - id: parent_id
+        source: "#submitterUploadSynId"  
+      - id: results
+        source: "#score/results"
+      - id: all_scores
+        source: "#score/all_scores"
+    out: 
+      - id: results
+
   email_score:
-    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/score_email.cwl
+    run: email_score.cwl
     in:
       - id: submissionid
         source: "#submissionId"
       - id: synapse_config
         source: "#synapseConfig"
       - id: results
-        source: "#score/results"
+        source: "#update_score/results"
       # OPTIONAL: add annotations to be withheld from participants to `[]`
       # - id: private_annotations
       #   default: []
@@ -350,7 +369,7 @@ steps:
       - id: submissionid
         source: "#submissionId"
       - id: annotation_values
-        source: "#score/results"
+        source: "#update_score/results"
       - id: to_public
         default: true
       - id: force

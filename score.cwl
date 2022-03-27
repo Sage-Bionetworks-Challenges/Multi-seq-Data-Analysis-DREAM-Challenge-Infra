@@ -25,7 +25,7 @@ inputs:
     type: string[]
   - id: file_prefix
     type: string
-
+    
 arguments:
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
@@ -49,3 +49,7 @@ outputs:
     type: File
     outputBinding:
       glob: results.json
+  - id: all_scores
+    type: File
+    outputBinding:
+      glob: all_scores.csv
