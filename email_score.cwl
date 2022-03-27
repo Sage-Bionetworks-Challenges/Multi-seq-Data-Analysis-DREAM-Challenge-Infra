@@ -36,7 +36,7 @@ requirements:
   - class: InlineJavascriptRequirement
   - class: InitialWorkDirRequirement
     listing:
-      - entryname: score_email.py
+      - entryname: email_score.py
         entry: |
           #!/usr/bin/env python
           import synapseclient
