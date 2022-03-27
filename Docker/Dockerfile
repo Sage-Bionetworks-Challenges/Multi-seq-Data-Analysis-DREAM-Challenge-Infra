@@ -4,7 +4,7 @@ RUN R -e "install.packages(c('argparse', 'GeoDE'), repos = 'http://cran.us.r-pro
 RUN apt-get update && apt-get install -y python3 pip
 RUN cp /usr/bin/python3 /usr/bin/python
 RUN pip install --upgrade pip
-RUN pip install pandas synapseclient numpy
+RUN pip install pandas
 
 COPY validate.py /validate.py
 COPY score.R /score.R
