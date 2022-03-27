@@ -2,11 +2,11 @@
 
 ## Load ------------------------------------
 suppressPackageStartupMessages({
-  # all packages are installed from cran
   library(argparse)
   library(data.table)
   library(tibble)
   library(purrr)
+  library(dplyr)
   library(jsonlite)
   library(GeoDE)
   library(Seurat)
@@ -81,6 +81,7 @@ chdir_res <- sapply(exp_conditions, function(c) {
              imp = all_imp[[c]][[p]])
   })
 })
+chdir_res <- as.numeric(unlist(chdir_res))
 
 ## Secondary Metric: NRMSE -----------------------------------
 nrmse_res <- sapply(exp_conditions, function(c) {
@@ -88,15 +89,23 @@ nrmse_res <- sapply(exp_conditions, function(c) {
     getNRMSE(gs = all_gs[[c]], imp = all_imp[[c]][[p]])
   })
 })
-
+nrmse_res <- as.numeric(unlist(nrmse_res))
 
 ## Write out the scores -----------------------------------
-test_names <- as.character(sapply(exp_conditions, FUN = paste0, "_", ds_props))
-result_list <- list(breakdown_test_name = test_names,
-                    primary_metric = "Characteristic Direction",
-                    primary_metric_breakdown = round(as.numeric(chdir_res), 4),
-                    secondary_metric = "NRMSE",
-                    secondary_metric_breakdown = round(as.numeric(nrmse_res), 4),
+# create table to record all the individual scores
+all_scores <- data.frame(
+    condition = rep(exp_conditions, each = length(ds_props)),
+    downsampled_prop = rep(ds_props, length(exp_conditions)),
+    chdir_score = chdir_res,
+    nrmse_score = nrmse_res
+)
+write.csv(all_scores, "all_scores.csv", row.names = FALSE)
+
+# create annotations
+result_list <- list(chdir_breakdown = chdir_res,
+                    chdir_avg_value = mean(chdir_res),
+                    nrmse_breakdown = nrmse_res,
+                    nrmse_avg_value = mean(nrmse_res),
                     submission_status = "SCORED")
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
 write(export_json, args$results)
