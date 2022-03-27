@@ -81,6 +81,7 @@ chdir_res <- sapply(exp_conditions, function(c) {
              imp = all_imp[[c]][[p]])
   })
 })
+chdir_res <- as.numeric(unlist(chdir_res))
 
 ## Secondary Metric: NRMSE -----------------------------------
 nrmse_res <- sapply(exp_conditions, function(c) {
@@ -88,18 +89,23 @@ nrmse_res <- sapply(exp_conditions, function(c) {
     getNRMSE(gs = all_gs[[c]], imp = all_imp[[c]][[p]])
   })
 })
+nrmse_res <- as.numeric(unlist(nrmse_res))
 
 ## Write out the scores -----------------------------------
 # create table to record all the individual scores
-all_scores <- to_csv(chdir_res, 
-                     nrmse_res, 
-                     c("Characteristic Direction", "NRMSE"))
+all_scores <- data.frame(
+    condition = rep(exp_conditions, each = length(ds_props)),
+    downsampled_prop = rep(ds_props, length(exp_conditions)),
+    chdir_score = chdir_res,
+    nrmse_score = nrmse_res
+)
 write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
-result_list <- list(chdir_breakdown = as.numeric(chdir_res),
-                    chdir_avg_value = mean(unlist(chdir_res)),
-                    nrmse_breakdown = as.numeric(nrmse_res),
-                    nrmse_avg_value = mean(unlist(nrmse_res)),
+# create annotations
+result_list <- list(chdir_breakdown = chdir_res,
+                    chdir_avg_value = mean(chdir_res),
+                    nrmse_breakdown = nrmse_res,
+                    nrmse_avg_value = mean(nrmse_res),
                     submission_status = "SCORED")
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
 write(export_json, args$results)
