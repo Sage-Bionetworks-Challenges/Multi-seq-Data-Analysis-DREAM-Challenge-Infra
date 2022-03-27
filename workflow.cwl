@@ -321,6 +321,10 @@ steps:
   update_score:
     run: update_score.cwl
     in:
+      - id: script
+        default:
+          class: File
+          location: "Docker/update_score.py"
       - id: synapse_config
         source: "#synapseConfig"
       - id: parent_id
