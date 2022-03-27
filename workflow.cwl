@@ -339,8 +339,6 @@ steps:
         source: "#submissionId"
       - id: synapse_config
         source: "#synapseConfig"
-      - id: parent_id
-        source: "#submitterUploadSynId"  
       - id: results
         source: "#update_score/results"
       # OPTIONAL: add annotations to be withheld from participants to `[]`
