@@ -96,9 +96,7 @@ all_scores <- to_csv(chdir_res,
                      c("Characteristic Direction", "NRMSE"))
 write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
-# test_names <- as.character(sapply(exp_conditions, FUN = paste0, "_", ds_props))
-result_list <- list(chdir = mean(unlist(chdir_res)),
-                    chdir_breakdown = as.numeric(chdir_res)
+result_list <- list(chdir_breakdown = as.numeric(chdir_res),
                     chdir_avg_value = mean(unlist(chdir_res)),
                     nrmse_breakdown = as.numeric(nrmse_res),
                     nrmse_avg_value = mean(unlist(nrmse_res)),
