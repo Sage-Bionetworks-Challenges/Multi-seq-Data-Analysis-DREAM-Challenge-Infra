@@ -318,6 +318,20 @@ steps:
       - id: results
       - id: all_scores
 
+  update_score:
+    run: update_score.cwl
+    in:
+      - id: synapse_config
+        source: "#synapseConfig"
+      - id: parent_id
+        source: "#submitterUploadSynId"  
+      - id: results
+        source: "#score/results"
+      - id: all_scores
+        source: "#score/all_scores"
+    out: 
+      - id: results
+
   email_score:
     run: email_score.cwl
     in:
@@ -328,9 +342,7 @@ steps:
       - id: parent_id
         source: "#submitterUploadSynId"  
       - id: results
-        source: "#score/results"
-      - id: all_scores
-        source: "#score/all_scores"
+        source: "#update_score/results"
       # OPTIONAL: add annotations to be withheld from participants to `[]`
       # - id: private_annotations
       #   default: []
@@ -342,7 +354,7 @@ steps:
       - id: submissionid
         source: "#submissionId"
       - id: annotation_values
-        source: "#score/results"
+        source: "#update_score/results"
       - id: to_public
         default: true
       - id: force
