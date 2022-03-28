@@ -334,7 +334,7 @@ steps:
       - id: leader_board_synapseid
         valueFrom: "syn28518204"
     out: 
-      - id: results
+      - id: new_results
 
   email_score:
     run: email_score.cwl
@@ -344,7 +344,7 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
       - id: results
-        source: "#update_score/results"
+        source: "#update_score/new_results"
       # OPTIONAL: add annotations to be withheld from participants to `[]`
       # - id: private_annotations
       #   default: []
@@ -357,7 +357,7 @@ steps:
       - id: submissionid
         source: "#submissionId"
       - id: annotation_values
-        source: "#update_score/results"
+        source: "#update_score/new_results"
       - id: to_public
         default: true
       - id: force

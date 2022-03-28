@@ -45,7 +45,7 @@ requirements:
   - class: InlineJavascriptRequirement
 
 outputs:
-  - id: results
+  - id: new_results
     type: File
     outputBinding:
       glob: results.json
