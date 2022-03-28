@@ -3,7 +3,7 @@
     {
       "dataset": "dataset1",
       "props": ["20k", "50k"],
-      "conditions": ["c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8"]
+      "conditions": ["c1", "c2", "c3", "c4"]
     },
     {
       "dataset": "dataset2",

@@ -110,11 +110,10 @@ def main():
         input_info = json.load(json_data)
         input_info = input_info['scRNAseq']
 
-    for loc in input_info:
-        # set proportions, assume they have same proportions for now
-        prefix = input_info[loc]['dataset']
-        ds_props = input_info[loc]['props']
-        conditions = input_info[loc]['conditions']
+    for info in input_info:
+        prefix = info['dataset']
+        ds_props = info['props']
+        conditions = info['conditions']
 
         # check if all required downsampled data exists
         true_ds_fs = [f'{prefix}_{c}_{p}.csv'
