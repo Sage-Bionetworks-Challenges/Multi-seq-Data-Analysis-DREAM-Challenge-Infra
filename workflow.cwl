@@ -138,16 +138,13 @@ steps:
         source: "#email_docker_validation/finished"
     out: [finished]
 
-  utils:
-    run: utils.cwl
+  determine_question:
+    run: determine_question.cwl
     in:
       - id: queue
         source: "#get_docker_submission/evaluation_id"
     out:
       - id: question
-      - id: condition
-      - id: proportion
-      - id: file_prefix
       - id: input_dir
       - id: gs_synId
   
@@ -174,9 +171,9 @@ steps:
       - id: store
         default: true
       - id: question
-        source: "#utils/question"
+        source: "#determine_question/question"
       - id: input_dir
-        source: "#utils/input_dir"
+        source: "#determine_question/input_dir"
       - id: docker_script
         default:
           class: File
@@ -224,7 +221,7 @@ steps:
     run: https://raw.githubusercontent.com/Sage-Bionetworks-Workflows/cwl-tool-synapseclient/v1.4/cwl/synapse-get-tool.cwl
     in:
       - id: synapseid
-        source: "#utils/gs_synId"
+        source: "#determine_question/gs_synId"
       - id: synapse_config
         source: "#synapseConfig"
     out:
@@ -239,14 +236,10 @@ steps:
         source: "#get_docker_submission/entity_type"
       - id: input_files
         source: "#run_docker/input_files"
-      - id: condition
-        source: "#utils/condition"
-      - id: proportion
-        source: "#utils/proportion"
-      - id: file_prefix
-        source: "#utils/file_prefix"
-      - id: question
-        source: "#utils/question"
+      - id: input_json
+        default:
+          class: File
+          location: "input_info.json"
     out:
       - id: results
       - id: status
@@ -306,12 +299,10 @@ steps:
         source: "#download_goldstandard/filepath"
       - id: input_files
         source: "#run_docker/input_files"
-      - id: condition
-        source: "#utils/condition"
-      - id: proportion
-        source: "#utils/proportion"
-      - id: file_prefix
-        source: "#utils/file_prefix"
+      - id: input_json
+        default:
+          class: File
+          location: "input_info.json"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:

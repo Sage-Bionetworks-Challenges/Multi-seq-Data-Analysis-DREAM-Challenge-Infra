@@ -10,6 +10,7 @@ suppressPackageStartupMessages({
   library(jsonlite)
   library(GeoDE)
   library(Seurat)
+  library(readr)
 })
 
 # load evaluation metrics
@@ -18,17 +19,11 @@ source("/metrics.R")
 # load all args
 parser <- argparse::ArgumentParser()
 parser$add_argument("-g", "--goldstandard",
-                     type = "character",
-                     help = "Goldstandard file")
-parser$add_argument("-c", "--condition", nargs = '+',
                     type = "character",
-                    help = "Experiment condition")
-parser$add_argument("-p", "--proportion", nargs = '+',
+                    help = "Goldstandard file")
+parser.add_argument('-j', '--input_json',
                     type = "character",
-                    help = "Downsampling proportion")
-parser$add_argument("-x", "--file_prefix",
-                    type = "character",
-                    help = "Prefix of filename")
+                    help='Input information json file')
 parser$add_argument("-o", "--results",
                     type = "character",
                     help = "Results path")
@@ -39,63 +34,61 @@ args <- parser$parse_args()
 untar(args[["goldstandard"]])
 # downsampled data and imputed data are parsed to wd via workflow
 
-## Read all data ------------------------------------
-# read conditions and downsampling props
-exp_conditions <- args[["condition"]]
-ds_props <- args[["proportion"]]
-file_prefix <- args[["file_prefix"]]
+## Read read conditions and downsampling props ------------------------------------
+input_info <- jsonlite::read_json(args[["input_json"]])
+input_info <- input_info$scRNAseq
 
-## Note: Only work for sub-challenge 1 for now
-## TODO: add metric for scATACseq
+## Calculate scores ------------------------------------
+chdir_scores <- c()
+nrmse_scores <- c()
+test_names <- c()
 # read all downsampled data
-all_down <- lapply(exp_conditions, function(c) {
-  lapply(ds_props, function(p) {
-    INPUT <- sprintf("%s_%s_%s.csv", file_prefix, c, p)
-    df <- fread(INPUT, data.table = FALSE) %>% tibble::column_to_rownames("V1")
-  }) %>% set_names(ds_props)
-}) %>% set_names(exp_conditions)
+for (info in input_info) {
+  # read conditions and downsampling props
+  prefix <- info$dataset
+  exp_conditions <- unlist(info$props)
+  ds_props <- unlist(info$props)
+  
+  # read all downsampled data
+  for (c in exp_conditions) {
+    for (p in ds_props) {
+      # read downsampled data
+      down_path <- sprintf("%s_%s_%s.csv", prefix, c, p)
+      down <- fread(down_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
 
-# read all imputed data
-all_imp <- lapply(exp_conditions, function(c) {
-  lapply(ds_props, function(p) {
-    INPUT <- sprintf("%s_%s_%s_imputed.csv", file_prefix, c, p)
-    df <- fread(INPUT, data.table = FALSE) %>% tibble::column_to_rownames("V1")
-  }) %>% set_names(ds_props)
-}) %>% set_names(exp_conditions)
+      # read imputed data
+      imp_path <- sprintf("%s_%s_%s.csv", prefix, c, p)
+      imp <- fread(INPUT, data.table = FALSE) %>% tibble::column_to_rownames("V1")
+      
+      if (!exists("gs")) {
+        # read raw data
+        if (prefix == "dataset1") {
+          orig_10x <- Seurat::Read10X(file.path(prefix, c, "filtered_feature_bc_matrix"))
+        } else {
+          orig_10x <- Seurat::Read10X(file.path(prefix, "filtered_feature_bc_matrix"))
+        }
+        # get goldstandard data
+        # filter genes and columns that match the downsampled data
+        gs <- orig_10x[rownames(orig_10x) %in% rownames(down), 
+                       colnames(orig_10x) %in% colnames(down)]
+      }
 
-# create all goldstandard data
-all_gs <- lapply(exp_conditions, function(c) {
-  orig_10x <- Seurat::Read10X(file.path(c, "filtered_feature_bc_matrix"))
-  # filter genes and columns that match the downsampled data
-  filtered <- orig_10x[rownames(orig_10x) %in% rownames(all_down[[c]][[1]]), 
-                       colnames(orig_10x) %in% colnames(all_down[[c]][[1]])]
-}) %>% set_names(exp_conditions)
-
-
-## Primary Metric: Characteristic Direction -----------------------------------
-# the order of genes and cells names should be matched prior to this step
-chdir_res <- sapply(exp_conditions, function(c) {
-  sapply(ds_props, function(p) {
-    getChdir(gs = all_gs[[c]],
-             down = all_down[[c]][[p]],
-             imp = all_imp[[c]][[p]])
-  })
-})
-chdir_res <- as.numeric(unlist(chdir_res))
-
-## Secondary Metric: NRMSE -----------------------------------
-nrmse_res <- sapply(exp_conditions, function(c) {
-  sapply(ds_props, function(p) {
-    getNRMSE(gs = all_gs[[c]], imp = all_imp[[c]][[p]])
-  })
-})
-nrmse_res <- as.numeric(unlist(nrmse_res))
+      s1 <- getChdir(gs = gs, down = down, imp = imp)
+      s2 <- getNRMSE(gs = gs, imp = imp)
+      chdir_scores <- c(chdir_scores, s1)
+      nrmse_scores <- c(nrmse_scores, s2)
+      test_names <- c(test_names, paste(c(prefix, c, p), collapse = "-"))
+    }
+  }
+}
 
 ## Write out the scores -----------------------------------
 # create table to record all the individual scores
+test_names <- strsplit(test_names, "-")
 all_scores <- data.frame(
-    condition = rep(exp_conditions, each = length(ds_props)),
-    downsampled_prop = rep(ds_props, length(exp_conditions)),
+    dataset = sapply(test_names, `[[`, 1)
+    condition = sapply(test_names, `[[`, 2),
+    downsampled_prop = sapply(test_names, `[[`, 3),
     chdir_score = chdir_res,
     nrmse_score = nrmse_res
 )

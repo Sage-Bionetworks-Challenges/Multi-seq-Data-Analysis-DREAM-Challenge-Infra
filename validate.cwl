@@ -17,28 +17,16 @@ inputs:
     type: string
   - id: input_files
     type: File[]
-  - id: condition
-    type: string[]
-  - id: proportion
-    type: string[]
-  - id: file_prefix
-    type: string
-  - id: question
-    type: string
+  - id: input_json
+    type: File
 
 arguments:
   - valueFrom: $(inputs.submission_file)
     prefix: -s
   - valueFrom: $(inputs.entity_type)
     prefix: -e
-  - valueFrom: $(inputs.condition)
-    prefix: -c
-  - valueFrom: $(inputs.proportion)
-    prefix: -p
-  - valueFrom: $(inputs.file_prefix)
-    prefix: -x
-  - valueFrom: $(inputs.question)
-    prefix: -q
+  - valueFrom: $(inputs.input_json.path)
+    prefix: -j
   - valueFrom: results.json
     prefix: -r
 
@@ -47,7 +35,7 @@ requirements:
   - class: InitialWorkDirRequirement
     listing:
       - $(inputs.input_files)
-
+      - $(inputs.input_json)
 outputs:
   # output decompressed submission files,
   # so we don't need to decompress again in scoring

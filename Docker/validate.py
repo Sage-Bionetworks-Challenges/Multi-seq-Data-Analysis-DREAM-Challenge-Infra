@@ -23,14 +23,8 @@ def get_args():
                         help='synapse entity type downloaded')
     parser.add_argument('-s', '--submission_file', required=True,
                         help='Submission file')
-    parser.add_argument('-c', '--condition', required=True, nargs='+',
-                        help='Experiment condition')
-    parser.add_argument('-p', '--proportion', required=True, nargs='+',
-                        help='Downsampling proportion')
-    parser.add_argument('-x', '--file_prefix', required=True,
-                        help='Prefix of filename')
-    parser.add_argument('-q', '--question', required=True,
-                        help='Challenge question')
+    parser.add_argument('-j', '--input_json', required=True,
+                        help='Input information json file')
     return parser.parse_args()
 
 
@@ -111,42 +105,43 @@ def main():
 
     invalid_reasons = []
 
-    # set variables to find files
-    ds_props = args.proportion
-    conditions = args.condition
-    file_prefix = args.file_prefix
+    # read json file that records downsampled data info
+    with open(args.input_json) as json_data:
+        input_info = json.load(json_data)
+        input_info = input_info['scRNAseq']
 
-    # check if all required downsampled data exists
-    true_ds_fs = [f'{file_prefix}_{c}_{p}.csv'
-                  for p in ds_props for c in conditions]
-    # downsampled files should be copied to working dir
-    diff = list(set(true_ds_fs) - set(os.listdir(".")))
-    if diff:
-        invalid_reasons.append('File not found : ' + '", "'.join(diff))
+    for loc in input_info:
+        # set proportions, assume they have same proportions for now
+        prefix = input_info[loc]['dataset']
+        ds_props = input_info[loc]['props']
+        conditions = input_info[loc]['conditions']
 
-    # validate prediction file
-    if args.submission_file is None:
-        invalid_reasons.append(
-            'Expected FileEntity type but found ' + args.entity_type
-        )
-    else:
-        # decompress submission file
-        pred_fs = _decompress_file(args.submission_file)
-        true_pred_fs = [f'{file_prefix}_{c}_{p}_imputed.csv'
-                        for p in ds_props for c in conditions]
-        # check if all required data exists
-        diff = list(set(true_pred_fs) - set(pred_fs))
+        # check if all required downsampled data exists
+        true_ds_fs = [f'{prefix}_{c}_{p}.csv'
+                      for p in ds_props for c in conditions]
+        # downsampled files should be copied to working dir
+        diff = list(set(true_ds_fs) - set(os.listdir(".")))
         if diff:
             invalid_reasons.append('File not found : ' + '", "'.join(diff))
 
-    if not invalid_reasons:
-        if args.question == '1':
-            # validate predicted data
+        # validate prediction file
+        if args.submission_file is None:
+            invalid_reasons.append(
+                'Expected FileEntity type but found ' + args.entity_type
+            )
+        else:
+            # decompress submission file
+            pred_fs = _decompress_file(args.submission_file)
+            true_pred_fs = [f'{prefix}_{c}_{p}_imputed.csv'
+                            for p in ds_props for c in conditions]
+            # check if all required data exists
+            diff = list(set(true_pred_fs) - set(pred_fs))
+            if diff:
+                invalid_reasons.append('File not found : ' + '", "'.join(diff))
+
+        if not invalid_reasons:
             scRNA_res = _validate_scRNA(true_ds_fs, true_pred_fs)
             invalid_reasons.extend(scRNA_res)
-        else:
-            # TODO: add validation function for scATACseq
-            pass
 
     validate_status = 'INVALID' if invalid_reasons else 'VALIDATED'
     result = {'submission_errors': '\n'.join(invalid_reasons),
