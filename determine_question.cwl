@@ -34,7 +34,7 @@ expression: |
     var ds_folder = "/home/ec2-user/challenge-data/downsampled"
     if (inputs.queue == "9615023" || inputs.queue == "9614943") {
       var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq"
-      var gs_synId = "syn27919058"
+      var gs_synId = "syn28543032"
       var question = "1"
       
     } else if (inputs.queue == "9615024" || inputs.queue == "9615021") {
