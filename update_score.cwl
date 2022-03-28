@@ -1,15 +1,19 @@
 #!/usr/bin/env cwl-runner
 #
-# Upload the collected scores to synapse and
-# add the entity id to annotation
+# 1. upload the collected scores to synapse and
+# 2. add the scores entity id to annotation
+# 3. query all scored submission results
+# 4. update a leader board with rankings of the submission
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: python3
+baseCommand: [python3, /update_score.py]
+
+hints:
+  DockerRequirement:
+    dockerPull: docker.synapse.org/syn26720921/scoring:v1
 
 inputs:
-  - id: script
-    type: File
   - id: synapse_config
     type: File
   - id: results
@@ -24,7 +28,6 @@ inputs:
     type: string
 
 arguments:
-  - valueFrom: $(inputs.script.path)
   - valueFrom: $(inputs.synapse_config.path)
     prefix: -c
   - valueFrom: $(inputs.parent_id)
@@ -40,9 +43,7 @@ arguments:
 
 requirements:
   - class: InlineJavascriptRequirement
-  - class: InitialWorkDirRequirement
-    listing:
-      - $(inputs.script)
+
 outputs:
   - id: results
     type: File
