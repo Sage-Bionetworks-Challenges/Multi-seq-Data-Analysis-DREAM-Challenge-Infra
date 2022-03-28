@@ -85,7 +85,7 @@ def main():
 
         # get all current submission results
         sv_table = syn.tableQuery(
-            f'select * from {sv_id} where submission_status="SCORED"')
+            f"select * from {sv_id} where submission_status= 'SCORED'")
         df = sv_table.asDataFrame()
 
         # filter out invalid results
@@ -99,18 +99,17 @@ def main():
 
             # add ranks to valid scores
             # assume valid sub should have both valid 1st and 2rd scores
-            lb_df = df.iloc[chdir_rank["loc"]]
+            lb_df = df.iloc[chdir_res["loc"]]
             lb_df["chdir_rank"] = chdir_rank
             lb_df["nrmse_rank"] = nrmse_rank
-            lb_df.drop(["chdir_breakdown", "nrmse_breakdown"],
-                       inplace=True, axis=1)
 
             # delete all rows for leader board table
-            lb_table = syn.tableQuery(f'select * from {lb_id}')
+            lb_table = syn.tableQuery(f"select * from {lb_id}")
+            cols = [col for col in lb_table.asDataFrame().columns]
             syn.delete(lb_table)
 
             # upload new results and ranks to leader board table
-            lb_df.to_csv("tmp.csv", index=False)
+            lb_df[cols].to_csv("tmp.csv", index=False)
             table = Table(lb_id, "tmp.csv")
             table = syn.store(table)
 
