@@ -330,9 +330,9 @@ steps:
       - id: all_scores
         source: "#score/all_scores"
       - id: submission_view_synapseid
-        valueFrom: "3441740"
+        valueFrom: "syn27059976"
       - id: leader_board_synapseid
-        valueFrom: "3441740"
+        valueFrom: "syn28518204"
     out: 
       - id: results
 

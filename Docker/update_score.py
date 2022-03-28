@@ -85,7 +85,7 @@ def main():
 
         # get all current submission results
         sv_table = syn.tableQuery(
-            "select * from % s where submission_status='SCORED'" % sv_id)
+            f'select * from {sv_id} where submission_status="SCORED"')
         df = sv_table.asDataFrame()
 
         # filter out invalid results
@@ -106,7 +106,7 @@ def main():
                        inplace=True, axis=1)
 
             # delete all rows for leader board table
-            lb_table = syn.tableQuery("select * from % s" % lb_id)
+            lb_table = syn.tableQuery(f'select * from {lb_id}')
             syn.delete(lb_table)
 
             # upload new results and ranks to leader board table
