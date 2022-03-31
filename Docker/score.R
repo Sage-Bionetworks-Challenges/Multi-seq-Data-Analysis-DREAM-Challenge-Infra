@@ -10,23 +10,25 @@ suppressPackageStartupMessages({
   library(jsonlite)
   library(GeoDE)
   library(Seurat)
-  library(readr)
 })
 
 # load evaluation metrics
-source("/metrics.R")
+source("../Docker/metrics.R")
 
 # load all args
 parser <- argparse::ArgumentParser()
 parser$add_argument("-g", "--goldstandard",
-                    type = "character",
-                    help = "Goldstandard file")
-parser.add_argument('-j', '--input_json',
-                    type = "character",
-                    help='Input information json file')
+  type = "character",
+  help = "Goldstandard file"
+)
+parser$add_argument("-j", "--input_json",
+  type = "character",
+  help = "Input information json file"
+)
 parser$add_argument("-o", "--results",
-                    type = "character",
-                    help = "Results path")
+  type = "character",
+  help = "Results path"
+)
 args <- parser$parse_args()
 
 ## Decompress required data ------------------------------------
@@ -46,9 +48,9 @@ test_names <- c()
 for (info in input_info) {
   # read conditions and downsampling props
   prefix <- info$dataset
-  exp_conditions <- unlist(info$props)
+  exp_conditions <- unlist(info$conditions)
   ds_props <- unlist(info$props)
-  
+
   # read all downsampled data
   for (c in exp_conditions) {
     for (p in ds_props) {
@@ -57,20 +59,20 @@ for (info in input_info) {
       down <- fread(down_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
 
       # read imputed data
-      imp_path <- sprintf("%s_%s_%s.csv", prefix, c, p)
-      imp <- fread(INPUT, data.table = FALSE) %>% tibble::column_to_rownames("V1")
-      
+      imp_path <- sprintf("%s_%s_%s_imputed.csv", prefix, c, p)
+      imp <- fread(imp_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
+
       if (!exists("gs")) {
         # read raw data
         if (prefix == "dataset1") {
           orig_10x <- Seurat::Read10X(file.path(prefix, c, "filtered_feature_bc_matrix"))
         } else {
           orig_10x <- Seurat::Read10X(file.path(prefix, "filtered_feature_bc_matrix"))
+          orig_10x <- orig_10x$`Gene Expression`
         }
         # get goldstandard data
         # filter genes and columns that match the downsampled data
-        gs <- orig_10x[rownames(orig_10x) %in% rownames(down), 
-                       colnames(orig_10x) %in% colnames(down)]
+        gs <- orig_10x[rownames(down), colnames(down)]
       }
 
       s1 <- getChdir(gs = gs, down = down, imp = imp)
@@ -79,6 +81,7 @@ for (info in input_info) {
       nrmse_scores <- c(nrmse_scores, s2)
       test_names <- c(test_names, paste(c(prefix, c, p), collapse = "-"))
     }
+    rm("gs") # remove every new condition finishes
   }
 }
 
@@ -86,19 +89,21 @@ for (info in input_info) {
 # create table to record all the individual scores
 test_names <- strsplit(test_names, "-")
 all_scores <- data.frame(
-    dataset = sapply(test_names, `[[`, 1)
-    condition = sapply(test_names, `[[`, 2),
-    downsampled_prop = sapply(test_names, `[[`, 3),
-    chdir_score = chdir_res,
-    nrmse_score = nrmse_res
+  dataset = sapply(test_names, `[[`, 1),
+  condition = sapply(test_names, `[[`, 2),
+  downsampled_prop = sapply(test_names, `[[`, 3),
+  chdir_score = chdir_res,
+  nrmse_score = nrmse_res
 )
 write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
 # create annotations
-result_list <- list(chdir_breakdown = chdir_res,
-                    chdir_avg_value = mean(chdir_res),
-                    nrmse_breakdown = nrmse_res,
-                    nrmse_avg_value = mean(nrmse_res),
-                    submission_status = "SCORED")
+result_list <- list(
+  chdir_breakdown = chdir_res,
+  chdir_avg_value = mean(chdir_res),
+  nrmse_breakdown = nrmse_res,
+  nrmse_avg_value = mean(nrmse_res),
+  submission_status = "SCORED"
+)
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
 write(export_json, args$results)
