@@ -38,7 +38,7 @@ expression: |
     var ds_folder = "/home/ec2-user/challenge-data/downsampled"
     if (inputs.queue == "9615023" || inputs.queue == "9614943") {
       // TODO: may change to dictionary when we add dataset2 and dataset3
-      var ds_prop = ["20k", "50k"]; // tmp for dataset1
+      var ds_prop = ["0_7", "0_5", "100k", "50k", "20k", "10k"]; // tmp for dataset1
       var condition = ["c1", "c2", "c3", "c4"]; // tmp for dataset1
       var input_dir = `${ds_folder}/scRNAseq/dataset1` // tmp for dataset1
       var prefix = "dataset1" // tmp for dataset1
