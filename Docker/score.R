@@ -45,45 +45,46 @@ chdir_scores <- c()
 nrmse_scores <- c()
 test_names <- c()
 # read all downsampled data
-for (info in input_info) {
-  # read conditions and downsampling props
-  prefix <- info$dataset
-  exp_conditions <- unlist(info$conditions)
-  ds_props <- unlist(info$props)
+# for (info in input_info) {
+info <- input_info[[2]] # test dataset2 only
+# read conditions and downsampling props
+prefix <- info$dataset
+exp_conditions <- unlist(info$conditions)
+ds_props <- unlist(info$props)
 
-  # read all downsampled data
-  for (c in exp_conditions) {
-    for (p in ds_props) {
-      # read downsampled data
-      down_path <- sprintf("%s_%s_%s.csv", prefix, c, p)
-      down <- fread(down_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
+# read all downsampled data
+for (c in exp_conditions) {
+  for (p in ds_props) {
+    # read downsampled data
+    down_path <- sprintf("%s_%s_%s.csv", prefix, c, p)
+    down <- fread(down_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
 
-      # read imputed data
-      imp_path <- sprintf("%s_%s_%s_imputed.csv", prefix, c, p)
-      imp <- fread(imp_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
+    # read imputed data
+    imp_path <- sprintf("%s_%s_%s_imputed.csv", prefix, c, p)
+    imp <- fread(imp_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
 
-      if (!exists("gs")) {
-        # read raw data
-        if (prefix == "dataset1") {
-          orig_10x <- Seurat::Read10X(file.path(prefix, c, "filtered_feature_bc_matrix"))
-        } else {
-          orig_10x <- Seurat::Read10X(file.path(prefix, "filtered_feature_bc_matrix"))
-          orig_10x <- orig_10x$`Gene Expression`
-        }
-        # get goldstandard data
-        # filter genes and columns that match the downsampled data
-        gs <- orig_10x[rownames(down), colnames(down)]
+    if (!exists("gs")) {
+      # read raw data
+      if (prefix == "dataset1") {
+        orig_10x <- Seurat::Read10X(file.path(prefix, c, "filtered_feature_bc_matrix"))
+      } else {
+        orig_10x <- Seurat::Read10X(file.path(prefix, "filtered_feature_bc_matrix"))
+        orig_10x <- orig_10x$`Gene Expression`
       }
-
-      s1 <- getChdir(gs = gs, down = down, imp = imp)
-      s2 <- getNRMSE(gs = gs, imp = imp)
-      chdir_scores <- c(chdir_scores, s1)
-      nrmse_scores <- c(nrmse_scores, s2)
-      test_names <- c(test_names, paste(c(prefix, c, p), collapse = "-"))
+      # get goldstandard data
+      # filter genes that match the downsampled data
+      gs <- orig_10x[rownames(down), ]
     }
-    rm("gs") # remove every new condition finishes
+
+    score1 <- getChdir(gs = gs, down = down, imp = imp)
+    score2 <- getNRMSE(gs = gs, imp = imp)
+    chdir_scores <- c(chdir_scores, score1)
+    nrmse_scores <- c(nrmse_scores, score2)
+    test_names <- c(test_names, paste(c(prefix, c, p), collapse = "-"))
   }
+  rm("gs") # remove every new condition finishes
 }
+# }
 
 ## Write out the scores -----------------------------------
 # create table to record all the individual scores

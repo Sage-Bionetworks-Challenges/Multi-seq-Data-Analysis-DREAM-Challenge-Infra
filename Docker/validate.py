@@ -106,41 +106,42 @@ def main():
     invalid_reasons = []
 
     # read json file that records downsampled data info
-    with open(args.input_json) as json_data:
+    with open("input_info.json") as json_data:
         input_info = json.load(json_data)
         input_info = input_info['scRNAseq']
 
-    for info in input_info:
-        prefix = info['dataset']
-        ds_props = info['props']
-        conditions = info['conditions']
+    # for info in input_info:
+    info = input_info[1]  # only test dataset2
+    prefix = info['dataset']
+    ds_props = info['props']
+    conditions = info['conditions']
 
-        # check if all required downsampled data exists
-        true_ds_fs = [f'{prefix}_{c}_{p}.csv'
-                      for p in ds_props for c in conditions]
-        # downsampled files should be copied to working dir
-        diff = list(set(true_ds_fs) - set(os.listdir(".")))
+    # check if all required downsampled data exists
+    true_ds_fs = [f'{prefix}_{c}_{p}.csv'
+                  for p in ds_props for c in conditions]
+    # downsampled files should be copied to working dir
+    diff = list(set(true_ds_fs) - set(os.listdir(".")))
+    if diff:
+        invalid_reasons.append('File not found : ' + '", "'.join(diff))
+
+        # validate prediction file
+    if args.submission_file is None:
+        invalid_reasons.append(
+            'Expected FileEntity type but found ' + args.entity_type
+        )
+    else:
+        # decompress submission file
+        pred_fs = _decompress_file(args.submission_file)
+        true_pred_fs = [f'{prefix}_{c}_{p}_imputed.csv'
+                        for p in ds_props for c in conditions]
+        # check if all required data exists
+        diff = list(set(true_pred_fs) - set(pred_fs))
         if diff:
             invalid_reasons.append('File not found : ' + '", "'.join(diff))
 
-        # validate prediction file
-        if args.submission_file is None:
-            invalid_reasons.append(
-                'Expected FileEntity type but found ' + args.entity_type
-            )
-        else:
-            # decompress submission file
-            pred_fs = _decompress_file(args.submission_file)
-            true_pred_fs = [f'{prefix}_{c}_{p}_imputed.csv'
-                            for p in ds_props for c in conditions]
-            # check if all required data exists
-            diff = list(set(true_pred_fs) - set(pred_fs))
-            if diff:
-                invalid_reasons.append('File not found : ' + '", "'.join(diff))
-
-        if not invalid_reasons:
-            scRNA_res = _validate_scRNA(true_ds_fs, true_pred_fs)
-            invalid_reasons.extend(scRNA_res)
+    if not invalid_reasons:
+        scRNA_res = _validate_scRNA(true_ds_fs, true_pred_fs)
+        invalid_reasons.extend(scRNA_res)
 
     validate_status = 'INVALID' if invalid_reasons else 'VALIDATED'
     result = {'submission_errors': '\n'.join(invalid_reasons),
