@@ -26,7 +26,6 @@ getChdir <- function(gs = NULL, down = NULL, imp = NULL, pseudo = FALSE) {
     condition <- as.factor(rep(c(1, 2), each = ncol(gs)))
   }
 
-
   XY$genenames <- as.factor(XY$genenames)
   YZ$genenames <- as.factor(YZ$genenames)
 
