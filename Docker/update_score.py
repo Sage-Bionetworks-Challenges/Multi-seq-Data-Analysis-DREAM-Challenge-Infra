@@ -7,9 +7,9 @@
 
 #!/usr/bin/env python
 import synapseclient
+from synapseclient.table import Table, Schema, Column
 import argparse
 import json
-from synapseclient.table import Table
 from scipy.stats import rankdata
 
 
@@ -26,7 +26,7 @@ def get_args():
                         help="A csv table collected all submssion scores")
     parser.add_argument("-s", "--submission_view_synapseid",
                         required=True, help="Synapse ID of submission view")
-    parser.add_argument("-l", "--leader_board_synapseid",
+    parser.add_argument("-l", "--leaderboard_synapseid",
                         required=True, help="Synapse ID of leader board")
     return parser.parse_args()
 
@@ -39,8 +39,9 @@ def valid_scores(df, col):
 
     for loc, res in enumerate(df[col]):
         if len(res) > 0:
+            # remove the square brackets symbols; get individual score
             scores = res[0][1:-1].split(", ")
-            if len(scores) == 8:
+            if len(scores) == 48:  # hardcode the number for now
                 valid_inx.append(loc)
                 valid_scores.append([float(x) for x in scores])
     return {"loc": valid_inx, "scores": valid_scores}
@@ -67,6 +68,7 @@ def main():
 
     with open(args.results) as json_data:
         annots = json.load(json_data)
+
     if annots.get("submission_status") is None:
         raise Exception(
             "score.cwl must return submission_status as a json key")
@@ -79,16 +81,18 @@ def main():
         with open("results.json", "w") as o:
             o.write(json.dumps(annots))
 
-         # set synapse ids for table views
+        # create a leaderboard based on ranks of all test cases
+        # set synapse ids for table views
         sv_id = args.submission_view_synapseid
-        lb_id = args.leader_board_synapseid
+        lb_id = args.leaderboard_synapseid
 
         # get all current submission results
+        # !! ensure the columns have been already added into the leaderboard
         sv_table = syn.tableQuery(
-            f"select * from {sv_id} where submission_status= 'SCORED'")
+            f"select * from {sv_id} where submission_status = 'SCORED'")
         df = sv_table.asDataFrame()
 
-        # filter out invalid results
+        # filter out invalid results (only need for testing)
         chdir_res = valid_scores(df, "chdir_breakdown")
         nrmse_res = valid_scores(df, "nrmse_breakdown")
 
@@ -103,14 +107,13 @@ def main():
             lb_df["chdir_rank"] = chdir_rank
             lb_df["nrmse_rank"] = nrmse_rank
 
-            # delete all rows for leader board table
+            # delete all rows for leaderboard table
             lb_table = syn.tableQuery(f"select * from {lb_id}")
-            cols = [col for col in lb_table.asDataFrame().columns]
             syn.delete(lb_table)
 
-            # upload new results and ranks to leader board table
-            lb_df[cols].to_csv("tmp.csv", index=False)
-            table = Table(lb_id, "tmp.csv")
+            # upload new results and ranks to leaderboard table
+            cols = [col for col in lb_table.asDataFrame().columns]
+            table = Table(lb_id, lb_df[cols])
             table = syn.store(table)
 
 

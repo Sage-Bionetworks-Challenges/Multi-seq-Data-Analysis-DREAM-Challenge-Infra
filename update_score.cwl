@@ -24,7 +24,7 @@ inputs:
     type: File
   - id: submission_view_synapseid
     type: string
-  - id: leader_board_synapseid
+  - id: leaderboard_synapseid
     type: string
 
 arguments:
@@ -38,7 +38,7 @@ arguments:
     prefix: -f
   - valueFrom: $(inputs.submission_view_synapseid)
     prefix: -s
-  - valueFrom: $(inputs.leader_board_synapseid)
+  - valueFrom: $(inputs.leaderboard_synapseid)
     prefix: -l
 
 requirements:

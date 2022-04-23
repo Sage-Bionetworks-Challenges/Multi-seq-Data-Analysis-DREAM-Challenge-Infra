@@ -322,8 +322,8 @@ steps:
         source: "#score/all_scores"
       - id: submission_view_synapseid
         valueFrom: "syn27059976"
-      - id: leader_board_synapseid
-        valueFrom: "syn28518204"
+      - id: leaderboard_synapseid
+        valueFrom: "syn26720921"
     out: 
       - id: new_results
 
