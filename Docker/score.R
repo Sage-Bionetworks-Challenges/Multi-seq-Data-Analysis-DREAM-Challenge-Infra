@@ -101,15 +101,17 @@ all_scores <- data.frame(
   dataset = sapply(test_names, `[[`, 1),
   condition = sapply(test_names, `[[`, 2),
   downsampled_prop = sapply(test_names, `[[`, 3),
-  chdir_score = chdir_res,
+  # chdir_score = chdir_res,
   nrmse_score = nrmse_scores
 )
 write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
 # create annotations
 result_list <- list(
-  chdir_breakdown = chdir_score,
-  chdir_avg_value = mean(chdir_score),
+  # chdir_breakdown = chdir_res,
+  # chdir_avg_value = mean(chdir_res),
+  chdir_breakdown = nrmse_scores,
+  chdir_avg_value = mean(nrmse_scores),
   nrmse_breakdown = nrmse_scores,
   nrmse_avg_value = mean(nrmse_scores),
   submission_status = "SCORED"
