@@ -33,7 +33,8 @@ expression: |
   ${
     // var ds_folder = "/home/ec2-user/challenge-data/downsampled"
     if (inputs.queue == "9615023" || inputs.queue == "9614943") {
-      var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq"
+      // var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq"
+      var input_dir = "/Users/rchai/Projects/Challenges/scRNAseq-and-ATACseq/challenge-data/downsampled/scRNAseq"
       var gs_synId = "syn29611428"
       var question = "1"
       
