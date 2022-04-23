@@ -13,7 +13,7 @@ suppressPackageStartupMessages({
 })
 
 # load evaluation metrics
-source("../Docker/metrics.R")
+source("/metrics.R")
 
 # load all args
 parser <- argparse::ArgumentParser()
@@ -41,19 +41,36 @@ input_info <- jsonlite::read_json(args[["input_json"]])
 input_info <- input_info$scRNAseq
 
 ## Calculate scores ------------------------------------
+
+# add variables that will be saved for results
 chdir_scores <- c()
 nrmse_scores <- c()
+dataset_name <- c()
+exp_condition <- c()
+ds_props <- c()
 test_names <- c()
 # read all downsampled data
 # for (info in input_info) {
 info <- input_info[[2]] # test dataset2 only
 # read conditions and downsampling props
 prefix <- info$dataset
-exp_conditions <- unlist(info$conditions)
+conditions <- unlist(info$conditions)
 ds_props <- unlist(info$props)
 
+# pre-load raw data
+if (prefix == "dataset1") {
+  orig_10x <- lapply(conditions, function(c) {
+    Seurat::Read10X(file.path("dataset1", c, "filtered_feature_bc_matrix"))
+  })
+} else {
+  suppressMessages(
+    orig_10x <- Seurat::Read10X(file.path(prefix, "filtered_feature_bc_matrix"))
+  )
+  orig_10x <- orig_10x$`Gene Expression`
+}
+
 # read all downsampled data
-for (c in exp_conditions) {
+for (c in conditions) {
   for (p in ds_props) {
     # read downsampled data
     down_path <- sprintf("%s_%s_%s.csv", prefix, c, p)
@@ -63,26 +80,17 @@ for (c in exp_conditions) {
     imp_path <- sprintf("%s_%s_%s_imputed.csv", prefix, c, p)
     imp <- fread(imp_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
 
-    if (!exists("gs")) {
-      # read raw data
-      if (prefix == "dataset1") {
-        orig_10x <- Seurat::Read10X(file.path(prefix, c, "filtered_feature_bc_matrix"))
-      } else {
-        orig_10x <- Seurat::Read10X(file.path(prefix, "filtered_feature_bc_matrix"))
-        orig_10x <- orig_10x$`Gene Expression`
-      }
-      # get goldstandard data
-      # filter genes that match the downsampled data
-      gs <- orig_10x[rownames(down), ]
-    }
+    # get goldstandard data
+    # filter genes that match the downsampled data
+    gs <- orig_10x[rownames(down), colnames(down)]
 
-    score1 <- getChdir(gs = gs, down = down, imp = imp)
-    score2 <- getNRMSE(gs = gs, imp = imp)
-    chdir_scores <- c(chdir_scores, score1)
+    # score1 <- getChdir(gs = gs, down = down, imp = imp, pseudo = prefix != "dataset1")
+    score2 <- getNRMSE(gs = gs, imp = imp, pseudo = prefix != "dataset1")
+    # chdir_scores <- c(chdir_scores, score1)
     nrmse_scores <- c(nrmse_scores, score2)
     test_names <- c(test_names, paste(c(prefix, c, p), collapse = "-"))
   }
-  rm("gs") # remove every new condition finishes
+  rm("gs") # remove gs every time new condition finishes
 }
 # }
 
@@ -94,16 +102,16 @@ all_scores <- data.frame(
   condition = sapply(test_names, `[[`, 2),
   downsampled_prop = sapply(test_names, `[[`, 3),
   chdir_score = chdir_res,
-  nrmse_score = nrmse_res
+  nrmse_score = nrmse_scores
 )
 write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
 # create annotations
 result_list <- list(
-  chdir_breakdown = chdir_res,
-  chdir_avg_value = mean(chdir_res),
-  nrmse_breakdown = nrmse_res,
-  nrmse_avg_value = mean(nrmse_res),
+  chdir_breakdown = chdir_score,
+  chdir_avg_value = mean(chdir_score),
+  nrmse_breakdown = nrmse_scores,
+  nrmse_avg_value = mean(nrmse_scores),
   submission_status = "SCORED"
 )
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)

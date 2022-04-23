@@ -9,33 +9,35 @@ getAngle <- function(a = NULL, b = NULL) {
 
 getChdir <- function(gs = NULL, down = NULL, imp = NULL, pseudo = FALSE) {
   if (pseudo) {
-    v0 <- rowSums(gs)
-    v1 <- rowSums(down)
-    v2 <- rowSums(imp)
-    XY <- data.frame(genenames = "", v0 = v0, v1 = v1)
-    YZ <- data.frame(genenames = "", v1 = v1, v2 = v2)
-    condition <- as.factor(rep(c(1, 2), each = length(gs)))
+    XY <- data.frame(
+      genenames = rownames(gs),
+      gs = rowSums(gs),
+      down = rowSums(down)
+    )
+    YZ <- data.frame(
+      genenames = rownames(down),
+      down = rowSums(down),
+      imp = rowSums(imp)
+    )
+    condition <- as.factor(rep(c(1, 2), each = 1))
   } else {
     XY <- cbind(genenames = rownames(gs), gs, down)
     YZ <- cbind(genenames = rownames(down), down, imp)
     condition <- as.factor(rep(c(1, 2), each = ncol(gs)))
-
-    XY$genenames <- as.factor(XY$genenames)
-    YZ$genenames <- as.factor(YZ$genenames)
   }
 
-  data(example_gammas)
+
+  XY$genenames <- as.factor(XY$genenames)
+  YZ$genenames <- as.factor(YZ$genenames)
 
   cdXY <- chdirAnalysis(XY,
     condition,
-    gammas = example_gammas,
     CalculateSig = FALSE,
     nnull = 10
   )
 
   cdYZ <- chdirAnalysis(YZ,
     condition,
-    gammas = example_gammas,
     CalculateSig = FALSE,
     nnull = 10
   )
@@ -51,7 +53,7 @@ getChdir <- function(gs = NULL, down = NULL, imp = NULL, pseudo = FALSE) {
 
 ### NRMSD
 getNRMSE <- function(gs, imp, pseudo = FALSE) {
-  if (!any(dim(gs) != dim(imp))) stop("the dimensions are not matched")
+  if (any(dim(gs) != dim(imp))) stop("the dimensions are not matched")
 
   if (pseudo) {
     v0 <- rowSums(gs)
@@ -66,8 +68,8 @@ getNRMSE <- function(gs, imp, pseudo = FALSE) {
       # normalize by range
       rmse / (max(gs[i, ]) - min(gs[i, ]))
     })
+    nrmse <- mean(nrmse)
   }
 
-  avg_nrmse <- mean(nrmse)
-  return(avg_nrmse)
+  return(nrmse)
 }
