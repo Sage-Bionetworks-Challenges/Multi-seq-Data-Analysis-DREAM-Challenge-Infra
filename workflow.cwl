@@ -8,7 +8,7 @@
 #   workflowSynapseId: Synapse ID of File that links to workflow archive
 #   synapseConfig: filepath to .synapseConfig file
 
-cwlVersion: v1.0
+cwlVersion: v1.2
 class: Workflow
 
 requirements:
@@ -355,12 +355,10 @@ steps:
         source: "#annotate_validation_with_output/finished"
     out: [finished]
 
-update_leaderboard:
+  update_leaderboard:
     run: update_leaderboard.cwl
     when: $(inputs.annotate_submission_with_output)
     in:
-      - id: submissionid
-        source: "#submissionId"
       - id: synapse_config
         source: "#synapseConfig"
       - id: annotate_submission_with_output

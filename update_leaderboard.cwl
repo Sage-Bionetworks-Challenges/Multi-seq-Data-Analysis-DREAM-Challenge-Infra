@@ -14,8 +14,6 @@ hints:
 inputs:
   - id: synapse_config
     type: File
-  - id: parent_id
-    type: string
   - id: annotate_submission_with_output
     type: boolean
   - id: submission_view_synapseid
@@ -26,8 +24,6 @@ inputs:
 arguments:
   - valueFrom: $(inputs.synapse_config.path)
     prefix: -c
-  - valueFrom: $(inputs.parent_id)
-    prefix: -o
   - valueFrom: $(inputs.submission_view_synapseid)
     prefix: -s
   - valueFrom: $(inputs.leaderboard_synapseid)
