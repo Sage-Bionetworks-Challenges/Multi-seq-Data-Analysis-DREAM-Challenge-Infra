@@ -87,8 +87,8 @@ for (info in input_info) {
         gs <- orig_10x[rownames(down), ]
       }
 
-      score1 <- getChdir(gs = gs, down = down, imp = imp, pseudo = prefix != "dataset1")
-      score2 <- getNRMSE(gs = gs, imp = imp, pseudo = prefix != "dataset1")
+      score1 <- getChdir(gs = gs, down = down, imp = imp, pseudobulk = prefix != "dataset1")
+      score2 <- getNRMSE(gs = gs, imp = imp, pseudobulk = prefix != "dataset1")
 
       all_pri_scores <- c(all_pri_scores, score1)
       all_sec_scores <- c(all_sec_scores, score2)

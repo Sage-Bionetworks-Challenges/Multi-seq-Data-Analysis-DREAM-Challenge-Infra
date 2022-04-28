@@ -17,8 +17,8 @@ getCosine <- function(gs, down, imp) {
   return(angle)
 }
 
-getChdir <- function(gs = NULL, down = NULL, imp = NULL, pseudo = FALSE) {
-  if (pseudo) {
+getChdir <- function(gs = NULL, down = NULL, imp = NULL, pseudobulk = FALSE) {
+  if (pseudobulk) {
     angle <- getCosine(gs, down, imp)
   } else {
     XY <- cbind(genenames = rownames(gs), gs, down)
@@ -50,8 +50,8 @@ getChdir <- function(gs = NULL, down = NULL, imp = NULL, pseudo = FALSE) {
 }
 
 ### NRMSD
-getNRMSE <- function(gs, imp, pseudo = FALSE) {
-  if (pseudo) {
+getNRMSE <- function(gs, imp, pseudobulk = FALSE) {
+  if (pseudobulk) {
     gs <- rowSums(gs)
     imp <- rowSums(imp)
     rmse <- sqrt(mean((gs - imp)**2))
