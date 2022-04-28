@@ -36,10 +36,6 @@ arguments:
     prefix: -r
   - valueFrom: $(inputs.all_scores.path)
     prefix: -f
-  - valueFrom: $(inputs.submission_view_synapseid)
-    prefix: -s
-  - valueFrom: $(inputs.leaderboard_synapseid)
-    prefix: -l
 
 requirements:
   - class: InlineJavascriptRequirement
