@@ -22,10 +22,6 @@ inputs:
     type: string
   - id: all_scores
     type: File
-  - id: submission_view_synapseid
-    type: string
-  - id: leaderboard_synapseid
-    type: string
 
 arguments:
   - valueFrom: $(inputs.synapse_config.path)
