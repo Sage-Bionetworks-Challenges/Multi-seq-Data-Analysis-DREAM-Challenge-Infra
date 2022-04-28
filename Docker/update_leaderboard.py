@@ -91,7 +91,9 @@ def main():
 
         # upload new results and ranks to leaderboard table
         cols = [col for col in lb_table.asDataFrame().columns]
-        table = Table(lb_id, lb_df[cols])
+        # TODO: find a better way to update table
+        lb_df[cols].to_csv("tmp.csv", index=False)
+        table = Table(lb_id, "tmp.csv")
         table = syn.store(table)
 
 
