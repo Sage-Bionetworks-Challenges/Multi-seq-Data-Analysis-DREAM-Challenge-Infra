@@ -320,10 +320,6 @@ steps:
         source: "#score/results"
       - id: all_scores
         source: "#score/all_scores"
-      - id: submission_view_synapseid
-        valueFrom: "syn27059976"
-      - id: leaderboard_synapseid
-        valueFrom: "syn26720921"
     out: 
       - id: new_results
 
@@ -357,4 +353,20 @@ steps:
         source: "#synapseConfig"
       - id: previous_annotation_finished
         source: "#annotate_validation_with_output/finished"
+    out: [finished]
+
+update_leaderboard:
+    run: update_leaderboard.py
+    when: $(inputs.annotate_submission_with_output)
+    in:
+      - id: submissionid
+        source: "#submissionId"
+      - id: synapse_config
+        source: "#synapseConfig"
+      - id: annotate_submission_with_output
+        source: "#annotate_validation_with_output/finished"
+      - id: submission_view_synapseid
+        valueFrom: "syn27059976"
+      - id: leaderboard_synapseid
+        valueFrom: "syn26720921"
     out: [finished]
