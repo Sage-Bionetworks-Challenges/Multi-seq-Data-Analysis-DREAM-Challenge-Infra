@@ -15,8 +15,6 @@ def get_args():
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--synapse_config",
                         required=True, help="Credentials file")
-    parser.add_argument("-o", "--parent_id", required=True,
-                        help="Parent Id of submitter directory")
     parser.add_argument("-s", "--submission_view_synapseid",
                         required=True, help="Synapse ID of submission view")
     parser.add_argument("-l", "--leaderboard_synapseid",

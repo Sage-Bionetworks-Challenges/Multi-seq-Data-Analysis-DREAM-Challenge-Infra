@@ -51,8 +51,6 @@ getChdir <- function(gs = NULL, down = NULL, imp = NULL, pseudo = FALSE) {
 
 ### NRMSD
 getNRMSE <- function(gs, imp, pseudo = FALSE) {
-  if (any(dim(gs) != dim(imp))) stop("the dimensions are not matched")
-
   if (pseudo) {
     gs <- rowSums(gs)
     imp <- rowSums(imp)

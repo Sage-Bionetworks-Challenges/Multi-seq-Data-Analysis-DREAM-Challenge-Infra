@@ -365,5 +365,5 @@ steps:
       - id: submission_view_synapseid
         valueFrom: "syn27059976"
       - id: leaderboard_synapseid
-        valueFrom: "syn26720921"
+        valueFrom: "syn29666147"
     out: [finished]

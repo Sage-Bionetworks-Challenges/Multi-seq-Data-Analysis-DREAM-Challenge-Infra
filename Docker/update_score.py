@@ -20,10 +20,7 @@ def get_args():
                         help="Resulting scores")
     parser.add_argument("-f", "--all_scores", required=True,
                         help="A csv table collected all submssion scores")
-    parser.add_argument("-s", "--submission_view_synapseid",
-                        required=True, help="Synapse ID of submission view")
-    parser.add_argument("-l", "--leaderboard_synapseid",
-                        required=True, help="Synapse ID of leader board")
+
     return parser.parse_args()
 
 

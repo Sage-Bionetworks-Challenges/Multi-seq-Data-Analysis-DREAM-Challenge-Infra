@@ -114,6 +114,8 @@ write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 result_list <- list(
   chdir_breakdown = all_pri_scores,
   nrmse_breakdown = all_sec_scores,
+  chdir_average = mean(all_pri_scores),
+  nrmse_average = mean(all_sec_scores),
   submission_status = "SCORED"
 )
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
