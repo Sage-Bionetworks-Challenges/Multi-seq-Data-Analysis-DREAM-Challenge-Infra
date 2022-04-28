@@ -13,13 +13,15 @@ getCosine <- function(gs, down, imp) {
   v1 <- rowSums(down)
   v2 <- rowSums(imp)
 
-  angle <- lsa::cosine(v0 - v1, v2 - v1)
-  return(angle)
+  co <- lsa::cosine(v0 - v1, v2 - v1)
+  co <- as.numeric(co)
+  return(co)
 }
 
+### Characteristic Direction
 getChdir <- function(gs = NULL, down = NULL, imp = NULL, pseudobulk = FALSE) {
   if (pseudobulk) {
-    angle <- getCosine(gs, down, imp)
+    res <- getCosine(gs, down, imp)
   } else {
     XY <- cbind(genenames = rownames(gs), gs, down)
     YZ <- cbind(genenames = rownames(down), down, imp)
@@ -40,13 +42,13 @@ getChdir <- function(gs = NULL, down = NULL, imp = NULL, pseudobulk = FALSE) {
       nnull = 10
     )
 
-    angle <- getAngle(
+    res <- getAngle(
       as.vector(cdXY$chdirprops$chdir[[1]]),
       as.vector(cdYZ$chdirprops$chdir[[1]])
     )
   }
 
-  return(angle)
+  return(res)
 }
 
 ### NRMSD
@@ -55,16 +57,17 @@ getNRMSE <- function(gs, imp, pseudobulk = FALSE) {
     gs <- rowSums(gs)
     imp <- rowSums(imp)
     rmse <- sqrt(mean((gs - imp)**2))
+    # normalize by range
+    nrmse <- rmse / (max(gs) - min(gs))
   } else {
     gs <- as.matrix(gs)
     imp <- as.matrix(imp)
-    rmse <- sapply(1:nrow(gs), function(i) {
-      sqrt(mean((gs[i, ] - imp[i, ])**2))
+    nrmse <- sapply(1:nrow(gs), function(i) {
+      rmse <- sqrt(mean((gs[i, ] - imp[i, ])**2))
+      # normalize by range
+      nrmse <- rmse / (max(gs[i, ]) - min(gs[i, ]))
     })
   }
-
-  # normalize by range
-  nrmse <- rmse / (max(gs) - min(gs))
 
   return(mean(nrmse))
 }
