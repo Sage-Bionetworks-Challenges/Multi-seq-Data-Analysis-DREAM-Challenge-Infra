@@ -356,8 +356,8 @@ steps:
     out: [finished]
 
 update_leaderboard:
-    run: update_leaderboard.py
-    # when: $(inputs.annotate_submission_with_output)
+    run: update_leaderboard.cwl
+    when: $(inputs.annotate_submission_with_output)
     in:
       - id: submissionid
         source: "#submissionId"
