@@ -43,15 +43,14 @@ input_info <- input_info$scRNAseq
 ## Calculate scores ------------------------------------
 
 # add variables that will be saved for results
-chdir_scores <- c()
-nrmse_scores <- c()
-dataset_names <- c()
-exp_conditions <- c()
-ds_props <- c()
+all_pri_scores <- c()
+all_sec_scores <- c()
+all_datasets <- c()
+all_conditions <- c()
+all_props <- c()
 
 
 for (info in input_info) {
-  info <- input_info
   # read conditions and downsampling props
   prefix <- info$dataset
   conditions <- unlist(info$conditions)
@@ -61,7 +60,7 @@ for (info in input_info) {
   if (prefix == "dataset1") {
     orig_10x <- lapply(conditions, function(c) {
       Seurat::Read10X(file.path("dataset1", c, "filtered_feature_bc_matrix"))
-    })
+    }) %>% set_names(conditions)
   } else {
     suppressMessages(
       orig_10x <- Seurat::Read10X(file.path(prefix, "filtered_feature_bc_matrix"))
@@ -82,15 +81,20 @@ for (info in input_info) {
 
       # get goldstandard data
       # filter genes that match the downsampled data
-      gs <- orig_10x[rownames(down), colnames(down)]
+      if (prefix == "dataset1") {
+        gs <- orig_10x[[c]][rownames(down), colnames(down)]
+      } else {
+        gs <- orig_10x[rownames(down), ]
+      }
 
-      # score1 <- getChdir(gs = gs, down = down, imp = imp, pseudo = prefix != "dataset1")
+      score1 <- getChdir(gs = gs, down = down, imp = imp, pseudo = prefix != "dataset1")
       score2 <- getNRMSE(gs = gs, imp = imp, pseudo = prefix != "dataset1")
-      # chdir_scores <- c(chdir_scores, score1)
-      nrmse_scores <- c(nrmse_scores, score2)
-      dataset_names <- c(dataset_names, prefix)
-      exp_conditions <- c(exp_conditions, c)
-      ds_props <- c(ds_props, p)
+
+      all_pri_scores <- c(all_pri_scores, score1)
+      all_sec_scores <- c(all_sec_scores, score2)
+      all_datasets <- c(all_datasets, prefix)
+      all_conditions <- c(all_conditions, c)
+      all_props <- c(all_props, p)
     }
   }
 }
@@ -98,20 +102,18 @@ for (info in input_info) {
 ## Write out the scores -----------------------------------
 # create table to record all the individual scores
 all_scores <- data.frame(
-  dataset = dataset_names,
-  condition = exp_conditions,
-  downsampled_prop = ds_props,
-  # chdir_score = chdir_res,
-  nrmse_score = nrmse_scores
+  dataset = all_datasets,
+  condition = all_conditions,
+  downsampled_prop = all_props,
+  chdir_score = all_pri_scores,
+  nrmse_score = all_sec_scores
 )
 write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
 # create annotations
 result_list <- list(
-  # chdir_breakdown = chdir_res,
-  # chdir_avg_value = mean(chdir_res),
-  chdir_breakdown = nrmse_scores,
-  nrmse_breakdown = nrmse_scores,
+  chdir_breakdown = all_pri_scores,
+  nrmse_breakdown = all_sec_scores,
   submission_status = "SCORED"
 )
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)

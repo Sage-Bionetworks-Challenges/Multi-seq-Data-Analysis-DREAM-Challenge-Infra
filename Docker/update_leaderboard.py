@@ -1,12 +1,13 @@
 """
-1. upload the collected scores to synapse and
-2. add the scores entity id to annotation
+1. query all scored submission results
+2. update a leader board with rankings of the submission
 """
 
 #!/usr/bin/env python
 import synapseclient
+from synapseclient.table import Table
 import argparse
-import json
+from scipy.stats import rankdata
 
 
 def get_args():
@@ -16,10 +17,6 @@ def get_args():
                         required=True, help="Credentials file")
     parser.add_argument("-o", "--parent_id", required=True,
                         help="Parent Id of submitter directory")
-    parser.add_argument("-r", "--results", required=True,
-                        help="Resulting scores")
-    parser.add_argument("-f", "--all_scores", required=True,
-                        help="A csv table collected all submssion scores")
     parser.add_argument("-s", "--submission_view_synapseid",
                         required=True, help="Synapse ID of submission view")
     parser.add_argument("-l", "--leaderboard_synapseid",
@@ -61,20 +58,43 @@ def main():
     syn = synapseclient.Synapse(configPath=args.synapse_config)
     syn.login(silent=True)
 
-    with open(args.results) as json_data:
-        annots = json.load(json_data)
+    # create a leaderboard based on ranks of all test cases
+    # set synapse ids for table views
+    sv_id = args.submission_view_synapseid
+    lb_id = args.leaderboard_synapseid
 
-    if annots.get("submission_status") is None:
-        raise Exception(
-            "score.cwl must return submission_status as a json key")
-    if annots["submission_status"] == "SCORED":
-        # upload the scores csv to synapse
-        csv = synapseclient.File(args.all_scores, parent=args.parent_id)
-        csv = syn.store(csv)
-        # add scores csv to annotations
-        annots["submission_scores"] = csv.id
-        with open("results.json", "w") as o:
-            o.write(json.dumps(annots))
+    # get all current submission results
+    # !! ensure the columns have been already added into the leaderboard
+    sv_table = syn.tableQuery(
+        f"select * from {sv_id} where \
+            submission_status = 'SCORED' and \
+            chdir_breakdown is not null and \
+            nrmse_breakdown is not null")
+    df = sv_table.asDataFrame()
+
+    # filter out invalid results (only need for testing)
+    chdir_res = valid_scores(df, "chdir_breakdown")
+    nrmse_res = valid_scores(df, "nrmse_breakdown")
+
+    if chdir_res["scores"] and nrmse_res["scores"]:
+        # rank scores
+        chdir_rank = rank(chdir_res["scores"])
+        nrmse_rank = rank(nrmse_res["scores"])
+
+        # add ranks to valid scores
+        # assume valid sub should have both valid 1st and 2rd scores
+        lb_df = df.iloc[chdir_res["loc"]]
+        lb_df["chdir_rank"] = chdir_rank
+        lb_df["nrmse_rank"] = nrmse_rank
+
+        # delete all rows for leaderboard table
+        lb_table = syn.tableQuery(f"select * from {lb_id}")
+        syn.delete(lb_table)
+
+        # upload new results and ranks to leaderboard table
+        cols = [col for col in lb_table.asDataFrame().columns]
+        table = Table(lb_id, lb_df[cols])
+        table = syn.store(table)
 
 
 if __name__ == "__main__":
