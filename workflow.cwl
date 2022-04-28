@@ -8,7 +8,7 @@
 #   workflowSynapseId: Synapse ID of File that links to workflow archive
 #   synapseConfig: filepath to .synapseConfig file
 
-cwlVersion: v1.2
+cwlVersion: v1.0
 class: Workflow
 
 requirements:
@@ -357,7 +357,6 @@ steps:
 
   update_leaderboard:
     run: update_leaderboard.cwl
-    when: $(inputs.annotate_submission_with_output)
     in:
       - id: synapse_config
         source: "#synapseConfig"
