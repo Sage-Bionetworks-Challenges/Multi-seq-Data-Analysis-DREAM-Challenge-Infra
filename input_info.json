@@ -1,13 +1,13 @@
 {
   "scRNAseq": [
     {
-      "dataset": "dataset1",
-      "props": ["20k", "50k"],
+      "dataset": "ds1",
+      "props": ["10k", "20k", "50k", "100k", "0_5", "0_7"],
       "conditions": ["c1", "c2", "c3", "c4"]
     },
     {
-      "dataset": "dataset2",
-      "props": ["0_03125", "0_06125", "0_125", "0_25", "0_5"],
+      "dataset": "ds2",
+      "props": ["0_0625", "0_125", "0_25"],
       "conditions": ["c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8"]
     }
   ],

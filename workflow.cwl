@@ -355,15 +355,15 @@ steps:
         source: "#annotate_validation_with_output/finished"
     out: [finished]
 
-  update_leaderboard:
-    run: update_leaderboard.cwl
-    in:
-      - id: synapse_config
-        source: "#synapseConfig"
-      - id: annotate_submission_with_output
-        source: "#annotate_validation_with_output/finished"
-      - id: submission_view_synapseid
-        valueFrom: "syn27059976"
-      - id: leaderboard_synapseid
-        valueFrom: "syn29666147"
-    out: [finished]
+  # update_leaderboard:
+  #   run: update_leaderboard.cwl
+  #   in:
+  #     - id: synapse_config
+  #       source: "#synapseConfig"
+  #     - id: annotate_submission_with_output
+  #       source: "#annotate_validation_with_output/finished"
+  #     - id: submission_view_synapseid
+  #       valueFrom: "syn27059976"
+  #     - id: leaderboard_synapseid
+  #       valueFrom: "syn29666147"
+  #   out: [finished]
