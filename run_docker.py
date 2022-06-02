@@ -179,6 +179,8 @@ def main(syn, args):
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         # Remove container and image after being done
         container.remove()
+        # Prune unused volumes
+        client.volumes.prune()
 
     statinfo = os.stat(log_filename)
 
