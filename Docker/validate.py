@@ -23,7 +23,7 @@ def get_args():
                         help='synapse entity type downloaded')
     parser.add_argument('-s', '--submission_file', required=True,
                         help='Submission file')
-    parser.add_argument('-j', '--input_json', required=True,
+    parser.add_argument('-c', '--config_json', required=True,
                         help='Input information json file')
     return parser.parse_args()
 
@@ -106,7 +106,7 @@ def main():
     invalid_reasons = []
 
     # read json file that records downsampled data info
-    with open("input_info.json") as json_data:
+    with open(args.config_json) as json_data:
         input_info = json.load(json_data)
         input_info = input_info['scRNAseq']
 
@@ -115,11 +115,11 @@ def main():
         prefix = info['dataset']
         ds_props = info['props']
         conditions = info['conditions']
-        replicates = info["replicates"]
+        replicates = [n for n in range(1, info["replicates"] + 1)]
 
         # check if all required downsampled data exists
         true_ds_fs = [f'{prefix}_{c}_{p}_{n}.csv'
-                      for n in range(replicates) for p in ds_props for c in conditions]
+                      for n in replicates for p in ds_props for c in conditions]
         # downsampled files should be copied to working dir
         diff = list(set(true_ds_fs) - set(os.listdir(".")))
         if diff:
@@ -134,7 +134,7 @@ def main():
             # decompress submission file
             pred_fs = _decompress_file(args.submission_file)
             true_pred_fs = [f'{prefix}_{c}_{p}_{n}_imputed.csv'
-                            for n in range(replicates) for p in ds_props for c in conditions]
+                            for n in replicates for p in ds_props for c in conditions]
             # check if all required data exists
             diff = list(set(true_pred_fs) - set(pred_fs))
             if diff:

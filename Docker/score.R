@@ -4,13 +4,11 @@
 suppressPackageStartupMessages({
   library(argparse)
   library(data.table)
-  library(tibble)
-  library(purrr)
   library(dplyr)
-  library(jsonlite)
-  library(GeoDE)
-  library(Seurat)
 })
+
+# get available cores
+ncores <- parallel::detectCores()
 
 # load evaluation metrics
 source("/metrics.R")
@@ -21,7 +19,7 @@ parser$add_argument("-g", "--goldstandard",
   type = "character",
   help = "Goldstandard file"
 )
-parser$add_argument("-j", "--input_json",
+parser$add_argument("-c", "--config_json",
   type = "character",
   help = "Input information json file"
 )
@@ -37,89 +35,85 @@ untar(args[["goldstandard"]])
 # downsampled data and imputed data are parsed to wd via workflow
 
 ## Read read conditions and downsampling props ------------------------------------
-input_info <- jsonlite::read_json(args[["input_json"]])
+input_info <- jsonlite::read_json(args[["config_json"]])
 input_info <- input_info$scRNAseq
 
 ## Calculate scores ------------------------------------
 
 # add variables that will be saved for results
-all_pri_scores <- c()
-all_sec_scores <- c()
+all_primary_scores <- c()
+all_secondary_scores <- c()
 all_datasets <- c()
 all_conditions <- c()
 all_props <- c()
 all_replicates <- c()
 
 for (info in input_info) {
-  # read conditions and downsampling props
+  # set up configuration
   prefix <- info$dataset
   conditions <- unlist(info$conditions)
   ds_props <- unlist(info$props)
   replicates <- 1:info$replicates
 
-  # pre-load raw data
+  # pre-load raw data once
   if (prefix == "ds1") {
     orig_10x <- lapply(conditions, function(c) {
       Seurat::Read10X(file.path("dataset1", c, "filtered_feature_bc_matrix"))
     }) %>% set_names(conditions)
   } else {
-    suppressMessages(
-      orig_10x <- Seurat::Read10X(file.path(prefix, "filtered_feature_bc_matrix"))
-    )
-    orig_10x <- orig_10x$`Gene Expression`
+    suppressMessages(orig_10x <- Seurat::Read10X(file.path(prefix, "filtered_feature_bc_matrix"))$`Gene Expression`)
   }
 
-  # read all downsampled data
+  # calculate scores each test case across different configurations
   for (c in conditions) {
     for (p in ds_props) {
-      for (n in replicates) {
-        # read downsampled data
-        down_path <- sprintf("%s_%s_%s_%s.csv", prefix, c, p, n)
-        down <- fread(down_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
+      invisible(
+        mclapply(replicates, function(n) {
+          # read imputed data
+          imp_path <- sprintf("%s_%s_%s_%s_imputed.csv", prefix, c, p, n)
+          imp <- fread(imp_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
 
-        # read imputed data
-        imp_path <- sprintf("%s_%s_%s_%s_imputed.csv", prefix, c, p, n)
-        imp <- fread(imp_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
+          # filter genes (and cells) of raw data that match the imputed data for scoring
+          if (prefix == "ds1") {
+            gs <- orig_10x[[c]][rownames(imp), colnames(imp)]
+          } else {
+            gs <- orig_10x[rownames(imp), ]
+          }
 
-        # get goldstandard data
-        # filter genes that match the downsampled data
-        if (prefix == "ds1") {
-          gs <- orig_10x[[c]][rownames(down), colnames(down)]
-        } else {
-          gs <- orig_10x[rownames(down), ]
-        }
+          primary_score <- calculate_nrmse(gs, imp, pseudobulk = prefix != "ds1")
+          secondary_score <- calculate_spearman(gs, imp, pseudobulk = prefix != "ds1")
 
-        score1 <- getNRMSE(gs = gs, imp = imp, pseudobulk = prefix != "ds1")
-        score2 <- getSpearman(gs = gs, imp = imp, pseudobulk = prefix != "ds1")
-
-        all_pri_scores <- c(all_pri_scores, score1)
-        all_sec_scores <- c(all_sec_scores, score2)
-        all_datasets <- c(all_datasets, prefix)
-        all_conditions <- c(all_conditions, c)
-        all_props <- c(all_props, p)
-        all_replicates <- c(all_replicates, n)
-      }
+          # collect configuration info for each test case
+          all_primary_scores <<- c(all_primary_scores, primary_score)
+          all_secondary_scores <<- c(all_secondary_scores, secondary_score)
+          all_datasets <<- c(all_datasets, prefix)
+          all_conditions <<- c(all_conditions, c)
+          all_props <<- c(all_props, p)
+          all_replicates <<- c(all_replicates, n)
+        }, mc.cores = ncores)
+      )
     }
   }
 }
 
 ## Write out the scores -----------------------------------
-# create table to record all the individual scores
+# save scores table to record all the test cases
 all_scores <- data.frame(
   dataset = all_datasets,
   condition = all_conditions,
-  downsampled_prop = all_props,
-  primary_score = all_pri_scores,
-  spearman_score = all_sec_scores
+  proportion = all_props,
+  replicate = all_replicates,
+  nrmse_score = all_primary_scores,
+  spearman_score = all_secondary_scores
 )
 write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
-# create annotations
+# add annotations
 result_list <- list(
-  nrmse_breakdown = all_pri_scores,
-  spearman_breakdown = all_sec_scores,
-  nrmse_average = mean(all_pri_scores),
-  spearman_average = mean(all_sec_scores),
+  primary_breakdown = all_primary_scores,
+  secondary_breakdown = all_secondary_scores,
+  primary_average = mean(all_primary_scores),
+  secondary_average = mean(all_secondary_scores),
   submission_status = "SCORED"
 )
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)

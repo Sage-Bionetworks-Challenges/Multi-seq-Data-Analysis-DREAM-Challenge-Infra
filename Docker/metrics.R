@@ -1,86 +1,57 @@
+## general function to calcualte NRMSE scores  ------------------
+nrmse <- function(true, pred, norm = "range") {
+  true <- as.numeric(true)
+  pred <- as.numeric(pred)
 
-### Characteristic Direction
-# getAngle <- function(a = NULL, b = NULL) {
-#   theta <- acos(
-#     sum(a * b) / (sqrt(sum(a * a)) * sqrt(sum(b * b)))
-#   )
-#   return(theta)
-# }
+  rmse <- sqrt(mean((true - pred)**2))
+  # only support normalizing by range for now
+  if (norm == "range") {
+    out <- rmse / (max(true) - min(pred))
+  }
 
-# ### lsa Cosine
-# getCosine <- function(gs, down, imp) {
-#   v0 <- rowSums(gs)
-#   v1 <- rowSums(down)
-#   v2 <- rowSums(imp)
+  return(out)
+}
 
-#   co <- lsa::cosine(v0 - v1, v2 - v1)
-#   co <- as.numeric(co)
-#   return(co)
-# }
+## General function to calculate spearman correlation scores ------------------
+spearman <- function(true, pred) {
+  true <- as.numeric(true)
+  pred <- as.numeric(pred)
 
-# ### Characteristic Direction
-# getChdir <- function(gs = NULL, down = NULL, imp = NULL, pseudobulk = FALSE) {
-#   if (pseudobulk) {
-#     res <- getCosine(gs, down, imp)
-#   } else {
-#     XY <- cbind(genenames = rownames(gs), gs, down)
-#     YZ <- cbind(genenames = rownames(down), down, imp)
-#     condition <- as.factor(rep(c(1, 2), each = ncol(gs)))
+  out <- cor(true, pred, method = "spearman")
 
-#     XY$genenames <- as.factor(XY$genenames)
-#     YZ$genenames <- as.factor(YZ$genenames)
+  return(out)
+}
 
-#     cdXY <- chdirAnalysis(XY,
-#       condition,
-#       CalculateSig = FALSE,
-#       nnull = 10
-#     )
 
-#     cdYZ <- chdirAnalysis(YZ,
-#       condition,
-#       CalculateSig = FALSE,
-#       nnull = 10
-#     )
-
-#     res <- getAngle(
-#       as.vector(cdXY$chdirprops$chdir[[1]]),
-#       as.vector(cdYZ$chdirprops$chdir[[1]])
-#     )
-#   }
-
-#   return(res)
-# }
-
-### NRMSD
-getNRMSE <- function(gs, imp, pseudobulk = FALSE) {
+## Function to calculate NRMSE scores on scRNAseq data ------------------
+calculate_nrmse <- function(gs, imp, pseudobulk = FALSE) {
   if (pseudobulk) {
     gs <- rowSums(gs)
     imp <- rowSums(imp)
-    rmse <- sqrt(mean((gs - imp)**2))
-    # normalize by range
-    nrmse <- rmse / (max(gs) - min(gs))
+    nrmse_res <- nrmse(gs, imp)
   } else {
     gs <- as.matrix(gs)
     imp <- as.matrix(imp)
-    nrmse <- sapply(1:nrow(gs), function(i) {
-      rmse <- sqrt(mean((gs[i, ] - imp[i, ])**2))
-      # normalize by range
-      nrmse <- rmse / (max(gs[i, ]) - min(gs[i, ]))
-    })
+    nrmse_res <- sapply(1:nrow(gs), function(i) nrmse(gs[i, ] - imp[i, ]))
   }
 
-  return(mean(nrmse))
+  # use average nrmse values across all genes as final score
+  score <- mean(nrmse_res)
+
+  return(score)
 }
 
-getSpearman <- function(gs, imp, pseudobulk = FALSE) {
+## Function to calculate spearman scores on scRNAseq data ------------------
+calculate_spearman <- function(gs, imp, pseudobulk = FALSE, na.rm = TRUE) {
   if (pseudobulk) {
     gs <- rowSums(gs)
     imp <- rowSums(imp)
-    gene_cor <- cor(gs, imp, method = "spearman")
+    cor_res <- spearman(gs, imp)
   } else {
-    gene_cor <- sapply(1:nrow(gs), function(i) {
-      cor(as.numeric(gs[i, ]), as.numeric(imp[i, ]), method = "spearman")
-    })
+    cor_res <- sapply(1:nrow(gs), function(i) spearman(gs[i, ] - imp[i, ]))
   }
-  return(mean(gene_cor, na.rm = TRUE))
+
+  score <- mean(cor_res, na.rm = na.rm)
+
+  return(score)
 }

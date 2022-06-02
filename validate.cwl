@@ -17,7 +17,7 @@ inputs:
     type: string
   - id: input_files
     type: File[]
-  - id: input_json
+  - id: config_json
     type: File
 
 arguments:
@@ -25,8 +25,8 @@ arguments:
     prefix: -s
   - valueFrom: $(inputs.entity_type)
     prefix: -e
-  - valueFrom: $(inputs.input_json.path)
-    prefix: -j
+  - valueFrom: $(inputs.config_json.path)
+    prefix: -c
   - valueFrom: results.json
     prefix: -r
 
@@ -35,7 +35,7 @@ requirements:
   - class: InitialWorkDirRequirement
     listing:
       - $(inputs.input_files)
-      - $(inputs.input_json)
+      - $(inputs.config_json)
 outputs:
   # output decompressed submission files,
   # so we don't need to decompress again in scoring

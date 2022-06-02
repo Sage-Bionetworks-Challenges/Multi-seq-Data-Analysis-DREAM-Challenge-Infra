@@ -236,10 +236,10 @@ steps:
         source: "#get_docker_submission/entity_type"
       - id: input_files
         source: "#run_docker/input_files"
-      - id: input_json
+      - id: config_json
         default:
           class: File
-          location: "input_info.json"
+          location: "config.json"
     out:
       - id: results
       - id: status
@@ -297,12 +297,10 @@ steps:
         source: "#validate/submission_files"
       - id: goldstandard
         source: "#download_goldstandard/filepath"
-      - id: input_files
-        source: "#run_docker/input_files"
-      - id: input_json
+      - id: config_json
         default:
           class: File
-          location: "input_info.json"
+          location: "config.json"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:

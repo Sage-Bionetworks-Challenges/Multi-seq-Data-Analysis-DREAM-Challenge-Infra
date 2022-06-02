@@ -1,6 +1,6 @@
-FROM satijalab/seurat:latest
+FROM r-base:4.0.3
 
-RUN R -e "install.packages(c('argparse'), repos = 'http://cran.us.r-project.org')"
+RUN R -e "install.packages(c('argparse', 'dplyr', 'tibble', 'jsonlite', 'data.table', 'Seurat'), repos = 'http://cran.us.r-project.org')"
 RUN apt-get update && apt-get install -y python3 pip
 RUN cp /usr/bin/python3 /usr/bin/python
 RUN pip install --upgrade pip

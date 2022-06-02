@@ -13,9 +13,7 @@ hints:
 inputs:
   - id: goldstandard
     type: File
-  - id: input_files
-    type: File[]
-  - id: input_json
+  - id: config_json
     type: File
   - id: submission_files
     type: File[]
@@ -25,8 +23,8 @@ inputs:
 arguments:
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
-  - valueFrom: $(inputs.input_json.path)
-    prefix: -j
+  - valueFrom: $(inputs.config_json.path)
+    prefix: -c
   - valueFrom: results.json
     prefix: -o
 
@@ -34,8 +32,7 @@ requirements:
   - class: InlineJavascriptRequirement
   - class: InitialWorkDirRequirement
     listing:
-      - $(inputs.input_files)
-      - $(inputs.input_json)
+      - $(inputs.config_json)
       - $(inputs.submission_files)
 outputs:
   - id: results
