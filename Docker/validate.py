@@ -115,10 +115,11 @@ def main():
         prefix = info['dataset']
         ds_props = info['props']
         conditions = info['conditions']
+        replicates = info["replicates"]
 
         # check if all required downsampled data exists
-        true_ds_fs = [f'{prefix}_{c}_{p}.csv'
-                      for p in ds_props for c in conditions]
+        true_ds_fs = [f'{prefix}_{c}_{p}_{n}.csv'
+                      for n in range(replicates) for p in ds_props for c in conditions]
         # downsampled files should be copied to working dir
         diff = list(set(true_ds_fs) - set(os.listdir(".")))
         if diff:
@@ -132,8 +133,8 @@ def main():
         else:
             # decompress submission file
             pred_fs = _decompress_file(args.submission_file)
-            true_pred_fs = [f'{prefix}_{c}_{p}_imputed.csv'
-                            for p in ds_props for c in conditions]
+            true_pred_fs = [f'{prefix}_{c}_{p}_{n}_imputed.csv'
+                            for n in range(replicates) for p in ds_props for c in conditions]
             # check if all required data exists
             diff = list(set(true_pred_fs) - set(pred_fs))
             if diff:

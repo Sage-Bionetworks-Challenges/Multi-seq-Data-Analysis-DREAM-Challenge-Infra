@@ -3,12 +3,14 @@
     {
       "dataset": "ds1",
       "props": ["10k", "20k", "50k", "100k", "0_5", "0_7"],
-      "conditions": ["c1", "c2", "c3", "c4"]
+      "conditions": ["c1", "c2", "c3", "c4"],
+      "replicates": 10
     },
     {
       "dataset": "ds2",
       "props": ["0_0625", "0_125", "0_25"],
-      "conditions": ["c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8"]
+      "conditions": ["c1", "c2", "c3", "c4", "c5", "c6", "c7", "c8"],
+      "replicates": "10"
     }
   ],
   "scATACseq": []

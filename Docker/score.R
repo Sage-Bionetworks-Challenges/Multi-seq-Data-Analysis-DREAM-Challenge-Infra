@@ -48,16 +48,17 @@ all_sec_scores <- c()
 all_datasets <- c()
 all_conditions <- c()
 all_props <- c()
-
+all_replicates <- c()
 
 for (info in input_info) {
   # read conditions and downsampling props
   prefix <- info$dataset
   conditions <- unlist(info$conditions)
   ds_props <- unlist(info$props)
+  replicates <- 1:info$replicates
 
   # pre-load raw data
-  if (prefix == "dataset1") {
+  if (prefix == "ds1") {
     orig_10x <- lapply(conditions, function(c) {
       Seurat::Read10X(file.path("dataset1", c, "filtered_feature_bc_matrix"))
     }) %>% set_names(conditions)
@@ -71,30 +72,33 @@ for (info in input_info) {
   # read all downsampled data
   for (c in conditions) {
     for (p in ds_props) {
-      # read downsampled data
-      down_path <- sprintf("%s_%s_%s.csv", prefix, c, p)
-      down <- fread(down_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
+      for (n in replicates) {
+        # read downsampled data
+        down_path <- sprintf("%s_%s_%s_%s.csv", prefix, c, p, n)
+        down <- fread(down_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
 
-      # read imputed data
-      imp_path <- sprintf("%s_%s_%s_imputed.csv", prefix, c, p)
-      imp <- fread(imp_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
+        # read imputed data
+        imp_path <- sprintf("%s_%s_%s_%s_imputed.csv", prefix, c, p, n)
+        imp <- fread(imp_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
 
-      # get goldstandard data
-      # filter genes that match the downsampled data
-      if (prefix == "dataset1") {
-        gs <- orig_10x[[c]][rownames(down), colnames(down)]
-      } else {
-        gs <- orig_10x[rownames(down), ]
+        # get goldstandard data
+        # filter genes that match the downsampled data
+        if (prefix == "ds1") {
+          gs <- orig_10x[[c]][rownames(down), colnames(down)]
+        } else {
+          gs <- orig_10x[rownames(down), ]
+        }
+
+        # score1 <- getChdir(gs = gs, down = down, imp = imp, pseudobulk = prefix != "ds1")
+        score2 <- getNRMSE(gs = gs, imp = imp, pseudobulk = prefix != "ds1")
+
+        all_pri_scores <- c(all_pri_scores, score1)
+        all_sec_scores <- c(all_sec_scores, score2)
+        all_datasets <- c(all_datasets, prefix)
+        all_conditions <- c(all_conditions, c)
+        all_props <- c(all_props, p)
+        all_replicates <- c(all_replicates, n)
       }
-
-      score1 <- getChdir(gs = gs, down = down, imp = imp, pseudobulk = prefix != "dataset1")
-      score2 <- getNRMSE(gs = gs, imp = imp, pseudobulk = prefix != "dataset1")
-
-      all_pri_scores <- c(all_pri_scores, score1)
-      all_sec_scores <- c(all_sec_scores, score2)
-      all_datasets <- c(all_datasets, prefix)
-      all_conditions <- c(all_conditions, c)
-      all_props <- c(all_props, p)
     }
   }
 }
