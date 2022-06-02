@@ -89,8 +89,8 @@ for (info in input_info) {
           gs <- orig_10x[rownames(down), ]
         }
 
-        # score1 <- getChdir(gs = gs, down = down, imp = imp, pseudobulk = prefix != "ds1")
-        score2 <- getNRMSE(gs = gs, imp = imp, pseudobulk = prefix != "ds1")
+        score1 <- getNRMSE(gs = gs, imp = imp, pseudobulk = prefix != "ds1")
+        score2 <- getSpearman(gs = gs, imp = imp, pseudobulk = prefix != "ds1")
 
         all_pri_scores <- c(all_pri_scores, score1)
         all_sec_scores <- c(all_sec_scores, score2)
@@ -109,17 +109,17 @@ all_scores <- data.frame(
   dataset = all_datasets,
   condition = all_conditions,
   downsampled_prop = all_props,
-  chdir_score = all_pri_scores,
-  nrmse_score = all_sec_scores
+  primary_score = all_pri_scores,
+  spearman_score = all_sec_scores
 )
 write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
 # create annotations
 result_list <- list(
-  chdir_breakdown = all_pri_scores,
-  nrmse_breakdown = all_sec_scores,
-  chdir_average = mean(all_pri_scores),
-  nrmse_average = mean(all_sec_scores),
+  nrmse_breakdown = all_pri_scores,
+  spearman_breakdown = all_sec_scores,
+  nrmse_average = mean(all_pri_scores),
+  spearman_average = mean(all_sec_scores),
   submission_status = "SCORED"
 )
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)

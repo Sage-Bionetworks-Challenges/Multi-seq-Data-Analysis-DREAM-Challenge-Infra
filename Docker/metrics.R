@@ -72,7 +72,7 @@ getNRMSE <- function(gs, imp, pseudobulk = FALSE) {
   return(mean(nrmse))
 }
 
-spearman <- function(gs, imp, pseudobulk = FALSE) {
+getSpearman <- function(gs, imp, pseudobulk = FALSE) {
   if (pseudobulk) {
     gs <- rowSums(gs)
     imp <- rowSums(imp)
