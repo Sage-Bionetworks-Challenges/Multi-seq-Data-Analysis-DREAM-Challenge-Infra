@@ -91,8 +91,6 @@ def main(syn, args):
     # .docker/config.json...
     # client = docker.from_env()
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
-    # Prune unused volumes
-    client.volumes.prune()
 
     config = synapseclient.Synapse().getConfigFile(
         configPath=args.synapse_config
