@@ -82,7 +82,7 @@ for (info in input_info) {
             dataset = prefix,
             condition = c,
             proportion = p,
-            replicate = p,
+            replicate = n,
             nrmse_score = primary_score,
             spearman_score = secondary_score
           )
