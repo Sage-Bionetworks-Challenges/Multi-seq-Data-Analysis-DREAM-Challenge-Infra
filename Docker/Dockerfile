@@ -9,5 +9,5 @@ RUN pip install pandas synapseclient scipy
 COPY validate.py /validate.py
 COPY update_score.py /update_score.py
 COPY update_leaderboard.py /update_leaderboard.py
-COPY score.R /score.R
+COPY score_rna.R /score_rna.R
 COPY metrics.R /metrics.R

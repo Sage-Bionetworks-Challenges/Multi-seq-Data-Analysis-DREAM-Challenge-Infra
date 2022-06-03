@@ -66,8 +66,6 @@ requirements:
           if annots["submission_status"] == "SCORED":
               csv_id = annots["submission_scores"]
               del annots["submission_scores"]
-              del annots["primary_breakdown"]
-              del annots["secondary_breakdown"]
               del annots["submission_status"]
               subject = "Submission to '%s' scored!" % evaluation.name
               for annot in args.private_annotations:

@@ -33,22 +33,27 @@ expression: |
   ${
     // var ds_folder = "/home/ec2-user/challenge-data/downsampled"
     if (inputs.queue == "9615023" || inputs.queue == "9614943") {
+
       var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq"
       var gs_synId = "syn29611428"
       var question = "1"
       
     } else if (inputs.queue == "9615024" || inputs.queue == "9615021") {
+
         var input_dir = "" // TBD
         var gs_synId = "syn123" // TBD
         var question = "2A"
 
     } else if (inputs.queue == "9615025" || inputs.queue == "9615022") {
+
       var input_dir = "" // TBD
       var gs_synId = "syn123" // TBD
       var question = "2B"
+
     } else {
       throw 'invalid queue';
     }
+
     return {question: question, 
             input_dir: input_dir,
             gs_synId: gs_synId

@@ -25,13 +25,14 @@ spearman <- function(true, pred) {
 
 ## Function to calculate NRMSE scores on scRNAseq data ------------------
 calculate_nrmse <- function(gs, imp, pseudobulk = FALSE) {
+  gs <- as.matrix(gs)
+  imp <- as.matrix(imp)
+
   if (pseudobulk) {
     gs <- rowSums(gs)
     imp <- rowSums(imp)
     nrmse_res <- nrmse(gs, imp)
   } else {
-    gs <- as.matrix(gs)
-    imp <- as.matrix(imp)
     nrmse_res <- sapply(1:nrow(gs), function(i) nrmse(gs[i, ] - imp[i, ]))
   }
 
@@ -43,6 +44,9 @@ calculate_nrmse <- function(gs, imp, pseudobulk = FALSE) {
 
 ## Function to calculate spearman scores on scRNAseq data ------------------
 calculate_spearman <- function(gs, imp, pseudobulk = FALSE, na.rm = TRUE) {
+  gs <- as.matrix(gs)
+  imp <- as.matrix(imp)
+
   if (pseudobulk) {
     gs <- rowSums(gs)
     imp <- rowSums(imp)

@@ -4,7 +4,7 @@
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: [Rscript, /score.R]
+baseCommand: Rscript
 
 hints:
   DockerRequirement:
@@ -17,10 +17,21 @@ inputs:
     type: File
   - id: submission_files
     type: File[]
+  - id: question
+    type: string
   - id: check_validation_finished
     type: boolean?
     
 arguments:
+  - position: 1
+    valueFrom: |
+      ${
+        if (inputs.question == "1") {
+          return "/score_rna.R"
+        } else {
+          return "/score_atac.R";
+        }
+      }
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
   - valueFrom: $(inputs.config_json.path)

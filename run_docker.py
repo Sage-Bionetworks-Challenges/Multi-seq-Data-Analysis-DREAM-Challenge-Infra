@@ -91,6 +91,9 @@ def main(syn, args):
     # .docker/config.json...
     # client = docker.from_env()
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+    # Prune unused volumes
+    client.volumes.prune()
+
     config = synapseclient.Synapse().getConfigFile(
         configPath=args.synapse_config
     )
@@ -179,8 +182,6 @@ def main(syn, args):
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         # Remove container and image after being done
         container.remove()
-        # Prune unused volumes
-        client.volumes.prune()
 
     statinfo = os.stat(log_filename)
 

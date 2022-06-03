@@ -297,6 +297,8 @@ steps:
         source: "#validate/submission_files"
       - id: goldstandard
         source: "#download_goldstandard/filepath"
+      - id: question
+        source: "#determine_question/question"
       - id: config_json
         default:
           class: File

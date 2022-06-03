@@ -7,7 +7,7 @@ suppressPackageStartupMessages({
   library(dplyr)
 })
 
-# get available cores
+# use all available cores
 ncores <- parallel::detectCores()
 
 # load evaluation metrics
@@ -40,13 +40,7 @@ input_info <- input_info$scRNAseq
 
 ## Calculate scores ------------------------------------
 
-# add variables that will be saved for results
-all_primary_scores <- c()
-all_secondary_scores <- c()
-all_datasets <- c()
-all_conditions <- c()
-all_props <- c()
-all_replicates <- c()
+all_scores <- tibble()
 
 for (info in input_info) {
   # set up configuration
@@ -58,7 +52,7 @@ for (info in input_info) {
   # pre-load raw data once
   if (prefix == "ds1") {
     orig_10x <- lapply(conditions, function(c) {
-      Seurat::Read10X(file.path("dataset1", c, "filtered_feature_bc_matrix"))
+      Seurat::Read10X(file.path(prefix, c, "filtered_feature_bc_matrix"))
     }) %>% set_names(conditions)
   } else {
     suppressMessages(orig_10x <- Seurat::Read10X(file.path(prefix, "filtered_feature_bc_matrix"))$`Gene Expression`)
@@ -67,53 +61,47 @@ for (info in input_info) {
   # calculate scores each test case across different configurations
   for (c in conditions) {
     for (p in ds_props) {
-      invisible(
-        mclapply(replicates, function(n) {
-          # read imputed data
-          imp_path <- sprintf("%s_%s_%s_%s_imputed.csv", prefix, c, p, n)
-          imp <- fread(imp_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
+      score_table <- parallel::mclapply(replicates, function(n) {
+        # read imputed data
+        imp_path <- sprintf("%s_%s_%s_%s_imputed.csv", prefix, c, p, n)
+        imp <- fread(imp_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
 
-          # filter genes (and cells) of raw data that match the imputed data for scoring
-          if (prefix == "ds1") {
-            gs <- orig_10x[[c]][rownames(imp), colnames(imp)]
-          } else {
-            gs <- orig_10x[rownames(imp), ]
-          }
+        # filter genes (and cells) of raw data that match the imputed data for scoring
+        if (prefix == "ds1") {
+          gs <- orig_10x[[c]][rownames(imp), colnames(imp)]
+        } else {
+          gs <- orig_10x[rownames(imp), ]
+        }
 
-          primary_score <- calculate_nrmse(gs, imp, pseudobulk = prefix != "ds1")
-          secondary_score <- calculate_spearman(gs, imp, pseudobulk = prefix != "ds1")
+        primary_score <- calculate_nrmse(gs, imp, pseudobulk = prefix != "ds1")
+        secondary_score <- calculate_spearman(gs, imp, pseudobulk = prefix != "ds1")
 
-          # collect configuration info for each test case
-          all_primary_scores <<- c(all_primary_scores, primary_score)
-          all_secondary_scores <<- c(all_secondary_scores, secondary_score)
-          all_datasets <<- c(all_datasets, prefix)
-          all_conditions <<- c(all_conditions, c)
-          all_props <<- c(all_props, p)
-          all_replicates <<- c(all_replicates, n)
-        }, mc.cores = ncores)
-      )
+        # collect configuration info for each test case
+        return(
+          tibble(
+            dataset = prefix,
+            condition = c,
+            proportion = p,
+            replicate = p,
+            nrmse_score = primary_score,
+            spearman_score = secondary_score
+          )
+        )
+      }, mc.cores = ncores)
+
+      all_scores <- bind_rows(all_scores, score_table)
     }
   }
 }
 
 ## Write out the scores -----------------------------------
 # save scores table to record all the test cases
-all_scores <- data.frame(
-  dataset = all_datasets,
-  condition = all_conditions,
-  proportion = all_props,
-  replicate = all_replicates,
-  nrmse_score = all_primary_scores,
-  spearman_score = all_secondary_scores
-)
 write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
 # add annotations
 result_list <- list(
-  primary_breakdown = all_primary_scores,
-  secondary_breakdown = all_secondary_scores,
-  primary_average = mean(all_primary_scores),
-  secondary_average = mean(all_secondary_scores),
+  primary_average = mean(all_scores$nrmse_score),
+  secondary_average = mean(all_scores$spearman_score),
   submission_status = "SCORED"
 )
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
