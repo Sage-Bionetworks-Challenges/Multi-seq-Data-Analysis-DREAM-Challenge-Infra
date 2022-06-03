@@ -23,7 +23,7 @@ inputs:
     type: boolean?
     
 arguments:
-  - position: 1
+  - position: 0
     valueFrom: |
       ${
         if (inputs.question == "1") {
