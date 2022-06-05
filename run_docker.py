@@ -190,6 +190,8 @@ def main(syn, args):
     print("finished training")
     # Try to remove the image
     remove_docker_image(docker_image)
+    # Clean up unused volumes
+    client.volumes.prune()
 
     output_folder = os.listdir(output_dir)
     if not output_folder:
