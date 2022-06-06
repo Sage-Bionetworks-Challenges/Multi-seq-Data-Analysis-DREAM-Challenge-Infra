@@ -15,8 +15,8 @@ inputs:
     type: File
   - id: config_json
     type: File
-  - id: submission_files
-    type: File[]
+  - id: submission_file
+    type: File
   - id: question
     type: string
   - id: check_validation_finished
@@ -32,6 +32,8 @@ arguments:
           return "/score_atac.R";
         }
       }
+  - valueFrom: $(inputs.submission_file.path)
+    prefix: -s
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
   - valueFrom: $(inputs.config_json.path)
@@ -44,7 +46,6 @@ requirements:
   - class: InitialWorkDirRequirement
     listing:
       - $(inputs.config_json)
-      - $(inputs.submission_files)
 outputs:
   - id: results
     type: File

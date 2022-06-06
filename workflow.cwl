@@ -179,7 +179,7 @@ steps:
           class: File
           location: "run_docker.py"
     out:
-      - id: input_files
+      - id: input_file
       - id: submission_file
 
   upload_results:
@@ -234,8 +234,8 @@ steps:
         source: "#run_docker/submission_file"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
-      - id: input_files
-        source: "#run_docker/input_files"
+      - id: input_file
+        source: "#run_docker/input_file"
       - id: config_json
         default:
           class: File
@@ -244,7 +244,6 @@ steps:
       - id: results
       - id: status
       - id: invalid_reasons
-      - id: submission_files
   
   email_validation:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/validate_email.cwl
@@ -293,8 +292,8 @@ steps:
   score:
     run: score.cwl
     in:
-      - id: submission_files
-        source: "#validate/submission_files"
+      - id: submission_file
+        source: "#run_docker/submission_file"
       - id: goldstandard
         source: "#download_goldstandard/filepath"
       - id: question

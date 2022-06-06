@@ -200,9 +200,9 @@ def main(syn, args):
     elif "predictions.tar.gz" not in output_folder:
         raise Exception("No 'predictions.tar.gz' file written to /output, "
                         "please check inference docker")
-    # CWL has a limit of the array of files it can accept in a folder
-    # therefore creating a tarball is sometimes necessary
-    # tar(output_dir, 'outputs.tar.gz')
+    # tar all input files
+    # trying to copy all input files to other steps will raise exceed volume mem error
+    tar("input_data/", 'input_file.tar.gz')
 
 
 if __name__ == '__main__':

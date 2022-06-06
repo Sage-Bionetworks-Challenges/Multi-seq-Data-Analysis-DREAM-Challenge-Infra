@@ -63,10 +63,10 @@ requirements:
   - class: InlineJavascriptRequirement
 
 outputs:
-  input_files:
-    type: File[]
+  input_file:
+    type: File
     outputBinding:
-      glob: input_data/*.csv
+      glob: input_file.tar.gz
   submission_file:
     type: File
     outputBinding:

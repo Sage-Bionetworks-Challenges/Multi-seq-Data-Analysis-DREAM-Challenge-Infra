@@ -11,13 +11,19 @@ suppressPackageStartupMessages({
 ncores <- parallel::detectCores()
 
 # load evaluation metrics
-source("/metrics.R")
+source("metrics.R")
+# load utils function
+reticulate::source_python("utils.py")
 
 # load all args
 parser <- argparse::ArgumentParser()
 parser$add_argument("-g", "--goldstandard",
   type = "character",
   help = "Goldstandard file"
+)
+parser$add_argument("-s", "--submission_file",
+  type = "character",
+  help = "Submission file"
 )
 parser$add_argument("-c", "--config_json",
   type = "character",
@@ -30,8 +36,10 @@ parser$add_argument("-o", "--results",
 args <- parser$parse_args()
 
 ## Decompress required data ------------------------------------
-# decompress goldstandard file (tarball by default)
+# decompress goldstandard file
 untar(args[["goldstandard"]])
+decompress_file(args[["submission_file"]])
+
 # downsampled data and imputed data are parsed to wd via workflow
 
 ## Read read conditions and downsampling props ------------------------------------
