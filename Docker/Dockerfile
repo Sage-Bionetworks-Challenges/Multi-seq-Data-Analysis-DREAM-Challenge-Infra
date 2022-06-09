@@ -6,6 +6,7 @@ RUN cp /usr/bin/python3 /usr/bin/python
 RUN pip install --upgrade pip
 RUN pip install pandas synapseclient scipy
 
+COPY utils.py /utils.py
 COPY validate.py /validate.py
 COPY update_score.py /update_score.py
 COPY update_leaderboard.py /update_leaderboard.py

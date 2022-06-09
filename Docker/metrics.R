@@ -71,7 +71,7 @@ calculate_nrmse <- function(gs, imp, pseudobulk = FALSE) {
     imp <- rowSums(imp)
     nrmse_res <- nrmse(gs, imp)
   } else {
-    nrmse_res <- sapply(1:nrow(gs), function(i) nrmse(gs[i, ] - imp[i, ]))
+    nrmse_res <- sapply(1:nrow(gs), function(i) nrmse(gs[i, ], imp[i, ]))
   }
 
   # use average nrmse values across all genes as final score
@@ -90,7 +90,7 @@ calculate_spearman <- function(gs, imp, pseudobulk = FALSE, na.rm = TRUE) {
     imp <- rowSums(imp)
     cor_res <- spearman(gs, imp)
   } else {
-    cor_res <- sapply(1:nrow(gs), function(i) spearman(gs[i, ] - imp[i, ]))
+    cor_res <- sapply(1:nrow(gs), function(i) spearman(gs[i, ], imp[i, ]))
   }
 
   score <- mean(cor_res, na.rm = na.rm)

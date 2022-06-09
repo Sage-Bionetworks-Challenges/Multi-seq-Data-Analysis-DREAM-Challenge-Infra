@@ -18,7 +18,7 @@ def get_args():
                         help='validation results')
     parser.add_argument('-e', '--entity_type', required=True,
                         help='synapse entity type downloaded')
-    parser.add_argument('-i', '-input_file', required=True,
+    parser.add_argument('-i', '--input_file', required=True,
                         help='Input file')
     parser.add_argument('-s', '--submission_file', required=True,
                         help='Submission file')

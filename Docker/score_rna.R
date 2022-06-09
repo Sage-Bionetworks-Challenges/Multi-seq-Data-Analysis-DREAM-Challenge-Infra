@@ -5,15 +5,16 @@ suppressPackageStartupMessages({
   library(argparse)
   library(data.table)
   library(dplyr)
+  library(purrr)
 })
 
 # use all available cores
 ncores <- parallel::detectCores()
 
 # load evaluation metrics
-source("metrics.R")
+source("/metrics.R")
 # load utils function
-reticulate::source_python("utils.py")
+reticulate::source_python("/utils.py")
 
 # load all args
 parser <- argparse::ArgumentParser()

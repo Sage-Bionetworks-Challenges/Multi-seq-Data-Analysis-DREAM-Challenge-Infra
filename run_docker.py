@@ -152,7 +152,7 @@ def main(syn, args):
                                               name=args.submissionid,
                                               network_disabled=True,
                                               mem_limit=docker_mem, stderr=True)
-            # copy all training files that will be used for scoring into input_data/
+            # copy all training files from docker container to workflow container
             subprocess.check_call(
                 ["docker", "cp", args.submissionid + ":/data/.", "input_data/"])
         except docker.errors.APIError as err:
