@@ -56,7 +56,7 @@ for (info in input_info) {
   prefix <- info$dataset
   conditions <- unlist(info$conditions)
   ds_props <- unlist(info$props)
-  replicates <- 1:info$replicates
+  replicates <- unlist(info$replicates)
 
   # pre-load raw data once
   if (prefix == "ds1") {

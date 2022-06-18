@@ -74,7 +74,8 @@ def main():
         prefix = info['dataset']
         ds_props = info['props']
         conditions = info['conditions']
-        replicates = [n for n in range(1, info["replicates"] + 1)]
+        # replicates = [n for n in range(1, info["replicates"] + 1)]
+        replicates = info['replicates']
 
         # decompress submission file
         ds_fs = utils.decompress_file(args.input_file)
