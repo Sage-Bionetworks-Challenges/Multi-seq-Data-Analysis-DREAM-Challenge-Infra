@@ -113,7 +113,7 @@ def main(syn, args):
 
     # Assign different memory limit for different questions
     if args.question == "1":
-        docker_mem = "60g"
+        docker_mem = "100g"
     else:
         docker_mem = "6g"
 
