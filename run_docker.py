@@ -91,6 +91,7 @@ def main(syn, args):
     # .docker/config.json...
     # client = docker.from_env()
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+
     config = synapseclient.Synapse().getConfigFile(
         configPath=args.synapse_config
     )
@@ -112,7 +113,7 @@ def main(syn, args):
 
     # Assign different memory limit for different questions
     if args.question == "1":
-        docker_mem = "30g"
+        docker_mem = "100g"
     else:
         docker_mem = "6g"
 
@@ -151,7 +152,7 @@ def main(syn, args):
                                               name=args.submissionid,
                                               network_disabled=True,
                                               mem_limit=docker_mem, stderr=True)
-            # copy all training files that will be used for scoring into input_data/
+            # copy all training files from docker container to workflow container
             subprocess.check_call(
                 ["docker", "cp", args.submissionid + ":/data/.", "input_data/"])
         except docker.errors.APIError as err:
@@ -189,6 +190,8 @@ def main(syn, args):
     print("finished training")
     # Try to remove the image
     remove_docker_image(docker_image)
+    # Clean up unused volumes
+    client.volumes.prune()
 
     output_folder = os.listdir(output_dir)
     if not output_folder:
@@ -197,9 +200,9 @@ def main(syn, args):
     elif "predictions.tar.gz" not in output_folder:
         raise Exception("No 'predictions.tar.gz' file written to /output, "
                         "please check inference docker")
-    # CWL has a limit of the array of files it can accept in a folder
-    # therefore creating a tarball is sometimes necessary
-    # tar(output_dir, 'outputs.tar.gz')
+    # tar all input files
+    # trying to copy all input files to other steps will raise exceed volume mem error
+    tar("input_data/", 'input_file.tar.gz')
 
 
 if __name__ == '__main__':

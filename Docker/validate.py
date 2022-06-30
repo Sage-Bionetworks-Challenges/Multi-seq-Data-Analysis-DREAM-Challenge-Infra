@@ -8,10 +8,7 @@ Each imputed count file must follow the correct file format:
 import argparse
 import json
 import pandas as pd
-import os
-import tarfile
-import zipfile
-import shutil
+import utils
 
 
 def get_args():
@@ -21,57 +18,13 @@ def get_args():
                         help='validation results')
     parser.add_argument('-e', '--entity_type', required=True,
                         help='synapse entity type downloaded')
+    parser.add_argument('-i', '--input_file', required=True,
+                        help='Input file')
     parser.add_argument('-s', '--submission_file', required=True,
                         help='Submission file')
-    parser.add_argument('-c', '--condition', required=True, nargs='+',
-                        help='Experiment condition')
-    parser.add_argument('-p', '--proportion', required=True, nargs='+',
-                        help='Downsampling proportion')
-    parser.add_argument('-x', '--file_prefix', required=True,
-                        help='Prefix of filename')
-    parser.add_argument('-q', '--question', required=True,
-                        help='Challenge question')
+    parser.add_argument('-c', '--config_json', required=True,
+                        help='Input information json file')
     return parser.parse_args()
-
-
-def _filter_files(members, type='tar'):
-    """Filter out non-csv files in zip file."""
-    if type == "tar":
-        new_members = filter(
-            lambda member: member.name.endswith('.csv'), members)
-    else:
-        new_members = filter(lambda member: member.endswith('.csv'), members)
-    new_members = list(new_members)
-    return new_members
-
-
-def _decompress_file(f):
-    """Untar or unzip file."""
-    names = []
-    # decompress zip file
-    if zipfile.is_zipfile(f):
-        with zipfile.ZipFile(f) as zip_ref:
-            members = zip_ref.namelist()
-            members = _filter_files(members, type='zip')
-            if members:
-                for member in members:
-                    member_name = os.path.basename(member)
-                    with zip_ref.open(member) as source, open(member_name, 'wb') as target:
-                        # copy it directly to skip the folder names
-                        shutil.copyfileobj(source, target)
-                    names.append(member_name)
-    # decompress tar file
-    elif tarfile.is_tarfile(f):
-        with tarfile.open(f) as tar_ref:
-            members = tar_ref.getmembers()
-            members = _filter_files(members)
-            if members:
-                for member in members:
-                    # skip the folder names
-                    member.name = os.path.basename(member.name)
-                    tar_ref.extract(member)
-                    names.append(member.name)
-    return names
 
 
 def _validate_scRNA(ds_files, pred_files):
@@ -111,42 +64,47 @@ def main():
 
     invalid_reasons = []
 
-    # set variables to find files
-    ds_props = args.proportion
-    conditions = args.condition
-    file_prefix = args.file_prefix
+    # read json file that records downsampled data info
+    with open(args.config_json) as json_data:
+        input_info = json.load(json_data)
+        input_info = input_info['scRNAseq']
 
-    # check if all required downsampled data exists
-    true_ds_fs = [f'{file_prefix}_{c}_{p}.csv'
-                  for p in ds_props for c in conditions]
-    # downsampled files should be copied to working dir
-    diff = list(set(true_ds_fs) - set(os.listdir(".")))
-    if diff:
-        invalid_reasons.append('File not found : ' + '", "'.join(diff))
+    # for info in input_info:
+    for info in input_info:
+        prefix = info['dataset']
+        ds_props = info['props']
+        conditions = info['conditions']
+        # replicates = [n for n in range(1, info["replicates"] + 1)]
+        replicates = info['replicates']
 
-    # validate prediction file
-    if args.submission_file is None:
-        invalid_reasons.append(
-            'Expected FileEntity type but found ' + args.entity_type
-        )
-    else:
         # decompress submission file
-        pred_fs = _decompress_file(args.submission_file)
-        true_pred_fs = [f'{file_prefix}_{c}_{p}_imputed.csv'
-                        for p in ds_props for c in conditions]
-        # check if all required data exists
-        diff = list(set(true_pred_fs) - set(pred_fs))
+        ds_fs = utils.decompress_file(args.input_file)
+        # check if all required downsampled data exists
+        true_ds_fs = [f'{prefix}_{c}_{p}_{n}.csv'
+                      for n in replicates for p in ds_props for c in conditions]
+        # downsampled files should be copied to working dir
+        diff = list(set(true_ds_fs) - set(ds_fs))
         if diff:
             invalid_reasons.append('File not found : ' + '", "'.join(diff))
 
-    if not invalid_reasons:
-        if args.question == '1':
-            # validate predicted data
+            # validate prediction file
+        if args.submission_file is None:
+            invalid_reasons.append(
+                'Expected FileEntity type but found ' + args.entity_type
+            )
+        else:
+            # decompress submission file
+            pred_fs = utils.decompress_file(args.submission_file)
+            true_pred_fs = [f'{prefix}_{c}_{p}_{n}_imputed.csv'
+                            for n in replicates for p in ds_props for c in conditions]
+            # check if all required data exists
+            diff = list(set(true_pred_fs) - set(pred_fs))
+            if diff:
+                invalid_reasons.append('File not found : ' + '", "'.join(diff))
+
+        if not invalid_reasons:
             scRNA_res = _validate_scRNA(true_ds_fs, true_pred_fs)
             invalid_reasons.extend(scRNA_res)
-        else:
-            # TODO: add validation function for scATACseq
-            pass
 
     validate_status = 'INVALID' if invalid_reasons else 'VALIDATED'
     result = {'submission_errors': '\n'.join(invalid_reasons),

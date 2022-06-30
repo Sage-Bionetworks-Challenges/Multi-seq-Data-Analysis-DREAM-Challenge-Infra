@@ -4,7 +4,7 @@
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: [Rscript, /score.R]
+baseCommand: Rscript
 
 hints:
   DockerRequirement:
@@ -13,28 +13,31 @@ hints:
 inputs:
   - id: goldstandard
     type: File
-  - id: input_files
-    type: File[]
-  - id: submission_files
-    type: File[]
+  - id: config_json
+    type: File
+  - id: submission_file
+    type: File
+  - id: question
+    type: string
   - id: check_validation_finished
     type: boolean?
-  - id: condition
-    type: string[]
-  - id: proportion
-    type: string[]
-  - id: file_prefix
-    type: string
     
 arguments:
+  - position: 0
+    valueFrom: |
+      ${
+        if (inputs.question == "1") {
+          return "/score_rna.R"
+        } else {
+          return "/score_atac.R";
+        }
+      }
+  - valueFrom: $(inputs.submission_file.path)
+    prefix: -s
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
-  - valueFrom: $(inputs.condition)
+  - valueFrom: $(inputs.config_json.path)
     prefix: -c
-  - valueFrom: $(inputs.proportion)
-    prefix: -p
-  - valueFrom: $(inputs.file_prefix)
-    prefix: -x
   - valueFrom: results.json
     prefix: -o
 
@@ -42,8 +45,7 @@ requirements:
   - class: InlineJavascriptRequirement
   - class: InitialWorkDirRequirement
     listing:
-      - $(inputs.input_files)
-      - $(inputs.submission_files)
+      - $(inputs.config_json)
 outputs:
   - id: results
     type: File

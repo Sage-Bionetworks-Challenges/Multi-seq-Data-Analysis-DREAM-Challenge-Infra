@@ -138,16 +138,13 @@ steps:
         source: "#email_docker_validation/finished"
     out: [finished]
 
-  utils:
-    run: utils.cwl
+  determine_question:
+    run: determine_question.cwl
     in:
       - id: queue
         source: "#get_docker_submission/evaluation_id"
     out:
       - id: question
-      - id: condition
-      - id: proportion
-      - id: file_prefix
       - id: input_dir
       - id: gs_synId
   
@@ -174,15 +171,15 @@ steps:
       - id: store
         default: true
       - id: question
-        source: "#utils/question"
+        source: "#determine_question/question"
       - id: input_dir
-        source: "#utils/input_dir"
+        source: "#determine_question/input_dir"
       - id: docker_script
         default:
           class: File
           location: "run_docker.py"
     out:
-      - id: input_files
+      - id: input_file
       - id: submission_file
 
   upload_results:
@@ -224,7 +221,7 @@ steps:
     run: https://raw.githubusercontent.com/Sage-Bionetworks-Workflows/cwl-tool-synapseclient/v1.4/cwl/synapse-get-tool.cwl
     in:
       - id: synapseid
-        source: "#utils/gs_synId"
+        source: "#determine_question/gs_synId"
       - id: synapse_config
         source: "#synapseConfig"
     out:
@@ -237,21 +234,16 @@ steps:
         source: "#run_docker/submission_file"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
-      - id: input_files
-        source: "#run_docker/input_files"
-      - id: condition
-        source: "#utils/condition"
-      - id: proportion
-        source: "#utils/proportion"
-      - id: file_prefix
-        source: "#utils/file_prefix"
-      - id: question
-        source: "#utils/question"
+      - id: input_file
+        source: "#run_docker/input_file"
+      - id: config_json
+        default:
+          class: File
+          location: "config.json"
     out:
       - id: results
       - id: status
       - id: invalid_reasons
-      - id: submission_files
   
   email_validation:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/validate_email.cwl
@@ -300,18 +292,16 @@ steps:
   score:
     run: score.cwl
     in:
-      - id: submission_files
-        source: "#validate/submission_files"
+      - id: submission_file
+        source: "#run_docker/submission_file"
       - id: goldstandard
         source: "#download_goldstandard/filepath"
-      - id: input_files
-        source: "#run_docker/input_files"
-      - id: condition
-        source: "#utils/condition"
-      - id: proportion
-        source: "#utils/proportion"
-      - id: file_prefix
-        source: "#utils/file_prefix"
+      - id: question
+        source: "#determine_question/question"
+      - id: config_json
+        default:
+          class: File
+          location: "config.json"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:
@@ -329,10 +319,6 @@ steps:
         source: "#score/results"
       - id: all_scores
         source: "#score/all_scores"
-      - id: submission_view_synapseid
-        valueFrom: "syn27059976"
-      - id: leader_board_synapseid
-        valueFrom: "syn28518204"
     out: 
       - id: new_results
 
@@ -367,3 +353,16 @@ steps:
       - id: previous_annotation_finished
         source: "#annotate_validation_with_output/finished"
     out: [finished]
+
+  # update_leaderboard:
+  #   run: update_leaderboard.cwl
+  #   in:
+  #     - id: synapse_config
+  #       source: "#synapseConfig"
+  #     - id: annotate_submission_with_output
+  #       source: "#annotate_validation_with_output/finished"
+  #     - id: submission_view_synapseid
+  #       valueFrom: "syn27059976"
+  #     - id: leaderboard_synapseid
+  #       valueFrom: "syn29666147"
+  #   out: [finished]

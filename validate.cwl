@@ -15,30 +15,20 @@ inputs:
     type: File?
   - id: entity_type
     type: string
-  - id: input_files
-    type: File[]
-  - id: condition
-    type: string[]
-  - id: proportion
-    type: string[]
-  - id: file_prefix
-    type: string
-  - id: question
-    type: string
+  - id: input_file
+    type: File
+  - id: config_json
+    type: File
 
 arguments:
-  - valueFrom: $(inputs.submission_file)
+  - valueFrom: $(inputs.input_file.path)
+    prefix: -i
+  - valueFrom: $(inputs.submission_file.path)
     prefix: -s
   - valueFrom: $(inputs.entity_type)
     prefix: -e
-  - valueFrom: $(inputs.condition)
+  - valueFrom: $(inputs.config_json.path)
     prefix: -c
-  - valueFrom: $(inputs.proportion)
-    prefix: -p
-  - valueFrom: $(inputs.file_prefix)
-    prefix: -x
-  - valueFrom: $(inputs.question)
-    prefix: -q
   - valueFrom: results.json
     prefix: -r
 
@@ -46,16 +36,8 @@ requirements:
   - class: InlineJavascriptRequirement
   - class: InitialWorkDirRequirement
     listing:
-      - $(inputs.input_files)
-
+      - $(inputs.config_json)
 outputs:
-  # output decompressed submission files,
-  # so we don't need to decompress again in scoring
-  - id: submission_files
-    type: File[]
-    outputBinding:
-      glob: ./*_imputed.csv
-
   - id: results
     type: File
     outputBinding:
