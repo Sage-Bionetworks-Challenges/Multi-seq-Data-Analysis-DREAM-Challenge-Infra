@@ -179,7 +179,6 @@ steps:
           class: File
           location: "run_docker.py"
     out:
-      - id: input_file
       - id: submission_file
 
   upload_results:
