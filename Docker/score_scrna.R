@@ -71,8 +71,8 @@ write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
 # add annotations
 result_list <- list(
-  nrmse_average = mean(all_scores$nrmse_score),
-  spearman_average = mean(all_scores$spearman_score),
+  nrmse_average = mean(all_scores$nrmse_score, na.rm = TRUE),
+  spearman_average = mean(all_scores$spearman_score, na.rm = TRUE),
   submission_status = "SCORED"
 )
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
