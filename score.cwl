@@ -13,8 +13,6 @@ hints:
 inputs:
   - id: goldstandard
     type: File
-  - id: config_json
-    type: File
   - id: submission_file
     type: File
   - id: question
@@ -26,26 +24,22 @@ arguments:
   - position: 0
     valueFrom: |
       ${
-        if (inputs.question == "1") {
-          return "/score_rna.R"
+        if (inputs.question == "2") {
+          return "/score_scatac.R"
         } else {
-          return "/score_atac.R";
+          return "/score_scrna.R";
         }
       }
   - valueFrom: $(inputs.submission_file.path)
     prefix: -s
   - valueFrom: $(inputs.goldstandard.path)
     prefix: -g
-  - valueFrom: $(inputs.config_json.path)
-    prefix: -c
   - valueFrom: results.json
     prefix: -o
 
 requirements:
   - class: InlineJavascriptRequirement
-  - class: InitialWorkDirRequirement
-    listing:
-      - $(inputs.config_json)
+
 outputs:
   - id: results
     type: File

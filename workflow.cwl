@@ -179,6 +179,7 @@ steps:
           class: File
           location: "run_docker.py"
     out:
+      - id: input_file
       - id: submission_file
 
   upload_results:
@@ -235,10 +236,8 @@ steps:
         source: "#get_docker_submission/entity_type"
       - id: input_file
         source: "#run_docker/input_file"
-      - id: config_json
-        default:
-          class: File
-          location: "config.json"
+      - id: question
+        source: "#determine_question/question"
     out:
       - id: results
       - id: status
@@ -297,10 +296,6 @@ steps:
         source: "#download_goldstandard/filepath"
       - id: question
         source: "#determine_question/question"
-      - id: config_json
-        default:
-          class: File
-          location: "config.json"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:

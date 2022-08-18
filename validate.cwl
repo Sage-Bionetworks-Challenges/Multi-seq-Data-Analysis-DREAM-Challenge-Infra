@@ -1,10 +1,10 @@
 #!/usr/bin/env cwl-runner
 #
-# Example validate submission file
+# validate submission file
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: [python3, /validate.py]
+baseCommand: Rscript
 
 hints:
   DockerRequirement:
@@ -17,26 +17,31 @@ inputs:
     type: string
   - id: input_file
     type: File
-  - id: config_json
-    type: File
-
+  - id: question
+    type: string
+  
 arguments:
+  - position: 0
+    valueFrom: |
+      ${
+        if (inputs.question == "2") {
+          return "/validate_scatac.R"
+        } else {
+          return "/validate_scrna.R";
+        }
+      }
   - valueFrom: $(inputs.input_file.path)
     prefix: -i
   - valueFrom: $(inputs.submission_file.path)
     prefix: -s
   - valueFrom: $(inputs.entity_type)
     prefix: -e
-  - valueFrom: $(inputs.config_json.path)
-    prefix: -c
   - valueFrom: results.json
     prefix: -r
 
 requirements:
   - class: InlineJavascriptRequirement
-  - class: InitialWorkDirRequirement
-    listing:
-      - $(inputs.config_json)
+
 outputs:
   - id: results
     type: File
@@ -56,4 +61,3 @@ outputs:
       glob: results.json
       loadContents: true
       outputEval: $(JSON.parse(self[0].contents)['submission_errors'])
-    
