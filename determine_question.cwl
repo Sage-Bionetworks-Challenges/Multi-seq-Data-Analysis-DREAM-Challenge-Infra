@@ -33,27 +33,16 @@ expression: |
   ${
     if (inputs.queue == "9615023" || inputs.queue == "9614943") {
       // sc1-ds1
-      var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq/ds1"
+      var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq"
       var gs_synId = "syn34612394"
-      var question = "1A"
+      var question = "1"
 
     } else if (inputs.queue == "9615024" || inputs.queue == "9615021") {
-      // sc1-ds2
-      var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq/ds2"
-      var gs_synId = "syn34612394"
-      var question = "1B"
-
-    } else if (inputs.queue == "9615025" || inputs.queue == "9615022") {
-      // sc1-ds3
-      var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq/ds3"
-      var gs_synId = "syn34612394"
-      var question = "1C"
-
-    } else if (inputs.queue == "" || inputs.queue == "") {
       // sc2
-      var input_dir = "/home/ec2-user/challenge-data/downsampled/scATACseq/"
+      var input_dir = "/home/ec2-user/challenge-data/downsampled/scATACseq"
       var gs_synId = "syn123" // TBD
       var question = "2"
+
     } else {
       throw 'invalid queue';
     }

@@ -24,10 +24,10 @@ arguments:
   - position: 0
     valueFrom: |
       ${
-        if (inputs.question == "2") {
-          return "/validate_scatac.R"
+        if (inputs.question == "1") {
+          return "/validate_scrna.R"
         } else {
-          return "/validate_scrna.R";
+          return "/validate_scatac.R";
         }
       }
   - valueFrom: $(inputs.input_file.path)

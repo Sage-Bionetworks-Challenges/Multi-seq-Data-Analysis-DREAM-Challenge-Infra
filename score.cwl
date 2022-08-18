@@ -24,10 +24,10 @@ arguments:
   - position: 0
     valueFrom: |
       ${
-        if (inputs.question == "2") {
-          return "/score_scatac.R"
+        if (inputs.question == "1") {
+          return "/score_scrna.R"
         } else {
-          return "/score_scrna.R";
+          return "/score_scatac.R";
         }
       }
   - valueFrom: $(inputs.submission_file.path)

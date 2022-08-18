@@ -9,6 +9,7 @@ suppressPackageStartupMessages({
   library(purrr)
   library(dplyr)
   library(jsonlite)
+  library(Seurat)
 })
 
 parser <- argparse::ArgumentParser()
@@ -18,7 +19,7 @@ parser$add_argument("-o", "--results", help = "Results path")
 args <- parser$parse_args()
 
 # load evaluation metrics
-source("/metrics.R")
+source("Docker/metrics.R")
 ncores <- 16
 
 # untar
@@ -42,9 +43,9 @@ all_scores <- mclapply(imp_files, function(imp_file) {
   condition <- info[2]
 
   # read prediction
-  imp_path <- file.path(imp_dir, imp_file)
+  imp_path <- file.path("imp", imp_file)
   imp <- fread(imp_path, data.table = FALSE) %>% tibble::column_to_rownames("V1")
-  imp <- NormalizeData(imp)
+  imp <- NormalizeData(imp, verbose = FALSE)
 
   # read gs
   gs <- all_gs[[prefix]][[condition]]
@@ -59,8 +60,8 @@ all_scores <- mclapply(imp_files, function(imp_file) {
   # collect scores for each test case
   score_table <- tibble(
     dataset = imp_file,
-    nrmse_score = primary_score,
-    spearman_score = secondary_score
+    nrmse_score = nrmse_score,
+    spearman_score = spearman_score
   )
 }, mc.cores = ncores) %>% bind_rows()
 
@@ -70,8 +71,8 @@ write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
 # add annotations
 result_list <- list(
-  primary_average = mean(all_scores$nrmse_score),
-  secondary_average = mean(all_scores$spearman_score),
+  nrmse_average = mean(all_scores$nrmse_score),
+  spearman_average = mean(all_scores$spearman_score),
   submission_status = "SCORED"
 )
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
