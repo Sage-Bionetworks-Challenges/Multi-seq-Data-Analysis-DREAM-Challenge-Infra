@@ -8,17 +8,16 @@ suppressPackageStartupMessages({
 })
 
 parser <- argparse::ArgumentParser()
-parser$add_argument("-s", "--submission_file", help = "Submission file path")
+parser$add_argument("-s", "--submission_file", help = "Submission file")
 parser$add_argument("-e", "--entity_type", help = "synapse entity type downloaded")
-parser$add_argument("-i", "--input_dir", help = "Input directory path of downsampled data")
+parser$add_argument("-i", "--input_file", help = "Input file of downsampled data")
 parser$add_argument("-o", "--results", help = "Results path")
 args <- parser$parse_args()
 
 invalid_reasons <- list()
 
 # untar
-# untar(args$input_file, exdir = "down")
-print(list.files(input_dir))
+untar(args$input_file, exdir = "down")
 if (is.null(args$submission_file)) {
   invalid_reasons <- append(
     invalid_reasons,
@@ -29,9 +28,7 @@ if (is.null(args$submission_file)) {
 }
 
 # retrieve all file names
-print(list.files(args$input_dir))
-down_files <- list.files(args$input_dir, pattern = "*.csv")
-# down_files <- list.files("down", pattern = "*.csv")
+down_files <- list.files("down", pattern = "*.csv")
 true_imp_files <- paste0(tools::file_path_sans_ext(down_files), "_imputed.csv")
 imp_files <- list.files("imp", pattern = "*.csv")
 
@@ -68,8 +65,8 @@ invisible(
         paste0(imp_file, " : Not all values are numeric")
       )
     }
-    down <- data.table::fread(file.path(args$input_dir, down_files[i])) %>%
-      # down <- data.table::fread(file.path("down", down_files[i])) %>%
+
+    down <- data.table::fread(file.path("down", down_files[i])) %>%
       tibble::column_to_rownames("V1")
 
     # validate if all cells are matched

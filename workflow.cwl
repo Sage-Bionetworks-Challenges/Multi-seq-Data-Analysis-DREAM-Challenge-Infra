@@ -179,7 +179,7 @@ steps:
           class: File
           location: "run_docker.py"
     out:
-      - id: input_dir
+      - id: input_file
       - id: submission_file
 
   upload_results:
@@ -234,8 +234,8 @@ steps:
         source: "#run_docker/submission_file"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
-      - id: input_dir
-        source: "#run_docker/input_dir"
+      - id: input_file
+        source: "#run_docker/input_file"
       - id: question
         source: "#determine_question/question"
     out:
