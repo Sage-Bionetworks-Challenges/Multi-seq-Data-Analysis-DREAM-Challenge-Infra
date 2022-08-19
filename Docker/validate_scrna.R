@@ -10,27 +10,31 @@ suppressPackageStartupMessages({
 parser <- argparse::ArgumentParser()
 parser$add_argument("-s", "--submission_file", help = "Submission file")
 parser$add_argument("-e", "--entity_type", help = "synapse entity type downloaded")
-parser$add_argument("-i", "--input_file", help = "Input file of downsampled data")
+parser$add_argument("-i", "--input_dir", help = "Input directory of downsampled data")
 parser$add_argument("-o", "--results", help = "Results path")
 args <- parser$parse_args()
+
+down_dir <- args$input_dir
+imp_dir <- "imp"
 
 invalid_reasons <- list()
 
 # untar
-untar(args$input_file, exdir = "down")
+# untar(args$input_file, exdir = "down")
 if (is.null(args$submission_file)) {
   invalid_reasons <- append(
     invalid_reasons,
     sprintf("Expected FileEntity type but found %s", args$entity_type)
   )
 } else {
-  untar(args$submission_file, exdir = "imp")
+  untar(args$submission_file, exdir = imp_dir)
 }
 
 # retrieve all file names
-down_files <- list.files("down", pattern = "*.csv")
+print(list.files(down_dir, pattern = "*.csv"))
+down_files <- list.files(down_dir, pattern = "*.csv")
 true_imp_files <- paste0(tools::file_path_sans_ext(down_files), "_imputed.csv")
-imp_files <- list.files("imp", pattern = "*.csv")
+imp_files <- list.files(imp_dir, pattern = "*.csv")
 
 # validate if all required imputed files present
 diff <- setdiff(true_imp_files, imp_files)
@@ -47,7 +51,7 @@ if (length(diff) > 0) {
 # iterate to validate each prediction file
 invisible(
   lapply(seq_along(down_files), function(i) {
-    imp <- data.table::fread(file.path("imp", true_imp_files[i])) %>%
+    imp <- data.table::fread(file.path(imp_dir, true_imp_files[i])) %>%
       tibble::column_to_rownames("V1")
 
     # validate if all data are non-negative
@@ -66,7 +70,7 @@ invisible(
       )
     }
 
-    down <- data.table::fread(file.path("down", down_files[i])) %>%
+    down <- data.table::fread(file.path(down_dir, down_files[i])) %>%
       tibble::column_to_rownames("V1")
 
     # validate if all cells are matched

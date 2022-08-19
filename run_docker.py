@@ -198,7 +198,7 @@ def main(syn, args):
                         "please check inference docker")
     # tar all input files
     # "exceed volume mem" error will raise if trying to copy too many input files to other steps
-    tar("input_data/", 'input_file.tar.gz')
+    # tar("input_data/", 'input_file.tar.gz')
 
 
 if __name__ == '__main__':
