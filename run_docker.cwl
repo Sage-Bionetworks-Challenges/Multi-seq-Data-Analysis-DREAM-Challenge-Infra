@@ -66,7 +66,7 @@ outputs:
   input_dir:
     type: Directory
     outputBinding:
-      glob: input_dir
+      glob:  $(inputs.input_dir.basename)
   submission_file:
     type: File
     outputBinding:
