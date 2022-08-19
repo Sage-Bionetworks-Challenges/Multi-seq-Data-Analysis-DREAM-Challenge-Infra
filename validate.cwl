@@ -15,8 +15,8 @@ inputs:
     type: File?
   - id: entity_type
     type: string
-  - id: input_file
-    type: File
+  - id: input_dir
+    type: Directory
   - id: question
     type: string
   
@@ -30,7 +30,7 @@ arguments:
           return "/validate_scatac.R";
         }
       }
-  - valueFrom: $(inputs.input_file.path)
+  - valueFrom: $(inputs.input_dir.path)
     prefix: -i
   - valueFrom: $(inputs.submission_file.path)
     prefix: -s
@@ -41,7 +41,9 @@ arguments:
 
 requirements:
   - class: InlineJavascriptRequirement
-
+  - class: InitialWorkDirRequirement
+    listing:
+      - $(inputs.input_dir)
 outputs:
   - id: results
     type: File

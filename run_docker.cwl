@@ -63,10 +63,10 @@ requirements:
   - class: InlineJavascriptRequirement
 
 outputs:
-  input_file:
-    type: File
+  input_dir:
+    type: Directory
     outputBinding:
-      glob: input_file.tar.gz
+      glob: input_dir
   submission_file:
     type: File
     outputBinding:

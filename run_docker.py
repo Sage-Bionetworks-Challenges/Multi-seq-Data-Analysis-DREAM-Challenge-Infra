@@ -111,7 +111,7 @@ def main(syn, args):
     output_dir = os.getcwd()
 
     # Assign different memory limit for different questions
-    if args.question is "1":
+    if args.question == "1":
         docker_mem = "100g"
     else:
         docker_mem = "6g"  # double check the mem usage
@@ -198,7 +198,7 @@ def main(syn, args):
                         "please check inference docker")
     # tar all input files
     # "exceed volume mem" error will raise if trying to copy too many input files to other steps
-    tar("input_data/", 'input_file.tar.gz')
+    # tar("input_data/", 'input_file.tar.gz')
 
 
 if __name__ == '__main__':
