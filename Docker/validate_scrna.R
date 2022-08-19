@@ -11,7 +11,7 @@ parser <- argparse::ArgumentParser()
 parser$add_argument("-s", "--submission_file", help = "Submission file")
 parser$add_argument("-e", "--entity_type", help = "synapse entity type downloaded")
 parser$add_argument("-i", "--input_dir", help = "Input directory of downsampled data")
-parser$add_argument("-o", "--results", help = "Results path")
+parser$add_argument("-r", "--results", help = "Results path")
 args <- parser$parse_args()
 
 down_dir <- args$input_dir
