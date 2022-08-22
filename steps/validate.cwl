@@ -30,7 +30,7 @@ arguments:
           return "/validate_scatac.R";
         }
       }
-  - valueFrom: $(inputs.goldstandard.path)
+  - valueFrom: $(inputs.goldstandard_file.path)
     prefix: -g
   - valueFrom: $(inputs.submission_file.path)
     prefix: -s
