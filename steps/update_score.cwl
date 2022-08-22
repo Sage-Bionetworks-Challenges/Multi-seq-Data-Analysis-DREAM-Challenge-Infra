@@ -7,13 +7,11 @@
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: [python3, /update_score.py]
-
-hints:
-  DockerRequirement:
-    dockerPull: docker.synapse.org/syn26720921/scoring:v1
+baseCommand: python3
 
 inputs:
+  - id: update_score_script
+    type: File
   - id: synapse_config
     type: File
   - id: results
@@ -24,6 +22,7 @@ inputs:
     type: File
 
 arguments:
+  - valueFrom: $(inputs.update_score_script.path)
   - valueFrom: $(inputs.synapse_config.path)
     prefix: -c
   - valueFrom: $(inputs.parent_id)
@@ -35,6 +34,10 @@ arguments:
 
 requirements:
   - class: InlineJavascriptRequirement
+  - class: InitialWorkDirRequirement
+    listing:
+      - $(inputs.update_score_script)
+
 
 outputs:
   - id: new_results

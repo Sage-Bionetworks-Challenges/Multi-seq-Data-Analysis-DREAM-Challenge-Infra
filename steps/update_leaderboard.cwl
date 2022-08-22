@@ -5,13 +5,11 @@
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: [python3, /update_leaderboard.py]
-
-hints:
-  DockerRequirement:
-    dockerPull: docker.synapse.org/syn26720921/scoring:v1
+baseCommand: python3
 
 inputs:
+  - id: update_leaderboard_script
+    type: File
   - id: synapse_config
     type: File
   - id: annotate_submission_with_output
@@ -22,6 +20,7 @@ inputs:
     type: string
 
 arguments:
+  - valueFrom: $(inputs.update_leaderboard_script.path)
   - valueFrom: $(inputs.synapse_config.path)
     prefix: -c
   - valueFrom: $(inputs.submission_view_synapseid)
@@ -31,6 +30,9 @@ arguments:
 
 requirements:
   - class: InlineJavascriptRequirement
+  - class: InitialWorkDirRequirement
+    listing:
+      - $(inputs.update_leaderboard_script)
 
 outputs:
   - id: finished

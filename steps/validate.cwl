@@ -11,11 +11,11 @@ hints:
     dockerPull: docker.synapse.org/syn26720921/scoring:v1
 
 inputs:
+  - id: goldstandard_file
+    type: File
   - id: submission_file
     type: File?
   - id: entity_type
-    type: string
-  - id: input_dir
     type: string
   - id: question
     type: string
@@ -30,8 +30,8 @@ arguments:
           return "/validate_scatac.R";
         }
       }
-  - valueFrom: $(inputs.input_dir)
-    prefix: -i
+  - valueFrom: $(inputs.goldstandard.path)
+    prefix: -g
   - valueFrom: $(inputs.submission_file.path)
     prefix: -s
   - valueFrom: $(inputs.entity_type)

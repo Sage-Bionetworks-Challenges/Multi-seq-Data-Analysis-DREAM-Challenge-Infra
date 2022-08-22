@@ -11,7 +11,7 @@ hints:
     dockerPull: docker.synapse.org/syn26720921/scoring:v1
 
 inputs:
-  - id: goldstandard
+  - id: goldstandard_file
     type: File
   - id: submission_file
     type: File
@@ -32,7 +32,7 @@ arguments:
       }
   - valueFrom: $(inputs.submission_file.path)
     prefix: -s
-  - valueFrom: $(inputs.goldstandard.path)
+  - valueFrom: $(inputs.goldstandard_file.path)
     prefix: -g
   - valueFrom: results.json
     prefix: -o

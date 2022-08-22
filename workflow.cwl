@@ -139,7 +139,7 @@ steps:
     out: [finished]
 
   determine_question:
-    run: determine_question.cwl
+    run: steps/determine_question.cwl
     in:
       - id: queue
         source: "#get_docker_submission/evaluation_id"
@@ -149,7 +149,7 @@ steps:
       - id: gs_synId
   
   run_docker:
-    run: run_docker.cwl
+    run: steps/run_docker.cwl
     in:
       - id: docker_repository
         source: "#get_docker_submission/docker_repository"
@@ -177,9 +177,8 @@ steps:
       - id: docker_script
         default:
           class: File
-          location: "run_docker.py"
+          location: "scripts/run_docker.py"
     out:
-      # - id: input_file
       - id: submission_file
 
   upload_results:
@@ -228,14 +227,14 @@ steps:
       - id: filepath
 
   validate:
-    run: validate.cwl
+    run: steps/validate.cwl
     in:
       - id: submission_file
         source: "#run_docker/submission_file"
+      - id: goldstandard_file
+        source: "#download_goldstandard/filepath"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
-      - id: input_dir
-        source: "#determine_question/input_dir"
       - id: question
         source: "#determine_question/question"
     out:
@@ -288,11 +287,11 @@ steps:
     out: [finished]
 
   score:
-    run: score.cwl
+    run: steps/score.cwl
     in:
       - id: submission_file
         source: "#run_docker/submission_file"
-      - id: goldstandard
+      - id: goldstandard_file
         source: "#download_goldstandard/filepath"
       - id: question
         source: "#determine_question/question"
@@ -303,7 +302,7 @@ steps:
       - id: all_scores
 
   update_score:
-    run: update_score.cwl
+    run: steps/update_score.cwl
     in:
       - id: synapse_config
         source: "#synapseConfig"
@@ -313,11 +312,15 @@ steps:
         source: "#score/results"
       - id: all_scores
         source: "#score/all_scores"
+      - id: update_score_script
+        default:
+          class: File
+          location: "scripts/update_score.py"
     out: 
       - id: new_results
 
   email_score:
-    run: email_score.cwl
+    run: steps/email_score.cwl
     in:
       - id: submissionid
         source: "#submissionId"
@@ -349,7 +352,7 @@ steps:
     out: [finished]
 
   # update_leaderboard:
-  #   run: update_leaderboard.cwl
+  #   run: steps/update_leaderboard.cwl
   #   in:
   #     - id: synapse_config
   #       source: "#synapseConfig"
@@ -359,4 +362,8 @@ steps:
   #       valueFrom: "syn27059976"
   #     - id: leaderboard_synapseid
   #       valueFrom: "syn29666147"
+  #     - id: update_leaderboard_script
+  #       default:
+  #         class: File
+  #         location: "scripts/update_leaderboard.py"
   #   out: [finished]
