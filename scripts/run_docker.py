@@ -91,6 +91,7 @@ def main(syn, args):
     # .docker/config.json...
     # client = docker.from_env()
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+
     config = synapseclient.Synapse().getConfigFile(
         configPath=args.synapse_config
     )
@@ -106,15 +107,14 @@ def main(syn, args):
     docker_image = args.docker_repository + "@" + args.docker_digest
 
     # These are the volumes that you want to mount onto your docker container
-    # TODO: assign different input_dir for subchallenge 2 & 3 + add real queueIds
     input_dir = args.input_dir
     output_dir = os.getcwd()
 
     # Assign different memory limit for different questions
-    if args.question == "1":
-        docker_mem = "30g"
+    if args.question is "1":
+        docker_mem = "100g"
     else:
-        docker_mem = "6g"
+        docker_mem = "6g"  # double check the mem usage
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
@@ -151,9 +151,6 @@ def main(syn, args):
                                               name=args.submissionid,
                                               network_disabled=True,
                                               mem_limit=docker_mem, stderr=True)
-            # copy all training files that will be used for scoring into input_data/
-            subprocess.check_call(
-                ["docker", "cp", args.submissionid + ":/data/.", "input_data/"])
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             errors = str(err) + "\n"
@@ -189,6 +186,8 @@ def main(syn, args):
     print("finished training")
     # Try to remove the image
     remove_docker_image(docker_image)
+    # Clean up unused volumes
+    # client.volumes.prune()
 
     output_folder = os.listdir(output_dir)
     if not output_folder:
@@ -197,9 +196,9 @@ def main(syn, args):
     elif "predictions.tar.gz" not in output_folder:
         raise Exception("No 'predictions.tar.gz' file written to /output, "
                         "please check inference docker")
-    # CWL has a limit of the array of files it can accept in a folder
-    # therefore creating a tarball is sometimes necessary
-    # tar(output_dir, 'outputs.tar.gz')
+    # tar all input files
+    # "exceed volume mem" error will raise if trying to copy too many input files to other steps
+    # tar("input_data/", 'input_file.tar.gz')
 
 
 if __name__ == '__main__':
@@ -213,7 +212,7 @@ if __name__ == '__main__':
     parser.add_argument("-q", "--question", required=True,
                         help="Challenge question")
     parser.add_argument("-i", "--input_dir", required=True,
-                        help="Input directory for downsampled data")
+                        help="Input directory of downsampled data")
     parser.add_argument("-c", "--synapse_config", required=True,
                         help="credentials file")
     parser.add_argument("--store", action='store_true',

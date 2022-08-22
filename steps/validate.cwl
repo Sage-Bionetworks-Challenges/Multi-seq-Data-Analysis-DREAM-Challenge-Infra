@@ -1,61 +1,48 @@
 #!/usr/bin/env cwl-runner
 #
-# Example validate submission file
+# validate submission file
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: [python3, /validate.py]
+baseCommand: Rscript
 
 hints:
   DockerRequirement:
     dockerPull: docker.synapse.org/syn26720921/scoring:v1
 
 inputs:
+  - id: goldstandard_file
+    type: File
   - id: submission_file
     type: File?
   - id: entity_type
     type: string
-  - id: input_files
-    type: File[]
-  - id: condition
-    type: string[]
-  - id: proportion
-    type: string[]
-  - id: file_prefix
-    type: string
   - id: question
     type: string
-
+  
 arguments:
-  - valueFrom: $(inputs.submission_file)
+  - position: 0
+    valueFrom: |
+      ${
+        if (inputs.question == "1") {
+          return "/validate_scrna.R"
+        } else {
+          return "/validate_scatac.R";
+        }
+      }
+  - valueFrom: $(inputs.goldstandard_file.path)
+    prefix: -g
+  - valueFrom: $(inputs.submission_file.path)
     prefix: -s
   - valueFrom: $(inputs.entity_type)
     prefix: -e
-  - valueFrom: $(inputs.condition)
-    prefix: -c
-  - valueFrom: $(inputs.proportion)
-    prefix: -p
-  - valueFrom: $(inputs.file_prefix)
-    prefix: -x
-  - valueFrom: $(inputs.question)
-    prefix: -q
   - valueFrom: results.json
     prefix: -r
 
 requirements:
   - class: InlineJavascriptRequirement
-  - class: InitialWorkDirRequirement
-    listing:
-      - $(inputs.input_files)
 
 outputs:
-  # output decompressed submission files,
-  # so we don't need to decompress again in scoring
-  - id: submission_files
-    type: File[]
-    outputBinding:
-      glob: ./*_imputed.csv
-
   - id: results
     type: File
     outputBinding:
@@ -74,4 +61,3 @@ outputs:
       glob: results.json
       loadContents: true
       outputEval: $(JSON.parse(self[0].contents)['submission_errors'])
-    
