@@ -351,19 +351,15 @@ steps:
         source: "#annotate_validation_with_output/finished"
     out: [finished]
 
-  # update_leaderboard:
-  #   run: steps/update_leaderboard.cwl
-  #   in:
-  #     - id: synapse_config
-  #       source: "#synapseConfig"
-  #     - id: annotate_submission_with_output
-  #       source: "#annotate_validation_with_output/finished"
-  #     - id: submission_view_synapseid
-  #       valueFrom: "syn27059976"
-  #     - id: leaderboard_synapseid
-  #       valueFrom: "syn29666147"
-  #     - id: update_leaderboard_script
-  #       default:
-  #         class: File
-  #         location: "scripts/update_leaderboard.py"
-  #   out: [finished]
+  annotate_submission_with_ranks:
+    run: steps/annotate_ranks.cwl
+    in:
+      - id: synapse_config
+        source: "#synapseConfig"
+      - id: submission_view_synapseid
+        valueFrom: "syn27059976"
+      - id: annotate_ranks_script
+        default:
+          class: File
+          location: "scripts/annotate_ranks.py"
+    out: [finished]

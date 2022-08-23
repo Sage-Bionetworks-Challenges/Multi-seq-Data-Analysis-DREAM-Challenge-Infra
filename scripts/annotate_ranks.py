@@ -1,5 +1,5 @@
 """
-
+Calculate the ranks and annotate the submission with new ranks
 """
 
 #!/usr/bin/env python
@@ -16,8 +16,6 @@ def get_args():
                         required=True, help="Credentials file")
     parser.add_argument("-s", "--submission_view_synapseid",
                         required=True, help="Synapse ID of submission view")
-    parser.add_argument("-l", "--leaderboard_synapseid",
-                        required=True, help="Synapse ID of leader board")
     return parser.parse_args()
 
 
@@ -68,22 +66,27 @@ def main():
     syn = synapseclient.Synapse(configPath=args.synapse_config)
     syn.login(silent=True)
 
+    # get data from the submission view table
     eval_cols = ['nrmse_breakdown', 'spearman_breakdown']
     query = (f"SELECT id, {', '.join(eval_cols)}  FROM {subview_id} "
              f"WHERE submission_status = 'SCORED' "
              f"AND status = 'ACCEPTED'")
     sub_df = syn.tableQuery(query).asDataFrame()
 
+    # convert the string list of synapse table to list
     for col in eval_cols:
         sub_df[col] = sub_df[col].apply(lambda x: _flatten_str(x))
 
+    # calculate ranks across test cases
     sub_df["nrmse_rank"] = rank_testcases(sub_df["nrmse_breakdown"])
     sub_df["spearman_rank"] = rank_testcases(
         sub_df["spearman_breakdown"], ascending=False)
 
+    # rank based on the ranks of two metrics
     sub_df["overall_rank"] = rank_submissions(
         sub_df, ["nrmse_rank", "spearman_rank"])
 
+    # annotate submission with all new ranks
     annotate_ranks(syn, sub_df)
 
 
