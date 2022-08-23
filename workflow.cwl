@@ -319,21 +319,6 @@ steps:
     out: 
       - id: new_results
 
-  email_score:
-    run: steps/email_score.cwl
-    in:
-      - id: submissionid
-        source: "#submissionId"
-      - id: synapse_config
-        source: "#synapseConfig"
-      - id: results
-        source: "#update_score/new_results"
-      # OPTIONAL: add annotations to be withheld from participants to `[]`
-      # - id: private_annotations
-      #   default: []
-    out: []
-
-
   annotate_submission_with_output:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/annotate_submission.cwl
     in:
@@ -359,3 +344,17 @@ steps:
       - id: submission_view_id
         valueFrom: "syn27059976"
     out: [finished]
+
+  email_score:
+    run: steps/email_score.cwl
+    in:
+      - id: submissionid
+        source: "#submissionId"
+      - id: synapse_config
+        source: "#synapseConfig"
+      - id: results
+        source: "#update_score/new_results"
+      # OPTIONAL: add annotations to be withheld from participants to `[]`
+      # - id: private_annotations
+      #   default: []
+    out: []
