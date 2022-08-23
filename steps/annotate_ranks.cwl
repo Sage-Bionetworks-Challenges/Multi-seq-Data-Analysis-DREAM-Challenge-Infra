@@ -4,7 +4,7 @@
 #
 cwlVersion: v1.0
 class: CommandLineTool
-baseCommand: python3
+baseCommand: [python3, annotate_rank.py]
 
 hints:
   DockerRequirement:

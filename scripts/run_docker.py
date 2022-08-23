@@ -147,10 +147,12 @@ def main(syn, args):
         print("running container")
         try:
             container = client.containers.run(docker_image,
-                                              detach=True, volumes=volumes,
+                                              detach=True,
+                                              volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
-                                              mem_limit=docker_mem, stderr=True)
+                                              mem_limit=docker_mem,
+                                              stderr=True)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             errors = str(err) + "\n"

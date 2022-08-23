@@ -67,6 +67,8 @@ requirements:
               csv_id = annots["submission_scores"]
               del annots["submission_scores"]
               del annots["submission_status"]
+              del annots["primary_bks"]
+              del annots["secondary_bks"]
               subject = "Submission to '%s' scored!" % evaluation.name
               for annot in args.private_annotations:
                 del annots[annot]
