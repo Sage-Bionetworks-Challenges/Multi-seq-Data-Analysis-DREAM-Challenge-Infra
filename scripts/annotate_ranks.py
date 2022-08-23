@@ -67,7 +67,7 @@ def main():
     syn.login(silent=True)
 
     # get data from the submission view table
-    eval_cols = ['nrmse_breakdown', 'spearman_breakdown']
+    eval_cols = ['primary_bks', 'secondary_bks']
     query = (f"SELECT id, {', '.join(eval_cols)}  FROM {subview_id} "
              f"WHERE submission_status = 'SCORED' "
              f"AND status = 'ACCEPTED'")
@@ -78,13 +78,13 @@ def main():
         sub_df[col] = sub_df[col].apply(lambda x: _flatten_str(x))
 
     # calculate ranks across test cases
-    sub_df["nrmse_rank"] = rank_testcases(sub_df["nrmse_breakdown"])
-    sub_df["spearman_rank"] = rank_testcases(
-        sub_df["spearman_breakdown"], ascending=False)
+    sub_df["primary_rank"] = rank_testcases(sub_df['primary_bks'])
+    sub_df["secondary_rank"] = rank_testcases(
+        sub_df["secondary_bks"], ascending=False)
 
     # rank based on the ranks of two metrics
     sub_df["overall_rank"] = rank_submissions(
-        sub_df, ["nrmse_rank", "spearman_rank"])
+        sub_df, ["primary_rank", "secondary_rank"])
 
     # annotate submission with all new ranks
     annotate_ranks(syn, sub_df)
