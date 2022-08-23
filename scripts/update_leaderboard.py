@@ -1,13 +1,12 @@
 """
-1. query all scored submission results
-2. update a leader board with rankings of the submission
+
 """
 
 #!/usr/bin/env python
-import synapseclient
-from synapseclient.table import Table
 import argparse
 from scipy.stats import rankdata
+import synapseclient
+from challengeutils.annotations import annotate_submission
 
 
 def get_args():
@@ -22,31 +21,44 @@ def get_args():
     return parser.parse_args()
 
 
-def valid_scores(df, col):
-    """Filter out the invalid scores."""
-    # not necessary for live queue
-    valid_inx = []
-    valid_scores = []
-
-    for loc, res in enumerate(df[col]):
-        # remove the square brackets symbols; get individual score
-        scores = res[1:-1].split(", ")
-        if len(scores) == 48:  # hardcode the number for now
-            valid_inx.append(loc)
-            valid_scores.append([float(x) for x in scores])
-    return {"loc": valid_inx, "scores": valid_scores}
+def _flatten_str(str_list):
+    if str_list:
+        return str_list[0].strip('][').split(', ')
+    else:
+        return []
 
 
-def rank(l):
-    """Rank the item at the same index across multiple lists."""
-    # get rank a list of lists for each index
-    rank_list = []
-    for i in range(len(l[0])):
-        ranks = rankdata([x[i] for x in l])
-        rank_list.append(list(ranks))
-    # average of ranks for each list
-    avg_rank = [(sum(r)/len(r)) for r in zip(*rank_list)]
+def rank_testcases(submissions, ascending=True):
+    """Calculate average ranks of all test cases across multiple submissions."""
+    sub_ranks = []
+    d = 1 if ascending else -1
+    # get rank of each test case among all submissions
+    for inx in range(len(submissions[0])):
+        ranks = rankdata([d * float(sub[inx]) for sub in submissions])
+        sub_ranks.append(list(ranks))
+    # get average of ranks for each submission among all test cases ranks
+    avg_rank = [(sum(test_ranks)/len(test_ranks))
+                for test_ranks in zip(*sub_ranks)]
     return avg_rank
+
+
+def rank_submissions(sub_df, eval_metric):
+    """Determine ranks of all submissions based on metrics."""
+    ranks = (sub_df[eval_metric]
+             .apply(tuple, axis=1)
+             .rank(method='min')
+             .astype(int))
+    return ranks
+
+
+def annotate_ranks(syn, sub_df):
+    """Annotate submissions with their new rank."""
+    for _, row in sub_df.iterrows():
+        annots = {"nrmse_rank": float(row["nrmse_rank"]),
+                  "spearman_rank": float(row["spearman_rank"]),
+                  "overall_rank": int(row["overall_rank"])
+                  }
+        annotate_submission(syn, row['id'], annots)
 
 
 def main():
@@ -56,45 +68,23 @@ def main():
     syn = synapseclient.Synapse(configPath=args.synapse_config)
     syn.login(silent=True)
 
-    # create a leaderboard based on ranks of all test cases
-    # set synapse ids for table views
-    sv_id = args.submission_view_synapseid
-    lb_id = args.leaderboard_synapseid
+    eval_cols = ['nrmse_breakdown', 'spearman_breakdown']
+    query = (f"SELECT id, {', '.join(eval_cols)}  FROM {subview_id} "
+             f"WHERE submission_status = 'SCORED' "
+             f"AND status = 'ACCEPTED'")
+    sub_df = syn.tableQuery(query).asDataFrame()
 
-    # get all current submission results
-    # !! ensure the columns have been already added into the leaderboard
-    sv_table = syn.tableQuery(
-        f"select * from {sv_id} where \
-            submission_status = 'SCORED' and \
-            chdir_breakdown is not null and \
-            nrmse_breakdown is not null")
-    df = sv_table.asDataFrame()
+    for col in eval_cols:
+        sub_df[col] = sub_df[col].apply(lambda x: _flatten_str(x))
 
-    # filter out invalid results (only need for testing)
-    chdir_res = valid_scores(df, "chdir_breakdown")
-    nrmse_res = valid_scores(df, "nrmse_breakdown")
+    sub_df["nrmse_rank"] = rank_testcases(sub_df["nrmse_breakdown"])
+    sub_df["spearman_rank"] = rank_testcases(
+        sub_df["spearman_breakdown"], ascending=False)
 
-    if chdir_res["scores"] and nrmse_res["scores"]:
-        # rank scores
-        chdir_rank = rank(chdir_res["scores"])
-        nrmse_rank = rank(nrmse_res["scores"])
+    sub_df["overall_rank"] = rank_submissions(
+        sub_df, ["nrmse_rank", "spearman_rank"])
 
-        # add ranks to valid scores
-        # assume valid sub should have both valid 1st and 2rd scores
-        lb_df = df.iloc[chdir_res["loc"]]
-        lb_df["chdir_rank"] = chdir_rank
-        lb_df["nrmse_rank"] = nrmse_rank
-
-        # delete all rows for leaderboard table
-        lb_table = syn.tableQuery(f"select * from {lb_id}")
-        syn.delete(lb_table)
-
-        # upload new results and ranks to leaderboard table
-        cols = [col for col in lb_table.asDataFrame().columns]
-        # TODO: find a better way to update table
-        lb_df[cols].to_csv("tmp.csv", index=False)
-        table = Table(lb_id, "tmp.csv")
-        table = syn.store(table)
+    annotate_ranks(syn, sub_df)
 
 
 if __name__ == "__main__":
