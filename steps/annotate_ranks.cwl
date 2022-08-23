@@ -6,26 +6,24 @@ cwlVersion: v1.0
 class: CommandLineTool
 baseCommand: python3
 
+hints:
+  DockerRequirement:
+    dockerPull: docker.synapse.org/syn26720921/scoring:v1
+
 inputs:
-  - id: annotate_ranks_script
-    type: File
   - id: synapse_config
     type: File
-  - id: submission_view_synapseid
+  - id: submission_view_id
     type: string
 
 arguments:
-  - valueFrom: $(inputs.annotate_ranks_script.path)
   - valueFrom: $(inputs.synapse_config.path)
     prefix: -c
-  - valueFrom: $(inputs.submission_view_synapseid)
+  - valueFrom: $(inputs.submission_view_id)
     prefix: -s
 
 requirements:
   - class: InlineJavascriptRequirement
-  - class: InitialWorkDirRequirement
-    listing:
-      - $(inputs.annotate_ranks_script)
 
 outputs:
   - id: finished

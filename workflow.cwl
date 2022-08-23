@@ -356,10 +356,6 @@ steps:
     in:
       - id: synapse_config
         source: "#synapseConfig"
-      - id: submission_view_synapseid
+      - id: submission_view_id
         valueFrom: "syn27059976"
-      - id: annotate_ranks_script
-        default:
-          class: File
-          location: "scripts/annotate_ranks.py"
     out: [finished]
