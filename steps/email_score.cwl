@@ -66,11 +66,9 @@ requirements:
           if annots["submission_status"] == "SCORED":
               csv_id = annots["submission_scores"]
               # hide annotations for email
-              breakdowns = list(filter(lambda x: 
-                                       x.startswith(("primary_bks", "secondary_bks")), 
-                                       list(annots.keys())))
-              args.private_annotations.extend(breakdowns)
-              args.private_annotations.extend(["submission_scores", "submission_status"])
+              del_annots = ["submission_scores", "submission_status",
+                            "primary_bks", "secondary_bks"]
+              args.private_annotations.extend(del_annots)
               for annot in args.private_annotations:
                 del annots[annot]
               # write emails
