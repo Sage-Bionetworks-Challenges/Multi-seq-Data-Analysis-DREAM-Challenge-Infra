@@ -354,6 +354,6 @@ steps:
         source: "#synapseConfig"
       - id: results
         source: "#update_score/new_results"
-      - id: private_annotations
-        default: []
+      # - id: private_annotations
+      #   default: []
     out: []
