@@ -354,7 +354,6 @@ steps:
         source: "#synapseConfig"
       - id: results
         source: "#update_score/new_results"
-      # OPTIONAL: add annotations to be withheld from participants to `[]`
-      # - id: private_annotations
-      #   default: []
+      - id: private_annotations
+        default: []
     out: []

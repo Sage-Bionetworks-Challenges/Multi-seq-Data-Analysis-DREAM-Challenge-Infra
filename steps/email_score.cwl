@@ -65,13 +65,16 @@ requirements:
             raise Exception("score.cwl must return submission_status as a json key")
           if annots["submission_status"] == "SCORED":
               csv_id = annots["submission_scores"]
-              del annots["submission_scores"]
-              del annots["submission_status"]
-              del annots["primary_bks"]
-              del annots["secondary_bks"]
-              subject = "Submission to '%s' scored!" % evaluation.name
+              # hide annotations for email
+              breakdowns = list(filter(lambda x: 
+                                       x.startswith(("primary_bks", "secondary_bks")), 
+                                       list(annots.keys())))
+              args.private_annotations.extend(breakdowns)
+              args.private_annotations.extend(["submission_scores", "submission_status"])
               for annot in args.private_annotations:
                 del annots[annot]
+              # write emails
+              subject = "Submission to '%s' scored!" % evaluation.name
               if len(annots) == 0:
                   message = "Your submission has been scored. Results will be announced at a later time."
               else:
