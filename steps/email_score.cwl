@@ -72,7 +72,7 @@ requirements:
               args.private_annotations.extend(del_annots)
               args.private_annotations.extend(["submission_scores", "submission_status"])
               for annot in args.private_annotations:
-                del annots[annot]
+                  del annots[annot]
               # write emails
               subject = "Submission to '%s' scored!" % evaluation.name
               if len(annots) == 0:

@@ -72,15 +72,13 @@ def add_ranks(sub_df, bks_cols):
         # ignore and remove empty rows
         sub_df = sub_df[sub_df[e].map(lambda x: len(x)) > 0]
 
-        # calculate ranks across test cases
-        sub_df["primary_rank"] = rank_testcases(sub_df['primary_bks'])
-        sub_df["secondary_rank"] = rank_testcases(
-            sub_df["secondary_bks"], ascending=False)
-
-        # rank based on the ranks of two metrics
-        sub_df["overall_rank"] = rank_submissions(
-            sub_df, ["primary_rank", "secondary_rank"])
-
+    # calculate ranks across test cases
+    sub_df["primary_rank"] = rank_testcases(sub_df['primary_bks'])
+    sub_df["secondary_rank"] = rank_testcases(
+        sub_df["secondary_bks"], ascending=False)
+    # rank based on the ranks of two metrics
+    sub_df["overall_rank"] = rank_submissions(
+        sub_df, ["primary_rank", "secondary_rank"])
     return sub_df
 
 
@@ -105,12 +103,12 @@ def main():
 
     for task, syn_id in SUBMISSION_VIEWS.items():
         # get submissions
-        df = query_submissions(syn_id)
+        df = query_submissions(syn, syn_id)
         # add ranks to submission table
         bks_cols = ["primary_bks", "secondary_bks"]
-        ranked_df = add_ranks(syn, df, bks_cols)
+        ranked_df = add_ranks(df, bks_cols)
         annotate_submissions_with_ranks(syn, ranked_df)
-        print(f"Annotating {task} submissions DONE ✓")
+        print(f"Annotating {task} submissions with ranks DONE ✓")
 
 
 if __name__ == "__main__":
