@@ -113,7 +113,7 @@ def main(syn, args):
     # Assign different memory limit for different questions
     # allow three submissions at a time
     if args.question is "1":
-        docker_mem = "75g"
+        docker_mem = "60g"
     else:
         docker_mem = "5g"
 
