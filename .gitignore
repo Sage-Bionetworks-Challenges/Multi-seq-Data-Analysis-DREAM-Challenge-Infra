@@ -1,2 +1,6 @@
 **/*.csv
 **/.DS_Store
+**/*.rds
+**/*.bed
+**/*.bam
+**/*.narrowPeak

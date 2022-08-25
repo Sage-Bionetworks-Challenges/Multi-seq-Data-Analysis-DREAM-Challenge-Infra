@@ -336,15 +336,6 @@ steps:
         source: "#annotate_validation_with_output/finished"
     out: [finished]
 
-  annotate_submission_with_ranks:
-    run: steps/annotate_ranks.cwl
-    in:
-      - id: synapse_config
-        source: "#synapseConfig"
-      - id: submission_view_id
-        valueFrom: "syn27059976"
-    out: [finished]
-
   email_score:
     run: steps/email_score.cwl
     in:
