@@ -152,7 +152,8 @@ def main(syn, args):
                                               volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
-                                              mem_limit=docker_mem, stderr=True)
+                                              mem_limit=docker_mem,
+                                              stderr=True)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             errors = str(err) + "\n"

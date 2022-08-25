@@ -8,7 +8,7 @@ baseCommand: Rscript
 
 hints:
   DockerRequirement:
-    dockerPull: docker.synapse.org/syn26720921/scoring:v1
+    dockerPull: docker.synapse.org/syn26720921/evaluation:v1
 
 inputs:
   - id: goldstandard_file
