@@ -8,7 +8,7 @@ baseCommand: [python3, /annotate_ranks.py]
 
 hints:
   DockerRequirement:
-    dockerPull: docker.synapse.org/syn26720921/scoring:v1
+    dockerPull: docker.synapse.org/syn26720921/evaluation:v1
 
 inputs:
   - id: synapse_config
