@@ -111,10 +111,11 @@ def main(syn, args):
     output_dir = os.getcwd()
 
     # Assign different memory limit for different questions
+    # allow three submissions at a time
     if args.question is "1":
-        docker_mem = "100g"
+        docker_mem = "75g"
     else:
-        docker_mem = "6g"  # double check the mem usage
+        docker_mem = "5g"
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
@@ -147,7 +148,8 @@ def main(syn, args):
         print("running container")
         try:
             container = client.containers.run(docker_image,
-                                              detach=True, volumes=volumes,
+                                              detach=True,
+                                              volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
                                               mem_limit=docker_mem, stderr=True)

@@ -32,7 +32,7 @@ expression: |
 
   ${
     if (inputs.queue == "9615023" || inputs.queue == "9614943") {
-      // sc1-ds1
+      // sc1
       var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq"
       var gs_synId = "syn34612394"
       var question = "1"
@@ -40,7 +40,7 @@ expression: |
     } else if (inputs.queue == "9615024" || inputs.queue == "9615021") {
       // sc2
       var input_dir = "/home/ec2-user/challenge-data/downsampled/scATACseq"
-      var gs_synId = "syn123" // TBD
+      var gs_synId = "syn35294386"
       var question = "2"
 
     } else {
