@@ -112,10 +112,8 @@ def main(syn, args):
 
     # Assign different memory limit for different questions
     # allow three submissions at a time
-    if args.question is "1":
-        docker_mem = "60g"
-    else:
-        docker_mem = "5g"
+    docker_mem = "60g" if args.question == "1" else "5g"
+    docker_cpu = 24000000000 if args.question == "1" else 2000000000
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
@@ -153,6 +151,7 @@ def main(syn, args):
                                               name=args.submissionid,
                                               network_disabled=True,
                                               mem_limit=docker_mem,
+                                              nano_cpus=docker_cpu,
                                               stderr=True)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
