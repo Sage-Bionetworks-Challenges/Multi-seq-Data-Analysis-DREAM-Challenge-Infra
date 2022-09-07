@@ -59,6 +59,15 @@ def remove_docker_image(image_name):
         print("Unable to remove image")
 
 
+def prune_docker_volumes():
+    """Remove unused docker volumes"""
+    client = docker.from_env()
+    try:
+        client.volumes.prune()
+    except Exception:
+        print("Unable to clean volumes")
+
+
 def tar(directory, tar_filename):
     """Tar all files in a directory
 
@@ -112,8 +121,8 @@ def main(syn, args):
 
     # Assign different memory limit for different questions
     # allow three submissions at a time
-    docker_mem = "60g" if args.question == "1" else "5g"
-    docker_cpu = 24000000000 if args.question == "1" else 2000000000
+    docker_mem = "160g" if args.question == "1" else "5g"
+    docker_cpu = 20000000000 if args.question == "1" else 2000000000
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
@@ -188,8 +197,8 @@ def main(syn, args):
     print("finished training")
     # Try to remove the image
     remove_docker_image(docker_image)
-    # Clean up unused volumes
-    # client.volumes.prune()
+    # Try to remove unused volumes for failed submission
+    prune_docker_volumes()
 
     output_folder = os.listdir(output_dir)
     if not output_folder:
@@ -198,9 +207,6 @@ def main(syn, args):
     elif "predictions.tar.gz" not in output_folder:
         raise Exception("No 'predictions.tar.gz' file written to /output, "
                         "please check inference docker")
-    # tar all input files
-    # "exceed volume mem" error will raise if trying to copy too many input files to other steps
-    # tar("input_data/", 'input_file.tar.gz')
 
 
 if __name__ == '__main__':
