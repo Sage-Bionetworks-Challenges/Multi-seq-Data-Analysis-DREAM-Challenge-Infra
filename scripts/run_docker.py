@@ -121,7 +121,7 @@ def main(syn, args):
 
     # Assign different memory limit for different questions
     # allow three submissions at a time
-    docker_mem = "160g" if args.question == "1" else "5g"
+    docker_mem = "140g" if args.question == "1" else "5g"
     docker_cpu = 20000000000 if args.question == "1" else 2000000000
 
     print("mounting volumes")
