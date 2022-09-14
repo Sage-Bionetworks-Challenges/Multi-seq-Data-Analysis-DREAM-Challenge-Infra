@@ -99,7 +99,8 @@ def main(syn, args):
     # The new toil version doesn't seem to pull the docker config file from
     # .docker/config.json...
     # client = docker.from_env()
-    client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+    client = docker.DockerClient(
+        base_url='unix://var/run/docker.sock', timeout=300)
 
     config = synapseclient.Synapse().getConfigFile(
         configPath=args.synapse_config

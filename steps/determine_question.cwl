@@ -8,7 +8,7 @@
 # 1. 'let'
 # 2. big fat arrow
 # 3. template literal syntax
-# try to avoid using these above
+# try to avoid using funcs above
 
 cwlVersion: v1.0
 class: ExpressionTool
@@ -47,8 +47,9 @@ expression: |
       throw 'invalid queue';
     }
 
-    return {question: question, 
-            input_dir: input_dir,
-            gs_synId: gs_synId
-            };
+    return {
+      question: question, 
+      input_dir: input_dir,
+      gs_synId: gs_synId
+    };
   }
