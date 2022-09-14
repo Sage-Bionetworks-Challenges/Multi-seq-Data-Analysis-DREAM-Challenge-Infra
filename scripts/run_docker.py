@@ -59,6 +59,15 @@ def remove_docker_image(image_name):
         print("Unable to remove image")
 
 
+def prune_docker_volumes():
+    """Remove unused docker volumes"""
+    client = docker.from_env()
+    try:
+        client.volumes.prune()
+    except Exception:
+        print("Unable to clean volumes")
+
+
 def tar(directory, tar_filename):
     """Tar all files in a directory
 
@@ -188,6 +197,8 @@ def main(syn, args):
     print("finished training")
     # Try to remove the image
     remove_docker_image(docker_image)
+    # Try to remove unused volumes for failed submission
+    prune_docker_volumes()
 
     output_folder = os.listdir(output_dir)
     if not output_folder:
