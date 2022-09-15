@@ -79,9 +79,9 @@ requirements:
                   message = "Your submission has been scored. Results will be announced at a later time."
               else:
                   message = ["Hello %s,\n\n" % name,
-                             "Your submission (id: %s) has been scored and below are the metric averages:\n\n" % sub.id,
+                             "Your submission (id: %s) has been scored and below are the metric's averages:\n\n" % sub.id,
                              "\n".join([i + " : " + str(annots[i]) for i in annots]),
-                             "\nTo look at each test case's score, go here: https://www.synapse.org/#!Synapse:%s" % csv_id,
+                             "\nTo look at each test case's score, please go here: https://www.synapse.org/#!Synapse:%s" % csv_id,
                              "\n\nSincerely,\nChallenge Administrator"]
               syn.sendMessage(
                   userIds=[participantid],
