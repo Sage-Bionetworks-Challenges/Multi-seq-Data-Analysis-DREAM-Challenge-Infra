@@ -113,9 +113,6 @@ def main(syn, args):
 
     print(getpass.getuser())
 
-    # Try to remove unused toil's volumes for failed submission
-    prune_docker_volumes()
-
     # Add docker.config file
     docker_image = args.docker_repository + "@" + args.docker_digest
 

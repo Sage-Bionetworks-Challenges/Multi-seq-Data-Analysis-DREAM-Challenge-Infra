@@ -4,3 +4,5 @@
 **/*.bed
 **/*.bam
 **/*.narrowPeak
+*.Rhistory
+*.RData
