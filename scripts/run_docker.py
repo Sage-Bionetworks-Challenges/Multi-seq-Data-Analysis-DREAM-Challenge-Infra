@@ -113,6 +113,9 @@ def main(syn, args):
 
     print(getpass.getuser())
 
+    # Try to remove unused toil's volumes for failed submission
+    prune_docker_volumes()
+
     # Add docker.config file
     docker_image = args.docker_repository + "@" + args.docker_digest
 
@@ -187,6 +190,7 @@ def main(syn, args):
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         # Remove container and image after being done
+        print(container)
         container.remove()
 
     statinfo = os.stat(log_filename)
@@ -198,8 +202,6 @@ def main(syn, args):
     print("finished training")
     # Try to remove the image
     remove_docker_image(docker_image)
-    # Try to remove unused volumes for failed submission
-    prune_docker_volumes()
 
     output_folder = os.listdir(output_dir)
     if not output_folder:
