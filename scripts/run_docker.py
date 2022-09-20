@@ -96,12 +96,16 @@ def determine_volume_dir(input_dirs: list):
     client = docker.from_env()
     containers = client.containers.list(
         filters={"status": "running", "name": "\d{7}"})
-    mounted_dirs = [c.labels["mounted_dir"] for c in containers]
-    available_dirs = list(set(input_dirs) - set(mounted_dirs))
-    if available_dirs is Empty:
-        return []
+    if containers:
+        volume_dir = input_dirs[0]
     else:
-        return available_dirs[0]
+        try:
+            mounted_dirs = [c.labels["mounted_dir"] for c in containers]
+            available_dirs = list(set(input_dirs) - set(mounted_dirs))
+            volume_dir = available_dirs[0]
+        except Exception:
+            print("Unable to find available input directories")
+    return volume_dir
 
 
 def main(syn, args):
