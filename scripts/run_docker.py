@@ -113,7 +113,7 @@ def main(syn, args):
     # .docker/config.json...
     # client = docker.from_env()
     client = docker.DockerClient(
-        base_url='unix://var/run/docker.sock', timeout=300)
+        base_url='unix://var/run/docker.sock')
 
     config = synapseclient.Synapse().getConfigFile(
         configPath=args.synapse_config
