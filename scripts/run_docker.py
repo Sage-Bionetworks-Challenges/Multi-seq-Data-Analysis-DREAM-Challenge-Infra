@@ -3,15 +3,12 @@ from __future__ import print_function
 import argparse
 import getpass
 import os
-from queue import Empty
 import tarfile
 import time
 
 import docker
 import subprocess
 import synapseclient
-
-from asyncio.timeouts import timeout
 
 
 def create_log_file(log_filename, log_text=None):
