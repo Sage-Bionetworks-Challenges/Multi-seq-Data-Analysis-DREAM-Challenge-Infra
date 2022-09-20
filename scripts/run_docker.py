@@ -11,6 +11,8 @@ import docker
 import subprocess
 import synapseclient
 
+from asyncio.timeouts import timeout
+
 
 def create_log_file(log_filename, log_text=None):
     """Create log file"""
@@ -117,7 +119,7 @@ def main(syn, args):
     # .docker/config.json...
     # client = docker.from_env()
     client = docker.DockerClient(
-        base_url='unix://var/run/docker.sock')
+        base_url='unix://var/run/docker.sock', timeout=600)
 
     config = synapseclient.Synapse().getConfigFile(
         configPath=args.synapse_config
