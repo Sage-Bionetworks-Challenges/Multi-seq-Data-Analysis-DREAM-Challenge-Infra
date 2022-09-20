@@ -116,7 +116,7 @@ def main(syn, args):
     # .docker/config.json...
     # client = docker.from_env()
     client = docker.DockerClient(
-        base_url='unix://var/run/docker.sock', timeout=600)
+        base_url='unix://var/run/docker.sock')
 
     config = synapseclient.Synapse().getConfigFile(
         configPath=args.synapse_config
@@ -161,13 +161,13 @@ def main(syn, args):
     print("checking for containers")
     container = None
     errors = None
-    for cont in client.containers.list(all=True):
-        if args.submissionid in cont.name:
-            # Must remove container if the container wasn't killed properly
-            if cont.status == "exited":
-                cont.remove()
-            else:
-                container = cont
+    # for cont in client.containers.list(all=True):
+    #     if args.submissionid in cont.name:
+    #         # Must remove container if the container wasn't killed properly
+    #         if cont.status == "exited":
+    #             cont.remove()
+    #         else:
+    #             container = cont
     # If the container doesn't exist, make sure to run the docker image
     if container is None:
         # Run as detached, logs will stream below
@@ -195,14 +195,18 @@ def main(syn, args):
 
     # If the container doesn't exist, there are no logs to write out and
     # no container to remove
-    print(container)
+    print(container.name)
     if container is not None:
         print(1)
         # Check if container is still running
         while container in client.containers.list():
+            print(1.2)
             log_text = container.logs()
+            print(1.3)
             create_log_file(log_filename, log_text=log_text)
+            print(1.4)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
+            print(1.5)
             time.sleep(60)
         # Must run again to make sure all the logs are captured
         print(2)
