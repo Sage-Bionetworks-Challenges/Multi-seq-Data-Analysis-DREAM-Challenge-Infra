@@ -3,6 +3,7 @@ from __future__ import print_function
 import argparse
 import getpass
 import os
+from sys import stdout
 import tarfile
 import time
 
@@ -91,22 +92,6 @@ def untar(directory, tar_filename):
         tar_o.extractall(path=directory)
 
 
-# def determine_volume_dir(input_dirs: list):
-#     client = docker.from_env()
-#     containers = client.containers.list(
-#         filters={"status": "running", "name": "\d{7}"})
-#     if containers:
-#         volume_dir = input_dirs[0]
-#     else:
-#         try:
-#             mounted_dirs = [c.labels["mounted_dir"] for c in containers]
-#             available_dirs = list(set(input_dirs) - set(mounted_dirs))
-#             volume_dir = available_dirs[0]
-#         except Exception:
-#             print("Unable to find available input directories")
-#     return volume_dir
-
-
 def main(syn, args):
     """Run docker model"""
     if args.status == "INVALID":
@@ -133,8 +118,6 @@ def main(syn, args):
     docker_image = args.docker_repository + "@" + args.docker_digest
 
     # These are the volumes that you want to mount onto your docker container
-    # input_dir = determine_volume_dir(
-    #     [f'{args.input_dir}{i}' for i in range(1, 3)])
     input_dir = args.input_dir
     output_dir = os.getcwd()
 
@@ -161,13 +144,13 @@ def main(syn, args):
     print("checking for containers")
     container = None
     errors = None
-    # for cont in client.containers.list(all=True):
-    #     if args.submissionid in cont.name:
-    #         # Must remove container if the container wasn't killed properly
-    #         if cont.status == "exited":
-    #             cont.remove()
-    #         else:
-    #             container = cont
+    for cont in client.containers.list(all=True):
+        if args.submissionid in cont.name:
+            # Must remove container if the container wasn't killed properly
+            if cont.status == "exited":
+                cont.remove()
+            else:
+                container = cont
     # If the container doesn't exist, make sure to run the docker image
     if container is None:
         # Run as detached, logs will stream below
@@ -175,13 +158,11 @@ def main(syn, args):
         try:
             container = client.containers.run(docker_image,
                                               detach=True,
-                                              #   labels={
-                                              #       "mounted_dir": input_dir},
                                               volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
                                               mem_limit=docker_mem,
-                                              #   nano_cpus=docker_cpu,
+                                              nano_cpus=docker_cpu,
                                               stderr=True)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
@@ -197,20 +178,15 @@ def main(syn, args):
     # no container to remove
     print(container.name)
     if container is not None:
-        print(1)
         # Check if container is still running
-        # while container in client.containers.list():
-        #     print(1.2)
-        #     log_text = container.logs()
-        #     print(1.3)
-        #     create_log_file(log_filename, log_text=log_text)
-        #     print(1.4)
-        #     store_log_file(syn, log_filename, args.parentid, store=args.store)
-        #     print(1.5)
-        #     time.sleep(60)
+        while container in client.containers.list():
+            log_text = container.logs(stdout=False)
+            create_log_file(log_filename, log_text=log_text)
+            store_log_file(syn, log_filename, args.parentid, store=args.store)
+            time.sleep(60)
         # Must run again to make sure all the logs are captured
         print(2)
-        log_text = container.logs()
+        log_text = container.logs(stdout=False)
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         # Remove container and image after being done
