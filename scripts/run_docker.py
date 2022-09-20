@@ -3,6 +3,7 @@ from __future__ import print_function
 import argparse
 import getpass
 import os
+from queue import Empty
 import tarfile
 import time
 
@@ -91,6 +92,18 @@ def untar(directory, tar_filename):
         tar_o.extractall(path=directory)
 
 
+def determine_volume_dir(input_dirs: list):
+    client = docker.from_env()
+    containers = client.containers.list(
+        filters={"status": "running", "name": "\d{7}"})
+    mounted_dirs = [c.labels["mounted_dir"] for c in containers]
+    available_dirs = list(set(input_dirs) - set(mounted_dirs))
+    if available_dirs is Empty:
+        return []
+    else:
+        return available_dirs[0]
+
+
 def main(syn, args):
     """Run docker model"""
     if args.status == "INVALID":
@@ -117,7 +130,8 @@ def main(syn, args):
     docker_image = args.docker_repository + "@" + args.docker_digest
 
     # These are the volumes that you want to mount onto your docker container
-    input_dir = args.input_dir
+    input_dir = determine_volume_dir(
+        [f'{args.input_dir}{i}' for i in range(1, 3)])
     output_dir = os.getcwd()
 
     # Assign different memory limit for different questions
@@ -157,6 +171,8 @@ def main(syn, args):
         try:
             container = client.containers.run(docker_image,
                                               detach=True,
+                                              labels={
+                                                  "mounted_dir": input_dir},
                                               volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
