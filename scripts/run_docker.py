@@ -199,15 +199,15 @@ def main(syn, args):
     if container is not None:
         print(1)
         # Check if container is still running
-        while container in client.containers.list():
-            print(1.2)
-            log_text = container.logs()
-            print(1.3)
-            create_log_file(log_filename, log_text=log_text)
-            print(1.4)
-            store_log_file(syn, log_filename, args.parentid, store=args.store)
-            print(1.5)
-            time.sleep(60)
+        # while container in client.containers.list():
+        #     print(1.2)
+        #     log_text = container.logs()
+        #     print(1.3)
+        #     create_log_file(log_filename, log_text=log_text)
+        #     print(1.4)
+        #     store_log_file(syn, log_filename, args.parentid, store=args.store)
+        #     print(1.5)
+        #     time.sleep(60)
         # Must run again to make sure all the logs are captured
         print(2)
         log_text = container.logs()
