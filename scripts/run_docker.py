@@ -3,6 +3,7 @@ from __future__ import print_function
 import argparse
 import getpass
 import os
+from sys import stdout
 import tarfile
 import time
 
@@ -100,7 +101,7 @@ def main(syn, args):
     # .docker/config.json...
     # client = docker.from_env()
     client = docker.DockerClient(
-        base_url='unix://var/run/docker.sock', timeout=120)
+        base_url='unix://var/run/docker.sock')
 
     config = synapseclient.Synapse().getConfigFile(
         configPath=args.synapse_config
@@ -175,19 +176,22 @@ def main(syn, args):
 
     # If the container doesn't exist, there are no logs to write out and
     # no container to remove
+    print(container.name)
     if container is not None:
         # Check if container is still running
         while container in client.containers.list():
-            log_text = container.logs()
+            log_text = container.logs(stdout=False)
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
             time.sleep(60)
         # Must run again to make sure all the logs are captured
-        log_text = container.logs()
+        print(2)
+        log_text = container.logs(stdout=False)
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         # Remove container and image after being done
         container.remove()
+        print(3)
 
     statinfo = os.stat(log_filename)
 
@@ -198,8 +202,6 @@ def main(syn, args):
     print("finished training")
     # Try to remove the image
     remove_docker_image(docker_image)
-    # Try to remove unused volumes for failed submission
-    prune_docker_volumes()
 
     output_folder = os.listdir(output_dir)
     if not output_folder:
