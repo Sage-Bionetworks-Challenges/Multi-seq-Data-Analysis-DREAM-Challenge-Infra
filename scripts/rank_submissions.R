@@ -24,6 +24,7 @@ for (task_n in seq_along(submission_views)) {
   pred_filenames <- paste0(basenames, "_imputed.csv")
   
   # query the submission view
+  message("Querying table - ", task_name, " ...")
   query = sprintf("SELECT * FROM %s WHERE submission_status = 'SCORED' AND status = 'ACCEPTED'", task_sub_id)
   sub_df <- syn$tableQuery(query)$asDataFrame() %>%
     filter(!is.na(submission_scores)) %>%
@@ -32,6 +33,7 @@ for (task_n in seq_along(submission_views)) {
   
   # read all valid scores results
   all_scores <- lapply(1:nrow(sub_df), function(i) {
+    message("Getting scores from ", sub_df$id[i], " ...")
     syn_id <- sub_df$submission_scores[i]
     score_path <- syn$get(syn_id)$path
     score_df <- fread(score_path)
@@ -41,6 +43,7 @@ for (task_n in seq_along(submission_views)) {
     return(score_df)
   }) %>% bind_rows()
   
+  message("Ranking scores ...")
   # rank the scores
   rank_df <- 
     all_scores %>% 
@@ -57,7 +60,6 @@ for (task_n in seq_along(submission_views)) {
     mutate(overall_rank = row_number())
   
   status <- lapply(1:nrow(rank_df), function(j) {
-    
     tryCatch({
       # annotate each submission with its ranks
       annots <- list(primary_rank = as.double(rank_df$avg_primary_rank[j]),
