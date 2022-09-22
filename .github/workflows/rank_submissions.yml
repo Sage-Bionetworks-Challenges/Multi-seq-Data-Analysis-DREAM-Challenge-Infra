@@ -20,7 +20,6 @@ jobs:
 
       - name: Annotate submission with ranks
         run: |
-          conda create -n challenge python=3.8
           pip install challengeutils
           Rscript scripts/rank_submissions.R
         env:
