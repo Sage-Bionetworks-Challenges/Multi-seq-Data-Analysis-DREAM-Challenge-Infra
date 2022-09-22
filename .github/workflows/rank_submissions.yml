@@ -1,0 +1,27 @@
+name: rank_submissions
+
+on:
+  # schedule:
+  #   - cron: "0 * * * *"
+  workflow_dispatch:
+
+jobs:
+  rank:
+    runs-on: ubuntu-latest
+    container: sagebionetworks/synapser
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.8"
+
+      - name: Annotate submission with ranks
+        run: |
+          conda create -n challenge python=3.8
+          pip install challengeutils
+          Rscript scripts/rank_submissions.R
+        env:
+          SYNAPSE_AUTH_TOKEN: ${{ secrets.SYNAPSE_PAT }}

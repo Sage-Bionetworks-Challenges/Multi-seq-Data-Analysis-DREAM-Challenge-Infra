@@ -138,21 +138,18 @@ steps:
         source: "#email_docker_validation/finished"
     out: [finished]
 
-  utils:
-    run: utils.cwl
+  determine_question:
+    run: steps/determine_question.cwl
     in:
       - id: queue
         source: "#get_docker_submission/evaluation_id"
     out:
       - id: question
-      - id: condition
-      - id: proportion
-      - id: file_prefix
       - id: input_dir
       - id: gs_synId
   
   run_docker:
-    run: run_docker.cwl
+    run: steps/run_docker.cwl
     in:
       - id: docker_repository
         source: "#get_docker_submission/docker_repository"
@@ -170,19 +167,17 @@ steps:
         source: "#submitterUploadSynId"
       - id: synapse_config
         source: "#synapseConfig"
-      # OPTIONAL: set `default` to `false` if log file should not be uploaded to Synapse
       - id: store
         default: true
       - id: question
-        source: "#utils/question"
+        source: "#determine_question/question"
       - id: input_dir
-        source: "#utils/input_dir"
+        source: "#determine_question/input_dir"
       - id: docker_script
         default:
           class: File
-          location: "run_docker.py"
+          location: "scripts/run_docker.py"
     out:
-      - id: input_files
       - id: submission_file
 
   upload_results:
@@ -224,34 +219,27 @@ steps:
     run: https://raw.githubusercontent.com/Sage-Bionetworks-Workflows/cwl-tool-synapseclient/v1.4/cwl/synapse-get-tool.cwl
     in:
       - id: synapseid
-        source: "#utils/gs_synId"
+        source: "#determine_question/gs_synId"
       - id: synapse_config
         source: "#synapseConfig"
     out:
       - id: filepath
 
   validate:
-    run: validate.cwl
+    run: steps/validate.cwl
     in:
       - id: submission_file
         source: "#run_docker/submission_file"
+      - id: goldstandard_file
+        source: "#download_goldstandard/filepath"
       - id: entity_type
         source: "#get_docker_submission/entity_type"
-      - id: input_files
-        source: "#run_docker/input_files"
-      - id: condition
-        source: "#utils/condition"
-      - id: proportion
-        source: "#utils/proportion"
-      - id: file_prefix
-        source: "#utils/file_prefix"
       - id: question
-        source: "#utils/question"
+        source: "#determine_question/question"
     out:
       - id: results
       - id: status
       - id: invalid_reasons
-      - id: submission_files
   
   email_validation:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/validate_email.cwl
@@ -298,38 +286,37 @@ steps:
     out: [finished]
 
   score:
-    run: score.cwl
+    run: steps/score.cwl
     in:
-      - id: submission_files
-        source: "#validate/submission_files"
-      - id: goldstandard
+      - id: submission_file
+        source: "#run_docker/submission_file"
+      - id: goldstandard_file
         source: "#download_goldstandard/filepath"
-      - id: input_files
-        source: "#run_docker/input_files"
-      - id: condition
-        source: "#utils/condition"
-      - id: proportion
-        source: "#utils/proportion"
-      - id: file_prefix
-        source: "#utils/file_prefix"
+      - id: question
+        source: "#determine_question/question"
       - id: check_validation_finished 
         source: "#check_status/finished"
     out:
       - id: results
-      
-  email_score:
-    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/score_email.cwl
+      - id: all_scores
+
+  update_score:
+    run: steps/update_score.cwl
     in:
-      - id: submissionid
-        source: "#submissionId"
       - id: synapse_config
         source: "#synapseConfig"
+      - id: parent_id
+        source: "#submitterUploadSynId"  
       - id: results
         source: "#score/results"
-      # OPTIONAL: add annotations to be withheld from participants to `[]`
-      # - id: private_annotations
-      #   default: []
-    out: []
+      - id: all_scores
+        source: "#score/all_scores"
+      - id: update_score_script
+        default:
+          class: File
+          location: "scripts/update_score.py"
+    out: 
+      - id: new_results
 
   annotate_submission_with_output:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/annotate_submission.cwl
@@ -337,7 +324,7 @@ steps:
       - id: submissionid
         source: "#submissionId"
       - id: annotation_values
-        source: "#score/results"
+        source: "#update_score/new_results"
       - id: to_public
         default: true
       - id: force
@@ -347,3 +334,16 @@ steps:
       - id: previous_annotation_finished
         source: "#annotate_validation_with_output/finished"
     out: [finished]
+
+  email_score:
+    run: steps/email_score.cwl
+    in:
+      - id: submissionid
+        source: "#submissionId"
+      - id: synapse_config
+        source: "#synapseConfig"
+      - id: results
+        source: "#update_score/new_results"
+      - id: private_annotations
+        default: ["submission_scores", "submission_status"]
+    out: []
