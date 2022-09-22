@@ -64,7 +64,7 @@ for (task_n in seq_along(submission_views)) {
       arrange(avg_primary_rank, avg_secondary_rank) %>%
       mutate(overall_rank = row_number())
     
-    for (j in 1:nrow(rank_df) { # use for loop to prevent from request error
+    for (j in 1:nrow(rank_df)) { # use for loop to prevent from request error
       tryCatch({
         # annotate each submission with its ranks
         annots <- list(primary_rank = as.double(rank_df$avg_primary_rank[j]),
