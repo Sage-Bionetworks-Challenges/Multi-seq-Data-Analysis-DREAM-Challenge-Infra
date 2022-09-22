@@ -20,13 +20,16 @@ jobs:
           python-version: "3.10"
       - uses: r-lib/actions/setup-r@v2
 
-      - name: Annotate submission with ranks
+      - name: Install dependencies
         run: |
           pip install synapseclient challengeutils 
           Rscript -e '
             options(repos = c(REPO_NAME = "https://packagemanager.rstudio.com/all/__linux__/bionic/latest", getOption("repos")));
             install.packages(c("dplyr", "reticulate", "data.table"))
           '
+
+      - name: Annotate submission with ranks
+        run: |
           Rscript scripts/rank_submissions.R
         env:
-          SYNAPSE_AUTH_TOKEN: ${{ secrets.SYNAPSE_PAT }}
+          SYNAPSE_AUTH_TOKEN: ${{ secrets.SYNAPSE_AUTH_TOKEN }}
