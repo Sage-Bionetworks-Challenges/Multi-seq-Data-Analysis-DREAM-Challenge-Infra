@@ -8,7 +8,8 @@ on:
 jobs:
   rank:
     runs-on: ubuntu-latest
-    container: sagebionetworks/synapser
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - uses: actions/checkout@v3
