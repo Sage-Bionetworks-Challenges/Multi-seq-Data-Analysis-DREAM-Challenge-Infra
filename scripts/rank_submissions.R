@@ -64,12 +64,12 @@ for (task_n in seq_along(submission_views)) {
       arrange(avg_primary_rank, avg_secondary_rank) %>%
       mutate(overall_rank = row_number())
     
-    status <- lapply(1:nrow(rank_df), function(j) {
+    for (j in 1:nrow(rank_df) { # use for loop to prevent from request error
       tryCatch({
         # annotate each submission with its ranks
         annots <- list(primary_rank = as.double(rank_df$avg_primary_rank[j]),
-                      secondary_rank = as.double(rank_df$avg_secondary_rank[j]),
-                      overall_rank = as.integer(rank_df$overall_rank[j]))
+                       secondary_rank = as.double(rank_df$avg_secondary_rank[j]),
+                       overall_rank = as.integer(rank_df$overall_rank[j]))
         challengeutils$annotations$annotate_submission(syn, rank_df$id[j], annots)
         message("Annotating ", task_name, " submissions with ranks DONE \u2705")
       },
@@ -77,6 +77,6 @@ for (task_n in seq_along(submission_views)) {
         message("Annotating ", task_name, " submissions with ranks FAIL \u274C")
         stop(e$message)
       })
-    })
+    }
   }
 }
