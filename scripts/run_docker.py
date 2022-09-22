@@ -59,6 +59,15 @@ def remove_docker_image(image_name):
         print("Unable to remove image")
 
 
+def prune_docker_volumes():
+    """Remove unused docker volumes"""
+    client = docker.from_env()
+    try:
+        client.volumes.prune()
+    except Exception:
+        print("Unable to clean volumes")
+
+
 def tar(directory, tar_filename):
     """Tar all files in a directory
 
@@ -91,6 +100,7 @@ def main(syn, args):
     # .docker/config.json...
     # client = docker.from_env()
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
+
     config = synapseclient.Synapse().getConfigFile(
         configPath=args.synapse_config
     )
@@ -106,15 +116,13 @@ def main(syn, args):
     docker_image = args.docker_repository + "@" + args.docker_digest
 
     # These are the volumes that you want to mount onto your docker container
-    # TODO: assign different input_dir for subchallenge 2 & 3 + add real queueIds
     input_dir = args.input_dir
     output_dir = os.getcwd()
 
     # Assign different memory limit for different questions
-    if args.question == "1":
-        docker_mem = "30g"
-    else:
-        docker_mem = "6g"
+    # allow three submissions at a time
+    docker_mem = "160g" if args.question == "1" else "20g"
+    docker_cpu = 20000000000 if args.question == "1" else 10000000000
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
@@ -147,13 +155,14 @@ def main(syn, args):
         print("running container")
         try:
             container = client.containers.run(docker_image,
-                                              detach=True, volumes=volumes,
+                                              detach=True,
+                                              volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
-                                              mem_limit=docker_mem, stderr=True)
-            # copy all training files that will be used for scoring into input_data/
-            subprocess.check_call(
-                ["docker", "cp", args.submissionid + ":/data/.", "input_data/"])
+                                              mem_limit=docker_mem,
+                                              nano_cpus=docker_cpu,
+                                              stdout=False,  # only return errors
+                                              stderr=True)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             errors = str(err) + "\n"
@@ -197,9 +206,6 @@ def main(syn, args):
     elif "predictions.tar.gz" not in output_folder:
         raise Exception("No 'predictions.tar.gz' file written to /output, "
                         "please check inference docker")
-    # CWL has a limit of the array of files it can accept in a folder
-    # therefore creating a tarball is sometimes necessary
-    # tar(output_dir, 'outputs.tar.gz')
 
 
 if __name__ == '__main__':
@@ -213,7 +219,7 @@ if __name__ == '__main__':
     parser.add_argument("-q", "--question", required=True,
                         help="Challenge question")
     parser.add_argument("-i", "--input_dir", required=True,
-                        help="Input directory for downsampled data")
+                        help="Input directory of downsampled data")
     parser.add_argument("-c", "--synapse_config", required=True,
                         help="credentials file")
     parser.add_argument("--store", action='store_true',
