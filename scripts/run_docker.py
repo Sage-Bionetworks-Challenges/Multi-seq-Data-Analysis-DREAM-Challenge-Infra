@@ -59,6 +59,15 @@ def remove_docker_image(image_name):
         print("Unable to remove image")
 
 
+def prune_docker_volumes():
+    """Remove unused docker volumes"""
+    client = docker.from_env()
+    try:
+        client.volumes.prune()
+    except Exception:
+        print("Unable to clean volumes")
+
+
 def tar(directory, tar_filename):
     """Tar all files in a directory
 
@@ -111,10 +120,9 @@ def main(syn, args):
     output_dir = os.getcwd()
 
     # Assign different memory limit for different questions
-    if args.question is "1":
-        docker_mem = "100g"
-    else:
-        docker_mem = "6g"  # double check the mem usage
+    # allow three submissions at a time
+    docker_mem = "160g" if args.question == "1" else "20g"
+    docker_cpu = 20000000000 if args.question == "1" else 10000000000
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
@@ -152,6 +160,8 @@ def main(syn, args):
                                               name=args.submissionid,
                                               network_disabled=True,
                                               mem_limit=docker_mem,
+                                              nano_cpus=docker_cpu,
+                                              stdout=False,  # only return errors
                                               stderr=True)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
@@ -188,8 +198,6 @@ def main(syn, args):
     print("finished training")
     # Try to remove the image
     remove_docker_image(docker_image)
-    # Clean up unused volumes
-    # client.volumes.prune()
 
     output_folder = os.listdir(output_dir)
     if not output_folder:
@@ -198,9 +206,6 @@ def main(syn, args):
     elif "predictions.tar.gz" not in output_folder:
         raise Exception("No 'predictions.tar.gz' file written to /output, "
                         "please check inference docker")
-    # tar all input files
-    # "exceed volume mem" error will raise if trying to copy too many input files to other steps
-    # tar("input_data/", 'input_file.tar.gz')
 
 
 if __name__ == '__main__':

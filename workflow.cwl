@@ -167,7 +167,6 @@ steps:
         source: "#submitterUploadSynId"
       - id: synapse_config
         source: "#synapseConfig"
-      # OPTIONAL: set `default` to `false` if log file should not be uploaded to Synapse
       - id: store
         default: true
       - id: question
@@ -345,6 +344,6 @@ steps:
         source: "#synapseConfig"
       - id: results
         source: "#update_score/new_results"
-      # - id: private_annotations
-      #   default: []
+      - id: private_annotations
+        default: ["submission_scores", "submission_status"]
     out: []
