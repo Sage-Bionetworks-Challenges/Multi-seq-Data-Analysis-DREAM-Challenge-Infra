@@ -161,6 +161,7 @@ def main(syn, args):
                                               network_disabled=True,
                                               mem_limit=docker_mem,
                                               nano_cpus=docker_cpu,
+                                              stdout=False,  # only return errors
                                               stderr=True)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
@@ -177,12 +178,12 @@ def main(syn, args):
     if container is not None:
         # Check if container is still running
         while container in client.containers.list():
-            log_text = container.logs(stdout=False)
+            log_text = container.logs()
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
             time.sleep(60)
         # Must run again to make sure all the logs are captured
-        log_text = container.logs(stdout=False)
+        log_text = container.logs()
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         # Remove container and image after being done

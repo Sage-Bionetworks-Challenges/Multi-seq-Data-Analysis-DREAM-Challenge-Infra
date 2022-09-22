@@ -167,7 +167,6 @@ steps:
         source: "#submitterUploadSynId"
       - id: synapse_config
         source: "#synapseConfig"
-      # OPTIONAL: set `default` to `false` if log file should not be uploaded to Synapse
       - id: store
         default: true
       - id: question
