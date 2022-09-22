@@ -20,7 +20,7 @@ jobs:
 
       - name: Annotate submission with ranks
         run: |
-          pip install challengeutils
+          python3 -m pip install challengeutils
           Rscript scripts/rank_submissions.R
         env:
           SYNAPSE_AUTH_TOKEN: ${{ secrets.SYNAPSE_PAT }}
