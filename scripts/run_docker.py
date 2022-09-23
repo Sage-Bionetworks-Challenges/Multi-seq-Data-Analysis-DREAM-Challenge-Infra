@@ -25,7 +25,7 @@ def create_log_file(log_filename, log_text=None):
 def store_log_file(syn, log_filename, parentid, store=True):
     """Store log file"""
     statinfo = os.stat(log_filename)
-    if statinfo.st_size > 0 and statinfo.st_size/1000.0 <= 50:
+    if statinfo.st_size > 0:
         ent = synapseclient.File(log_filename, parent=parentid)
         if store:
             try:
