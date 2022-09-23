@@ -54,29 +54,30 @@ for (task_n in seq_along(submission_views)) {
       all_scores %>% 
       group_by(dataset) %>% 
       # rank each testcase score of one submission compared to all submissions
-      mutate(testcase_primary_rank=rank(primary_score), 
-            testcase_secondary_rank=rank(-secondary_score)) %>%
+      mutate(testcase_primary_rank = rank(primary_score), 
+             testcase_secondary_rank = rank(-secondary_score)) %>%
       group_by(id) %>%
       # get average scores of all testcases ranks in one submission
-      summarise(avg_primary_rank=mean(testcase_primary_rank),
-                avg_secondary_rank=mean(testcase_secondary_rank)) %>%
+      summarise(avg_primary_rank = mean(testcase_primary_rank),
+                avg_secondary_rank = mean(testcase_secondary_rank)) %>%
       # rank overall rank on primary, tie breaks by secondary
       arrange(avg_primary_rank, avg_secondary_rank) %>%
       mutate(overall_rank = row_number())
     
-    for (j in 1:nrow(rank_df)) { # use for loop to prevent from request error
-      tryCatch({
+    tryCatch(
+    {
+      for (j in 1:nrow(rank_df)) { # use for loop to prevent from request error
         # annotate each submission with its ranks
         annots <- list(primary_rank = as.double(rank_df$avg_primary_rank[j]),
-                       secondary_rank = as.double(rank_df$avg_secondary_rank[j]),
-                       overall_rank = as.integer(rank_df$overall_rank[j]))
+                      secondary_rank = as.double(rank_df$avg_secondary_rank[j]),
+                      overall_rank = as.integer(rank_df$overall_rank[j]))
         challengeutils$annotations$annotate_submission(syn, rank_df$id[j], annots)
-        message("Annotating ", task_name, " submissions with ranks DONE \u2705")
-      },
-      error = function(e) {
-        message("Annotating ", task_name, " submissions with ranks FAIL \u274C")
-        stop(e$message)
-      })
-    }
+      }
+      message("Annotating ", task_name, " submissions with ranks DONE \u2705")
+    },
+    error = function(e) {
+      message("Annotating ", task_name, " submissions with ranks FAIL \u274C")
+      stop(e$message)
+    })
   }
 }
