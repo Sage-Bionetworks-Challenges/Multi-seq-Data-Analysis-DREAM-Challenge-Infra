@@ -50,7 +50,6 @@ steps:
     in:
       - id: entityid
         source: "#adminUploadSynId"
-      # TODO: replace `valueFrom` with the admin user ID or admin team ID
       - id: principalid
         valueFrom: "3441740"
       - id: permissions
@@ -143,10 +142,13 @@ steps:
     in:
       - id: queue
         source: "#get_docker_submission/evaluation_id"
+      - id: public_phase
+        default: true # no need to change elsewhere
     out:
       - id: question
       - id: input_dir
       - id: gs_synId
+      - id: public_phase
   
   run_docker:
     run: steps/run_docker.cwl
@@ -213,6 +215,7 @@ steps:
         source: "#synapseConfig"
       - id: previous_annotation_finished
         source: "#annotate_docker_validation_with_output/finished"
+      
     out: [finished]
 
   download_goldstandard:
@@ -236,6 +239,8 @@ steps:
         source: "#get_docker_submission/entity_type"
       - id: question
         source: "#determine_question/question"
+      - id: public_phase
+        source: "#determine_question/public_phase"
     out:
       - id: results
       - id: status
@@ -252,7 +257,6 @@ steps:
         source: "#validate/status"
       - id: invalid_reasons
         source: "#validate/invalid_reasons"
-      # OPTIONAL: set `default` to `false` if email notification about valid submission is needed
       - id: errors_only
         default: true
     out: [finished]
@@ -296,6 +300,8 @@ steps:
         source: "#determine_question/question"
       - id: check_validation_finished 
         source: "#check_status/finished"
+      - id: public_phase
+        source: "#determine_question/public_phase"
     out:
       - id: results
       - id: all_scores
@@ -345,5 +351,5 @@ steps:
       - id: results
         source: "#update_score/new_results"
       - id: private_annotations
-        default: ["submission_scores", "submission_status"]
+        default: ["submission_scores", "submission_status", "submission_phase"]
     out: []
