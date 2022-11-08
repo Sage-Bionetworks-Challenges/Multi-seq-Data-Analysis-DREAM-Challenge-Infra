@@ -26,8 +26,6 @@ outputs:
     type: string
   - id: gs_synId
     type: string
-  - id: public_phase
-    type: boolean
 
 requirements:
   - class: InlineJavascriptRequirement
@@ -64,7 +62,6 @@ expression: |
     return {
       question: question, 
       input_dir: input_dir,
-      gs_synId: gs_synId,
-      public_phase: inputs.public_phase
+      gs_synId: gs_synId
     };
   }
