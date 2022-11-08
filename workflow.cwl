@@ -148,6 +148,7 @@ steps:
       - id: question
       - id: input_dir
       - id: gs_synId
+      - id: public_phase
   
   run_docker:
     run: steps/run_docker.cwl
@@ -239,7 +240,7 @@ steps:
       - id: question
         source: "#determine_question/question"
       - id: public_phase
-        default: true
+        source: "#determine_question/public_phase"
     out:
       - id: results
       - id: status
@@ -300,7 +301,7 @@ steps:
       - id: check_validation_finished 
         source: "#check_status/finished"
       - id: public_phase
-        default: true
+        source: "#determine_question/public_phase"
     out:
       - id: results
       - id: all_scores
