@@ -160,8 +160,7 @@ def main(syn, args):
                                               name=args.submissionid,
                                               network_disabled=True,
                                               mem_limit=docker_mem,
-                                              nano_cpus=docker_cpu,
-                                              storage_opt={"size": "120G"})
+                                              nano_cpus=docker_cpu)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             prune_docker_volumes()  # remove volume to clean space if fails
