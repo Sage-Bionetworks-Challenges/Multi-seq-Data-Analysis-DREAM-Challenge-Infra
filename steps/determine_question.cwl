@@ -62,7 +62,7 @@ expression: |
     return {
       question: question, 
       input_dir: input_dir,
-      gs_synId: gs_synId
+      gs_synId: gs_synId,
       public_phase: inputs.public_phase
     };
   }
