@@ -16,7 +16,7 @@ class: ExpressionTool
 inputs:
   - id: queue
     type: string
-  - id: is_public_phase
+  - id: public_phase
     type: boolean
 
 outputs:
@@ -40,7 +40,7 @@ expression: |
       var gs_synId = "syn34612394"
       var question = "1"
 
-      if (inputs.is_public_phase) {
+      if (inputs.public_phase) {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna-synthetic"
       } else {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna"
@@ -51,7 +51,7 @@ expression: |
       var gs_synId = "syn35294386"
       var question = "2"
 
-      if (inputs.is_public_phase) {
+      if (inputs.public_phase) {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac-synthetic"
       } else {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac"
@@ -65,6 +65,6 @@ expression: |
       question: question, 
       input_dir: input_dir,
       gs_synId: gs_synId,
-      public_phase: inputs.is_public_phase
+      public_phase: inputs.public_phase
     };
   }
