@@ -39,9 +39,9 @@ expression: |
       var question = "1"
 
       if (inputs.public_phase) {
-        var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq/synthetic"
+        var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna-synthetic"
       } else {
-        var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq"
+        var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna"
       }
       
     } else if (inputs.queue == "9615024" || inputs.queue == "9615021") {
@@ -50,9 +50,9 @@ expression: |
       var question = "2"
 
       if (inputs.public_phase) {
-        var input_dir = "/home/ec2-user/challenge-data/downsampled/scATACseq/synthetic"
+        var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac-synthetic"
       } else {
-        var input_dir = "/home/ec2-user/challenge-data/downsampled/scATACseq"
+        var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac"
       }
 
     } else {
