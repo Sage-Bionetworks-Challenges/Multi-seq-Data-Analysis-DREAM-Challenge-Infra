@@ -26,6 +26,8 @@ outputs:
     type: string
   - id: gs_synId
     type: string
+  - id: public_phase
+    type: boolean
 
 requirements:
   - class: InlineJavascriptRequirement
