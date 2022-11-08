@@ -24,8 +24,8 @@ for (task_n in seq_along(submission_views)) {
   pred_filenames <- paste0(basenames, "_imputed.csv")
 
   # query the submission view
-  is_public <- Sys.getenv("PUBLIC_PHASE")
-  message("Querying table - ", task_name, " in the ", is_public, " phase ...")
+  phase <- Sys.getenv("SUBMISSION_PHASE")
+  message("Querying table - ", task_name, " in the ", phase, " phase ...")
   query <- sprintf("SELECT * FROM %s WHERE submission_status = 'SCORED' AND status = 'ACCEPTED'", task_sub_id)
 
 
