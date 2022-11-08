@@ -143,7 +143,7 @@ steps:
       - id: queue
         source: "#get_docker_submission/evaluation_id"
       - id: public_phase
-        default: true
+        default: true # no need to change elsewhere
     out:
       - id: question
       - id: input_dir
