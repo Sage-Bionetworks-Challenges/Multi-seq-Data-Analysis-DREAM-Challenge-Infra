@@ -22,13 +22,13 @@ for (task_n in seq_along(submission_views)) {
   basenames_path <- syn$get(task_basenames_id)["path"]
   basenames <- read.table(basenames_path, header = FALSE)[, 1]
 
-  if (args$public_phase && task_n == 1) basenames <- basenames[grep("ds1_c4", basenames)]
-  # if (args$public_phase && task_n == 2) basenames <- basenames[grep("", basenames)]
+  phase <- Sys.getenv("SUBMISSION_PHASE")
+  if (phase == "public" && task_n == 1) basenames <- basenames[grep("ds1_c4", basenames)]
+  # if (phase == "public" && task_n == 2) basenames <- basenames[grep("", basenames)]
 
   pred_filenames <- paste0(basenames, "_imputed.csv")
 
   # query the submission view
-  phase <- Sys.getenv("SUBMISSION_PHASE")
   message("Querying table - ", task_name, " in the ", phase, " phase ...")
   query <- sprintf("SELECT * FROM %s WHERE submission_status = 'SCORED' AND status = 'ACCEPTED'", task_sub_id)
 
@@ -62,7 +62,7 @@ for (task_n in seq_along(submission_views)) {
 
 
     # rank the scores
-    if (task_n == 1) rank_df$secondary_score <- -rank_df$secondary_score
+    if (task_n == 1) all_scores$secondary_score <- -all_scores$secondary_score
     rank_df <-
       all_scores %>%
       group_by(dataset) %>%
