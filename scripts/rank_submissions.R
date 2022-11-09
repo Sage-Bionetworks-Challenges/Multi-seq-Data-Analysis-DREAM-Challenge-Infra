@@ -21,6 +21,10 @@ for (task_n in seq_along(submission_views)) {
   # create basenames of predictions to filter submission view
   basenames_path <- syn$get(task_basenames_id)["path"]
   basenames <- read.table(basenames_path, header = FALSE)[, 1]
+
+  if (args$public_phase && task_n == 1) basenames <- basenames[grep("ds1_c4", basenames)]
+  # if (args$public_phase && task_n == 2) basenames <- basenames[grep("", basenames)]
+
   pred_filenames <- paste0(basenames, "_imputed.csv")
 
   # query the submission view
@@ -30,8 +34,8 @@ for (task_n in seq_along(submission_views)) {
 
 
   sub_df <- syn$tableQuery(query)$asDataFrame() %>%
-    filter(!is.na(submission_scores), submission_phase == is_public) %>%
-    select(id, submission_scores) %>%
+    filter(!is.na(submission_scores), submission_phase == phase) %>%
+    select(id, submission_scores, submission_phase) %>%
     mutate(across(everything(), as.character))
 
   # read all valid scores results
@@ -55,14 +59,17 @@ for (task_n in seq_along(submission_views)) {
     message("No valid submission found \u274C")
   } else {
     message("Ranking scores ...")
+
+
     # rank the scores
+    if (task_n == 1) rank_df$secondary_score <- -rank_df$secondary_score
     rank_df <-
       all_scores %>%
       group_by(dataset) %>%
       # rank each testcase score of one submission compared to all submissions
       mutate(
         testcase_primary_rank = rank(primary_score),
-        testcase_secondary_rank = rank(-secondary_score)
+        testcase_secondary_rank = rank(secondary_score)
       ) %>%
       group_by(id) %>%
       # get average scores of all testcases ranks in one submission
