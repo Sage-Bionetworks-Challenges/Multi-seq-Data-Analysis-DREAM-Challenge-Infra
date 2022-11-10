@@ -9,8 +9,8 @@ syn$login(silent = TRUE)
 
 # Update all listed submission views
 submission_views <- list(
-  task1 = c(view = "syn36625504", basenames = "syn36397657")
-  # task2 = c(view = "syn36625445", basenames = "syn36397602")
+  task1 = c(view = "syn36625504", basenames = "syn36397657"),
+  task2 = c(view = "syn36625445", basenames = "syn36397602")
 )
 
 for (task_n in seq_along(submission_views)) {
@@ -23,9 +23,13 @@ for (task_n in seq_along(submission_views)) {
   basenames <- read.table(basenames_path, header = FALSE)[, 1]
 
   phase <- Sys.getenv("SUBMISSION_PHASE")
+  # filter to subset of data used for public phase
   if (phase == "public" && task_n == 1) basenames <- basenames[grep("ds1_c4", basenames)]
-  # if (phase == "public" && task_n == 2) basenames <- basenames[grep("", basenames)]
-
+  if (phase == "public" && task_n == 2) {
+    odd_pgs <- paste0("pg_", seq(1, by = 2, len = 16)) %>%
+      stringr::str_c(collapse = "|")
+    basenames <- basenames[grep(odd_pgs, basenames)]
+  }
   pred_filenames <- paste0(basenames, "_imputed.csv")
 
   # query the submission view
