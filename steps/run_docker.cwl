@@ -67,23 +67,20 @@ requirements:
   - class: InlineJavascriptRequirement
 
 outputs:
-  - id: submission_file:
-    type: File
+  - id: submission_file
+    type: File?
     outputBinding:
       glob: predictions.tar.gz
-
   - id: results
     type: File
     outputBinding:
-      glob: results.json   
-
+      glob: results.json
   - id: status
     type: string
     outputBinding:
       glob: results.json
       loadContents: true
       outputEval: $(JSON.parse(self[0].contents)['submission_status'])
-
   - id: invalid_reasons
     type: string
     outputBinding:
