@@ -11,6 +11,22 @@ import subprocess
 import synapseclient
 
 
+def get_last_lines(log_filename, n=5):
+    """Get last N lines of log file (default=5)."""
+    lines = 0
+    with open(log_filename, "rb") as f:
+        try:
+            f.seek(-2, os.SEEK_END)
+            while lines < n:
+                f.seek(-2, os.SEEK_CUR)
+                if f.read(1) == b"\n":
+                    lines += 1
+        except OSError:
+            f.seek(0)
+        last_lines = f.read().decode()
+    return last_lines
+
+
 def create_log_file(log_filename, log_text=None, mode="w"):
     """Create log file"""
     with open(log_filename, mode) as log_file:
@@ -26,7 +42,13 @@ def store_log_file(syn, log_filename, parentid, store=True):
     """Store log file"""
     statinfo = os.stat(log_filename)
     if statinfo.st_size > 0:
+        # If log file is larger than 50Kb, only save last 10 lines.
+        if statinfo.st_size/1000.0 > 50:
+            log_tail = get_last_lines(log_filename, n=10)
+            create_log_file(log_filename, log_tail)
+
         ent = synapseclient.File(log_filename, parent=parentid)
+
         if store:
             try:
                 syn.store(ent)
@@ -216,10 +238,7 @@ def main(syn, args):
     remove_docker_image(docker_image)
 
     output_folder = os.listdir(output_dir)
-    if not output_folder:
-        raise Exception("No 'predictions.tar.gz' file written to /output, "
-                        "please check inference docker")
-    elif "predictions.tar.gz" not in output_folder:
+    if not output_folder or "predictions.tar.gz" not in output_folder:
         raise Exception("No 'predictions.tar.gz' file written to /output, "
                         "please check inference docker")
 
