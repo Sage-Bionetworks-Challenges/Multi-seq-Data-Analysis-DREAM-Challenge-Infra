@@ -165,7 +165,8 @@ def main(syn, args):
     print("checking for containers")
     container = None
     docker_errors = None  # errors raised from docker container
-    sub_errors = None  # friendly errors sent to participants about failed submission
+    sub_errors = []  # friendly errors sent to participants about failed submission
+
     for cont in client.containers.list(all=True):
         if args.submissionid in cont.name:
             # Must remove container if the container wasn't killed properly
@@ -209,7 +210,8 @@ def main(syn, args):
             if time_elapsed > docker_runtime_quot:
                 remove_docker_container(args.submissionid)
                 prune_docker_volumes()
-                sub_errors = f"Time limit of {docker_runtime_quot/3600}h reached\n"
+                sub_errors.append(
+                    f"Submission {args.submissionid} killed - time limit of {int(docker_runtime_quot/3600)}h reached")
                 break
 
             log_text = container.logs(stdout=False)
@@ -237,17 +239,15 @@ def main(syn, args):
     output_folder = os.listdir(output_dir)
     if not output_folder or "predictions.tar.gz" not in output_folder:
         sub_status = "INVALID"
-        sub_errors = ("Two possible reasons: \n"
-                      "1. Error encountered while running your Docker container, please check docker inference\n"
-                      "2. No 'predictions.tar.gz' file written to '/output' folder, please make sure you have compressed all results to '/output/predictions.tar.gz'")
+        sub_errors.append("It seems error encountered while running your Docker container and no 'predictions.tar.gz' file written to '/output' folder. "
+                          "Please check docker inference, as well as ensuring all results are compressed to '/output/predictions.tar.gz'")
     else:
         sub_status = "VALIDATED"
-        sub_errors = None
 
     with open("results.json", "w") as out:
         out.write(json.dumps({
             'submission_status': sub_status,
-            'submission_errors': sub_errors
+            'submission_errors': "\n".join(sub_errors)
         }))
 
 
