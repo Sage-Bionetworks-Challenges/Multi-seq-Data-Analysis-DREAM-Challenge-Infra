@@ -39,7 +39,7 @@ arguments:
   - valueFrom: $(inputs.entity_type)
     prefix: -e
   - valueFrom: $(inputs.public_phase)
-    prefix: -p
+    prefix: --public_phase
   - valueFrom: results.json
     prefix: -r
 

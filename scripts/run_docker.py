@@ -11,9 +11,9 @@ import subprocess
 import synapseclient
 
 
-def create_log_file(log_filename, log_text=None):
+def create_log_file(log_filename, log_text=None, mode="w"):
     """Create log file"""
-    with open(log_filename, 'w') as log_file:
+    with open(log_filename, mode) as log_file:
         if log_text is not None:
             if isinstance(log_text, bytes):
                 log_text = log_text.decode("utf-8")
@@ -119,10 +119,11 @@ def main(syn, args):
     input_dir = args.input_dir
     output_dir = os.getcwd()
 
-    # Assign different memory limit for different questions
+    # Assign different resources limit for different questions
     # allow three submissions at a time
     docker_mem = "160g" if args.question == "1" else "20g"
     docker_cpu = 20000000000 if args.question == "1" else 10000000000
+    docker_runtime_quot = 21600 if args.public_phase else 43200
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
@@ -153,6 +154,8 @@ def main(syn, args):
     if container is None:
         # Run as detached, logs will stream below
         print("running container")
+        start_time = time.time()
+        time_elapsed = 0
         try:
             container = client.containers.run(docker_image,
                                               detach=True,
@@ -177,15 +180,29 @@ def main(syn, args):
     if container is not None:
         # Check if container is still running
         while container in client.containers.list():
+            # monitor the time elapsed
+            # if it exceeds the runtime quota, stop the container
+            time_elapsed = time.time() - start_time
+            if time_elapsed > docker_runtime_quot:
+                remove_docker_container(args.submissionid)
+                prune_docker_volumes()
+                # log the time out error if the time limit is reached
+                errors = f"Time limit of {docker_runtime_quot}s reached\n"
+                create_log_file(log_filename, log_text=errors, mode="a")
+                store_log_file(syn, log_filename,
+                               args.parentid, store=args.store)
+                break
+
             log_text = container.logs(stdout=False)
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
             time.sleep(60)
+
         # Must run again to make sure all the logs are captured
         log_text = container.logs(stdout=False)
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
-        # Remove container and image after being done
+        # Remove container after being done
         container.remove()
 
     statinfo = os.stat(log_filename)
@@ -219,6 +236,8 @@ if __name__ == '__main__':
                         help="Challenge question")
     parser.add_argument("-i", "--input_dir", required=True,
                         help="Input directory of downsampled data")
+    parser.add_argument("--public_phase", action="store_true", required=True,
+                        help="Public leaderborder phase")
     parser.add_argument("-c", "--synapse_config", required=True,
                         help="credentials file")
     parser.add_argument("--store", action='store_true',

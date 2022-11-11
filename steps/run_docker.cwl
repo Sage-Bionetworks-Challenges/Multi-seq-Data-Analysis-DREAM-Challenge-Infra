@@ -31,6 +31,8 @@ inputs:
     type: boolean?
   - id: question
     type: string
+  - id: public_phase
+    type: boolean
 
 arguments: 
   - valueFrom: $(inputs.docker_script.path)
@@ -52,7 +54,9 @@ arguments:
     prefix: -q
   - valueFrom: $(inputs.input_dir)
     prefix: -i
-
+  - valueFrom: $(inputs.public_phase)
+    prefix: --public_phase
+  
 requirements:
   - class: InitialWorkDirRequirement
     listing:

@@ -175,6 +175,8 @@ steps:
         source: "#determine_question/question"
       - id: input_dir
         source: "#determine_question/input_dir"
+      - id: public_phase
+        source: "#determine_question/public_phase"
       - id: docker_script
         default:
           class: File
