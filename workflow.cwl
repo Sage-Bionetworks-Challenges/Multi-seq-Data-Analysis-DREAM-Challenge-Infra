@@ -162,7 +162,7 @@ steps:
         source: "#get_docker_config/docker_registry"
       - id: docker_authentication
         source: "#get_docker_config/docker_authentication"
-      - id: status
+      - id: docker_status
         source: "#validate_docker/status"
       - id: parentid
         source: "#submitterUploadSynId"

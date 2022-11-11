@@ -19,7 +19,7 @@ inputs:
     type: string
   - id: parentid
     type: string
-  - id: status
+  - id: docker_status
     type: string
   - id: synapse_config
     type: File
@@ -44,8 +44,8 @@ arguments:
     prefix: -d
   - valueFrom: $(inputs.store)
     prefix: --store
-  - valueFrom: $(inputs.status)
-    prefix: --status
+  - valueFrom: $(inputs.docker_status)
+    prefix: --docker_status
   - valueFrom: $(inputs.parentid)
     prefix: --parentid
   - valueFrom: $(inputs.synapse_config.path)
@@ -71,19 +71,22 @@ outputs:
     type: File
     outputBinding:
       glob: predictions.tar.gz
+
   - id: results
     type: File
     outputBinding:
-      glob: results.json
+      glob: results.json   
+
   - id: status
     type: string
     outputBinding:
       glob: results.json
-      outputEval: $(JSON.parse(self[0].contents)['submission_status'])
       loadContents: true
+      outputEval: $(JSON.parse(self[0].contents)['submission_status'])
+
   - id: invalid_reasons
     type: string
     outputBinding:
       glob: results.json
+      loadContents: true
       outputEval: $(JSON.parse(self[0].contents)['submission_errors'])
-    loadContents: true

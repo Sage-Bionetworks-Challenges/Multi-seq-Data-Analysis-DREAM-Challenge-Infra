@@ -115,7 +115,7 @@ def untar(directory, tar_filename):
 
 def main(syn, args):
     """Run docker model"""
-    if args.status == "INVALID":
+    if args.docker_status == "INVALID":
         raise Exception("Docker image is invalid")
 
     # The new toil version doesn't seem to pull the docker config file from
@@ -164,7 +164,8 @@ def main(syn, args):
     # Look for if the container exists already, if so, reconnect
     print("checking for containers")
     container = None
-    errors = None
+    docker_errors = None  # errors raised from docker container
+    sub_errors = None  # friendly errors sent to participants about failed submission
     for cont in client.containers.list(all=True):
         if args.submissionid in cont.name:
             # Must remove container if the container wasn't killed properly
@@ -189,7 +190,7 @@ def main(syn, args):
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             prune_docker_volumes()  # remove volume to clean space if fails
-            errors = str(err) + "\n"
+            docker_errors = str(err) + "\n"
 
     print("creating logfile")
     # Create the logfile
@@ -208,11 +209,7 @@ def main(syn, args):
             if time_elapsed > docker_runtime_quot:
                 remove_docker_container(args.submissionid)
                 prune_docker_volumes()
-                # log the time out error if the time limit is reached
-                errors = f"Time limit of {docker_runtime_quot}s reached\n"
-                create_log_file(log_filename, log_text=errors, mode="a")
-                store_log_file(syn, log_filename,
-                               args.parentid, store=args.store)
+                sub_errors = f"Time limit of {docker_runtime_quot/3600}h reached\n"
                 break
 
             log_text = container.logs(stdout=False)
@@ -230,7 +227,7 @@ def main(syn, args):
     statinfo = os.stat(log_filename)
 
     if statinfo.st_size == 0:
-        create_log_file(log_filename, log_text=errors)
+        create_log_file(log_filename, log_text=docker_errors)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
 
     print("finished training")
@@ -274,7 +271,8 @@ if __name__ == '__main__':
                         help="to store logs")
     parser.add_argument("--parentid", required=True,
                         help="Parent Id of submitter directory")
-    parser.add_argument("--status", required=True, help="Docker image status")
+    parser.add_argument("--docker_status", required=True,
+                        help="Docker image status")
     args = parser.parse_args()
     syn = synapseclient.Synapse(configPath=args.synapse_config)
     syn.login()
