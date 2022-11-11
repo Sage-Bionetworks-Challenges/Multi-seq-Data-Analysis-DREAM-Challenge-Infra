@@ -5,6 +5,7 @@ import getpass
 import os
 import tarfile
 import time
+import json
 
 import docker
 import subprocess
@@ -238,8 +239,19 @@ def main(syn, args):
 
     output_folder = os.listdir(output_dir)
     if not output_folder or "predictions.tar.gz" not in output_folder:
-        raise Exception("No 'predictions.tar.gz' file written to /output, "
-                        "please check inference docker")
+        sub_status = "INVALID"
+        sub_errors = ("Two possible reasons: \n"
+                      "1. Error encountered while running your Docker container, please check docker inference\n"
+                      "2. No 'predictions.tar.gz' file written to '/output' folder, please make sure you have compressed all results to '/output/predictions.tar.gz'")
+    else:
+        sub_status = "VALIDATED"
+        sub_errors = None
+
+    with open("results.json", "w") as out:
+        out.write(json.dumps({
+            'submission_status': sub_status,
+            'submission_errors': sub_errors
+        }))
 
 
 if __name__ == '__main__':
