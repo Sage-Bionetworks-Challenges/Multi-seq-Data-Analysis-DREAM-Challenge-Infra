@@ -50,7 +50,6 @@ steps:
     in:
       - id: entityid
         source: "#adminUploadSynId"
-      # TODO: replace `valueFrom` with the admin user ID or admin team ID
       - id: principalid
         valueFrom: "3441740"
       - id: permissions
@@ -107,7 +106,6 @@ steps:
         source: "#validate_docker/status"
       - id: invalid_reasons
         source: "#validate_docker/invalid_reasons"
-      # OPTIONAL: set `default` to `false` if email notification about valid submission is needed
       - id: errors_only
         default: true
     out: [finished]
@@ -143,10 +141,13 @@ steps:
     in:
       - id: queue
         source: "#get_docker_submission/evaluation_id"
+      - id: public_phase
+        default: true # no need to change elsewhere
     out:
       - id: question
       - id: input_dir
       - id: gs_synId
+      - id: public_phase
   
   run_docker:
     run: steps/run_docker.cwl
@@ -161,7 +162,7 @@ steps:
         source: "#get_docker_config/docker_registry"
       - id: docker_authentication
         source: "#get_docker_config/docker_authentication"
-      - id: status
+      - id: docker_status
         source: "#validate_docker/status"
       - id: parentid
         source: "#submitterUploadSynId"
@@ -173,12 +174,60 @@ steps:
         source: "#determine_question/question"
       - id: input_dir
         source: "#determine_question/input_dir"
+      - id: public_phase
+        source: "#determine_question/public_phase"
       - id: docker_script
         default:
           class: File
           location: "scripts/run_docker.py"
     out:
       - id: submission_file
+      - id: results
+      - id: status
+      - id: invalid_reasons
+
+  email_run_docker_results:
+    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.2/cwl/validate_email.cwl
+    in:
+      - id: submissionid
+        source: "#submissionId"
+      - id: synapse_config
+        source: "#synapseConfig"
+      - id: status
+        source: "#run_docker/status"
+      - id: invalid_reasons
+        source: "#run_docker/invalid_reasons"
+      - id: errors_only
+        default: true
+    out: [finished]
+
+  annotate_run_docker_results:
+    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.2/cwl/annotate_submission.cwl
+    in:
+      - id: submissionid
+        source: "#submissionId"
+      - id: annotation_values
+        source: "#run_docker/results"
+      - id: to_public
+        default: true
+      - id: force
+        default: true
+      - id: synapse_config
+        source: "#synapseConfig"
+      - id: previous_annotation_finished
+        source: "#annotate_docker_validation_with_output/finished"
+    out: [finished]
+
+  check_run_docker_status:
+    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/check_status.cwl
+    in:
+      - id: status
+        source: "#run_docker/status"
+      - id: previous_annotation_finished
+        source: "#annotate_run_docker_results/finished"
+      - id: previous_email_finished
+        source: "#email_run_docker_results/finished"
+    out: [finished]
 
   upload_results:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/upload_to_synapse.cwl
@@ -236,6 +285,8 @@ steps:
         source: "#get_docker_submission/entity_type"
       - id: question
         source: "#determine_question/question"
+      - id: public_phase
+        source: "#determine_question/public_phase"
     out:
       - id: results
       - id: status
@@ -252,7 +303,6 @@ steps:
         source: "#validate/status"
       - id: invalid_reasons
         source: "#validate/invalid_reasons"
-      # OPTIONAL: set `default` to `false` if email notification about valid submission is needed
       - id: errors_only
         default: true
     out: [finished]
@@ -296,6 +346,8 @@ steps:
         source: "#determine_question/question"
       - id: check_validation_finished 
         source: "#check_status/finished"
+      - id: public_phase
+        source: "#determine_question/public_phase"
     out:
       - id: results
       - id: all_scores
@@ -345,5 +397,5 @@ steps:
       - id: results
         source: "#update_score/new_results"
       - id: private_annotations
-        default: ["submission_scores", "submission_status"]
+        default: ["submission_scores", "submission_status", "submission_phase"]
     out: []

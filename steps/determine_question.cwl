@@ -16,6 +16,8 @@ class: ExpressionTool
 inputs:
   - id: queue
     type: string
+  - id: public_phase
+    type: boolean
 
 outputs:
   - id: question
@@ -24,6 +26,8 @@ outputs:
     type: string
   - id: gs_synId
     type: string
+  - id: public_phase
+    type: boolean
 
 requirements:
   - class: InlineJavascriptRequirement
@@ -33,17 +37,25 @@ expression: |
   ${
     if (inputs.queue == "9615023" || inputs.queue == "9614943") {
       // sc1
-      // synthetic phase: /home/ec2-user/challenge-data/downsampled/scRNAseq/synthetic_data
-      var input_dir = "/home/ec2-user/challenge-data/downsampled/scRNAseq"
       var gs_synId = "syn34612394"
       var question = "1"
 
+      if (inputs.public_phase) {
+        var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna-synthetic"
+      } else {
+        var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna"
+      }
+      
     } else if (inputs.queue == "9615024" || inputs.queue == "9615021") {
       // sc2
-      // synthetic phase: /home/ec2-user/challenge-data/downsampled/scRNAseq/synthetic_data
-      var input_dir = "/home/ec2-user/challenge-data/downsampled/scATACseq"
       var gs_synId = "syn35294386"
       var question = "2"
+
+      if (inputs.public_phase) {
+        var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac-synthetic"
+      } else {
+        var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac"
+      }
 
     } else {
       throw 'invalid queue';
@@ -52,6 +64,7 @@ expression: |
     return {
       question: question, 
       input_dir: input_dir,
-      gs_synId: gs_synId
+      gs_synId: gs_synId,
+      public_phase: inputs.public_phase
     };
   }

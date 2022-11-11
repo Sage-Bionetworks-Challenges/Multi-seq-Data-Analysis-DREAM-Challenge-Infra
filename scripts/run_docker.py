@@ -5,15 +5,32 @@ import getpass
 import os
 import tarfile
 import time
+import json
 
 import docker
 import subprocess
 import synapseclient
 
 
-def create_log_file(log_filename, log_text=None):
+def get_last_lines(log_filename, n=5):
+    """Get last N lines of log file (default=5)."""
+    lines = 0
+    with open(log_filename, "rb") as f:
+        try:
+            f.seek(-2, os.SEEK_END)
+            while lines < n:
+                f.seek(-2, os.SEEK_CUR)
+                if f.read(1) == b"\n":
+                    lines += 1
+        except OSError:
+            f.seek(0)
+        last_lines = f.read().decode()
+    return last_lines
+
+
+def create_log_file(log_filename, log_text=None, mode="w"):
     """Create log file"""
-    with open(log_filename, 'w') as log_file:
+    with open(log_filename, mode) as log_file:
         if log_text is not None:
             if isinstance(log_text, bytes):
                 log_text = log_text.decode("utf-8")
@@ -26,7 +43,12 @@ def store_log_file(syn, log_filename, parentid, store=True):
     """Store log file"""
     statinfo = os.stat(log_filename)
     if statinfo.st_size > 0:
+        # only save last 20 lines.
+        log_tail = get_last_lines(log_filename, n=20)
+        create_log_file(log_filename, log_tail)
+
         ent = synapseclient.File(log_filename, parent=parentid)
+
         if store:
             try:
                 syn.store(ent)
@@ -93,7 +115,7 @@ def untar(directory, tar_filename):
 
 def main(syn, args):
     """Run docker model"""
-    if args.status == "INVALID":
+    if args.docker_status == "INVALID":
         raise Exception("Docker image is invalid")
 
     # The new toil version doesn't seem to pull the docker config file from
@@ -119,10 +141,11 @@ def main(syn, args):
     input_dir = args.input_dir
     output_dir = os.getcwd()
 
-    # Assign different memory limit for different questions
+    # Assign different resources limit for different questions
     # allow three submissions at a time
     docker_mem = "160g" if args.question == "1" else "20g"
     docker_cpu = 20000000000 if args.question == "1" else 10000000000
+    docker_runtime_quot = 21600 if args.public_phase else 43200
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
@@ -141,7 +164,8 @@ def main(syn, args):
     # Look for if the container exists already, if so, reconnect
     print("checking for containers")
     container = None
-    errors = None
+    docker_errors = None  # errors raised from docker container
+    sub_errors = None  # friendly errors sent to participants about failed submission
     for cont in client.containers.list(all=True):
         if args.submissionid in cont.name:
             # Must remove container if the container wasn't killed properly
@@ -153,6 +177,8 @@ def main(syn, args):
     if container is None:
         # Run as detached, logs will stream below
         print("running container")
+        start_time = time.time()
+        time_elapsed = 0
         try:
             container = client.containers.run(docker_image,
                                               detach=True,
@@ -163,7 +189,8 @@ def main(syn, args):
                                               nano_cpus=docker_cpu)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
-            errors = str(err) + "\n"
+            prune_docker_volumes()  # remove volume to clean space if fails
+            docker_errors = str(err) + "\n"
 
     print("creating logfile")
     # Create the logfile
@@ -176,21 +203,31 @@ def main(syn, args):
     if container is not None:
         # Check if container is still running
         while container in client.containers.list():
+            # monitor the time elapsed
+            # if it exceeds the runtime quota, stop the container
+            time_elapsed = time.time() - start_time
+            if time_elapsed > docker_runtime_quot:
+                remove_docker_container(args.submissionid)
+                prune_docker_volumes()
+                sub_errors = f"Time limit of {docker_runtime_quot/3600}h reached\n"
+                break
+
             log_text = container.logs(stdout=False)
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
             time.sleep(60)
+
         # Must run again to make sure all the logs are captured
         log_text = container.logs(stdout=False)
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
-        # Remove container and image after being done
+        # Remove container after being done
         container.remove()
 
     statinfo = os.stat(log_filename)
 
     if statinfo.st_size == 0:
-        create_log_file(log_filename, log_text=errors)
+        create_log_file(log_filename, log_text=docker_errors)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
 
     print("finished training")
@@ -198,12 +235,20 @@ def main(syn, args):
     remove_docker_image(docker_image)
 
     output_folder = os.listdir(output_dir)
-    if not output_folder:
-        raise Exception("No 'predictions.tar.gz' file written to /output, "
-                        "please check inference docker")
-    elif "predictions.tar.gz" not in output_folder:
-        raise Exception("No 'predictions.tar.gz' file written to /output, "
-                        "please check inference docker")
+    if not output_folder or "predictions.tar.gz" not in output_folder:
+        sub_status = "INVALID"
+        sub_errors = ("Two possible reasons: \n"
+                      "1. Error encountered while running your Docker container, please check docker inference\n"
+                      "2. No 'predictions.tar.gz' file written to '/output' folder, please make sure you have compressed all results to '/output/predictions.tar.gz'")
+    else:
+        sub_status = "VALIDATED"
+        sub_errors = None
+
+    with open("results.json", "w") as out:
+        out.write(json.dumps({
+            'submission_status': sub_status,
+            'submission_errors': sub_errors
+        }))
 
 
 if __name__ == '__main__':
@@ -218,13 +263,16 @@ if __name__ == '__main__':
                         help="Challenge question")
     parser.add_argument("-i", "--input_dir", required=True,
                         help="Input directory of downsampled data")
+    parser.add_argument("--public_phase", action="store_true", required=True,
+                        help="Public leaderborder phase")
     parser.add_argument("-c", "--synapse_config", required=True,
                         help="credentials file")
     parser.add_argument("--store", action='store_true',
                         help="to store logs")
     parser.add_argument("--parentid", required=True,
                         help="Parent Id of submitter directory")
-    parser.add_argument("--status", required=True, help="Docker image status")
+    parser.add_argument("--docker_status", required=True,
+                        help="Docker image status")
     args = parser.parse_args()
     syn = synapseclient.Synapse(configPath=args.synapse_config)
     syn.login()

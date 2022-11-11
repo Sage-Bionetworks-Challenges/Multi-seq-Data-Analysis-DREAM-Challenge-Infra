@@ -19,7 +19,7 @@ inputs:
     type: string
   - id: parentid
     type: string
-  - id: status
+  - id: docker_status
     type: string
   - id: synapse_config
     type: File
@@ -31,6 +31,8 @@ inputs:
     type: boolean?
   - id: question
     type: string
+  - id: public_phase
+    type: boolean
 
 arguments: 
   - valueFrom: $(inputs.docker_script.path)
@@ -42,8 +44,8 @@ arguments:
     prefix: -d
   - valueFrom: $(inputs.store)
     prefix: --store
-  - valueFrom: $(inputs.status)
-    prefix: --status
+  - valueFrom: $(inputs.docker_status)
+    prefix: --docker_status
   - valueFrom: $(inputs.parentid)
     prefix: --parentid
   - valueFrom: $(inputs.synapse_config.path)
@@ -52,7 +54,9 @@ arguments:
     prefix: -q
   - valueFrom: $(inputs.input_dir)
     prefix: -i
-
+  - valueFrom: $(inputs.public_phase)
+    prefix: --public_phase
+  
 requirements:
   - class: InitialWorkDirRequirement
     listing:
@@ -63,7 +67,23 @@ requirements:
   - class: InlineJavascriptRequirement
 
 outputs:
-  submission_file:
-    type: File
+  - id: submission_file
+    type: File?
     outputBinding:
       glob: predictions.tar.gz
+  - id: results
+    type: File
+    outputBinding:
+      glob: results.json
+  - id: status
+    type: string
+    outputBinding:
+      glob: results.json
+      loadContents: true
+      outputEval: $(JSON.parse(self[0].contents)['submission_status'])
+  - id: invalid_reasons
+    type: string
+    outputBinding:
+      glob: results.json
+      loadContents: true
+      outputEval: $(JSON.parse(self[0].contents)['submission_errors'])

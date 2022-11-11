@@ -19,7 +19,9 @@ inputs:
     type: string
   - id: check_validation_finished
     type: boolean?
-    
+  - id: public_phase
+    type: boolean
+
 arguments:
   - position: 0
     valueFrom: |
@@ -34,6 +36,8 @@ arguments:
     prefix: -s
   - valueFrom: $(inputs.goldstandard_file.path)
     prefix: -g
+  - valueFrom: $(inputs.public_phase)
+    prefix: --public_phase
   - valueFrom: results.json
     prefix: -o
 

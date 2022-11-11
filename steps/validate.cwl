@@ -19,7 +19,9 @@ inputs:
     type: string
   - id: question
     type: string
-  
+  - id: public_phase
+    type: boolean
+
 arguments:
   - position: 0
     valueFrom: |
@@ -36,6 +38,8 @@ arguments:
     prefix: -s
   - valueFrom: $(inputs.entity_type)
     prefix: -e
+  - valueFrom: $(inputs.public_phase)
+    prefix: --public_phase
   - valueFrom: results.json
     prefix: -r
 
