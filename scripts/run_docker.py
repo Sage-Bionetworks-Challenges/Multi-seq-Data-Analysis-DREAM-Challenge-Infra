@@ -81,15 +81,6 @@ def remove_docker_image(image_name):
         print("Unable to remove image")
 
 
-def prune_docker_volumes():
-    """Remove unused docker volumes"""
-    client = docker.from_env()
-    try:
-        client.volumes.prune()
-    except Exception:
-        print("Unable to clean volumes")
-
-
 def tar(directory, tar_filename):
     """Tar all files in a directory
 
@@ -190,7 +181,6 @@ def main(syn, args):
                                               nano_cpus=docker_cpu)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
-            prune_docker_volumes()  # remove volume to clean space if fails
             docker_errors = str(err) + "\n"
 
     print("creating logfile")
@@ -208,10 +198,9 @@ def main(syn, args):
             # if it exceeds the runtime quota, stop the container
             time_elapsed = time.time() - start_time
             if time_elapsed > docker_runtime_quot:
-                remove_docker_container(args.submissionid)
-                prune_docker_volumes()
                 sub_errors.append(
                     f"Submission {args.submissionid} killed - time limit of {int(docker_runtime_quot/3600)}h reached")
+                container.stop()
                 break
 
             log_text = container.logs(stdout=False)
