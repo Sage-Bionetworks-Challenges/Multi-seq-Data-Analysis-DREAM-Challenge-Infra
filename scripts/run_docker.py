@@ -199,7 +199,7 @@ def main(syn, args):
             time_elapsed = time.time() - start_time
             if time_elapsed > docker_runtime_quot:
                 sub_errors.append(
-                    f"Submission Time limit of {int(docker_runtime_quot/3600)}h reached")
+                    f"Submission time limit of {int(docker_runtime_quot/3600)}h reached.")
                 container.stop()
                 break
 
