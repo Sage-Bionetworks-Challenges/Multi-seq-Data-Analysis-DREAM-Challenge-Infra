@@ -7,3 +7,7 @@
 *.Rhistory
 *.RData
 tmp/
+# only for writeup branch
+Docker
+scripts
+steps
