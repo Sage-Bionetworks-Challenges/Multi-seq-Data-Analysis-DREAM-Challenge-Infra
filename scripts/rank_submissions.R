@@ -27,7 +27,7 @@ for (task_n in seq_along(submission_views)) {
   if (phase == "public" && task_n == 1) basenames <- basenames[grep("ds1_c3", basenames)]
   if (phase == "public" && task_n == 2) {
     odd_pgs <- paste0("ds1.*pg_", seq(1, by = 2, len = 16)) %>%
-      stringr::str_c(collapse = "\\.|")
+      paste0(collapse = "\\.|")
     basenames <- basenames[grep(odd_pgs, basenames)]
   }
   pred_filenames <- paste0(basenames, "_imputed.csv")
