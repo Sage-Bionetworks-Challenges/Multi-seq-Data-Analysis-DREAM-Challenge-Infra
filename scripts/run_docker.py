@@ -44,7 +44,7 @@ def store_log_file(syn, log_filename, parentid, store=True):
     statinfo = os.stat(log_filename)
     if statinfo.st_size > 0:
         # only save last 20 lines.
-        log_tail = get_last_lines(log_filename, n=20)
+        # log_tail = get_last_lines(log_filename, n=20)
         create_log_file(log_filename, log_tail)
 
         ent = synapseclient.File(log_filename, parent=parentid)
@@ -203,13 +203,13 @@ def main(syn, args):
                 container.stop()
                 break
 
-            log_text = container.logs(stdout=False)
+            log_text = container.logs()
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
             time.sleep(60)
 
         # Must run again to make sure all the logs are captured
-        log_text = container.logs(stdout=False)
+        log_text = container.logs()
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         # Remove container after being done
