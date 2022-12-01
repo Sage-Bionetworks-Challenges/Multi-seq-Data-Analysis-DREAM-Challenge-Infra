@@ -137,6 +137,7 @@ def main(syn, args):
     docker_mem = "160g" if args.question == "1" else "20g"
     docker_cpu = 20000000000 if args.question == "1" else 10000000000
     docker_runtime_quot = 21600 if args.public_phase else 43200
+    docker_storage = {"size": "2G"}
 
     print("mounting volumes")
     # These are the locations on the docker that you want your mounted
@@ -178,7 +179,8 @@ def main(syn, args):
                                               name=args.submissionid,
                                               network_disabled=True,
                                               mem_limit=docker_mem,
-                                              nano_cpus=docker_cpu)
+                                              nano_cpus=docker_cpu,
+                                              storage_opt=docker_storage)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             docker_errors = str(err) + "\n"
