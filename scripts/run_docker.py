@@ -105,6 +105,19 @@ def untar(directory, tar_filename):
         tar_o.extractall(path=directory)
 
 
+def get_folder_size(path):
+    total_size = os.path.getsize(path)
+    for item in os.listdir(path):
+        itempath = os.path.join(path, item)
+        if os.path.islink(itempath):
+            pass
+        elif os.path.isfile(itempath):
+            total_size += os.path.getsize(itempath)
+        elif os.path.isdir(itempath):
+            total_size += get_folder_size(itempath)
+    return total_size
+
+
 def main(syn, args):
     """Run docker model"""
     if args.docker_status == "INVALID":
@@ -208,11 +221,9 @@ def main(syn, args):
                 break
             # monitor the size of output folder
             # if it exceeds 80G, stop the container
-            out_size = sum(os.path.getsize(f)
-                           for f in os.listdir(output_dir) if os.path.isfile(f))
-            if out_size/10**9 > 0.5:
+            if get_folder_size(output_dir)/10**9 > 0.5:
                 sub_errors.append(
-                    f"Submission disk space limit of 0.5G reached.")
+                    f"Submission output file size limit reached.")
                 container.stop()
                 break
             log_text = container.logs(stdout=False)
