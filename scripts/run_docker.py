@@ -207,9 +207,9 @@ def main(syn, args):
                 break
             # monitor the size of output folder
             # if it exceeds 80G, stop the container
-            if os.stat(output_dir).st_size/10**9 > 80:
+            if os.stat(output_dir).st_size/10**9 > 0.5:
                 sub_errors.append(
-                    f"Submission disk space limit of {80}G reached.")
+                    f"Submission disk space limit of 0.5G reached.")
                 container.stop()
                 break
             log_text = container.logs(stdout=False)
