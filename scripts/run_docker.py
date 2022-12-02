@@ -2,6 +2,7 @@
 from __future__ import print_function
 import argparse
 import getpass
+import glob
 import os
 import tarfile
 import time
@@ -227,13 +228,19 @@ def main(syn, args):
     # Try to remove the image
     remove_docker_image(docker_image)
 
-    output_folder = os.listdir(output_dir)
-    if not output_folder or "predictions.tar.gz" not in output_folder:
-        sub_status = "INVALID"
-        sub_errors.append("It seems error encountered while running your Docker container and no 'predictions.tar.gz' file written to '/output' folder. "
-                          "Please check docker inference, as well as ensuring all results are compressed to '/output/predictions.tar.gz'")
-    else:
+    # check if any expected file pattern exist
+    pred_file_pattern = "*_imputed.csv" if args.question == "1" else "*.bed"
+    pred_files = os.path.join(output_dir, pred_file_pattern)
+    if glob.glob(pred_files):
+        # compress in to a tarball using pigz
+        cmd = f"tar -I pigz -cf {os.path.join(output_dir, 'predictions.tar.gz')} {pred_files}"
+        subprocess.check_output(cmd, shell=True)
         sub_status = "VALIDATED"
+    else:
+        sub_status = "INVALID"
+        sub_errors.append(
+            f"It seems error encountered while running your Docker container and "
+            f"no '{pred_file_pattern}' file written to '/output' folder.")
 
     with open("results.json", "w") as out:
         out.write(json.dumps({
