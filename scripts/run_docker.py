@@ -239,7 +239,8 @@ def main(syn, args):
     pred_files = os.path.join(output_dir, pred_file_pattern)
     if glob.glob(pred_files):
         # compress in to a tarball using pigz
-        cmd = f"tar -I pigz -cf {os.path.join(output_dir, 'predictions.tar.gz')} {pred_files}"
+        # assume output folder is cwd, otherwise, cd output first to avoid parent path
+        cmd = f"tar -I pigz -cf predictions.tar.gz {pred_files}"
         subprocess.check_output(cmd, shell=True)
         sub_status = "VALIDATED"
     else:
