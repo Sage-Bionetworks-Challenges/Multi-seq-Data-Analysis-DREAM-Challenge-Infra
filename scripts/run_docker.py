@@ -44,10 +44,10 @@ def store_log_file(syn, log_filename, parentid, store=True):
     """Store log file"""
     statinfo = os.stat(log_filename)
     if statinfo.st_size > 0:
-        # only save last 20 lines.
-        log_tail = get_last_lines(log_filename, n=20)
-        create_log_file(log_filename, log_tail)
-
+        # If log file is larger than 50Kb, only save last 10 lines.
+        if statinfo.st_size/1000.0 > 50:
+            log_tail = get_last_lines(log_filename, n=10)
+            create_log_file(log_filename, log_tail)
         ent = synapseclient.File(log_filename, parent=parentid)
 
         if store:
@@ -241,6 +241,10 @@ def main(syn, args):
         sub_errors.append(
             f"It seems error encountered while running your Docker container and "
             f"no '{pred_file_pattern}' file written to '/output' folder.")
+
+    # print out errors to toil logs in case needed
+    if sub_errors:
+        print("\n".join(sub_errors))
 
     with open("results.json", "w") as out:
         out.write(json.dumps({
