@@ -205,7 +205,13 @@ def main(syn, args):
                     f"Submission time limit of {int(docker_runtime_quot/3600)}h reached.")
                 container.stop()
                 break
-
+            # monitor the size of output folder
+            # if it exceeds 80G, stop the container
+            if os.stat(output_dir).st_size/10**9 > 80:
+                sub_errors.append(
+                    f"Submission disk space limit of {80}G reached.")
+                container.stop()
+                break
             log_text = container.logs(stdout=False)
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
