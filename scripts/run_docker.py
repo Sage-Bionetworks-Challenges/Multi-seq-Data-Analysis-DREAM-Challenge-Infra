@@ -131,7 +131,8 @@ def main(syn, args):
 
     # These are the volumes that you want to mount onto your docker container
     input_dir = args.input_dir
-    output_dir = os.getcwd()
+    output_dir = os.path.join(os.getcwd(), "pred")
+    os.makedirs(output_dir)
 
     # Assign different resources limit for different questions
     # allow three submissions at a time
@@ -207,7 +208,9 @@ def main(syn, args):
                 break
             # monitor the size of output folder
             # if it exceeds 80G, stop the container
-            if os.stat(output_dir).st_size/10**9 > 0.5:
+            out_size = sum(os.path.getsize(f)
+                           for f in os.listdir(output_dir) if os.path.isfile(f))
+            if out_size/10**9 > 0.5:
                 sub_errors.append(
                     f"Submission disk space limit of 0.5G reached.")
                 container.stop()
@@ -239,8 +242,7 @@ def main(syn, args):
     pred_files = os.path.join(output_dir, pred_file_pattern)
     if glob.glob(pred_files):
         # compress in to a tarball using pigz
-        # assume output folder is cwd, otherwise, cd output first to avoid parent path
-        cmd = f"tar -I pigz -cf predictions.tar.gz {pred_files}"
+        cmd = f"cd {output_dir} && tar -I pigz -cf predictions.tar.gz {pred_files}"
         subprocess.check_output(cmd, shell=True)
         sub_status = "VALIDATED"
     else:
