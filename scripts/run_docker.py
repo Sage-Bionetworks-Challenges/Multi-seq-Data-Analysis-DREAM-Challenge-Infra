@@ -144,7 +144,7 @@ def main(syn, args):
 
     # These are the volumes that you want to mount onto your docker container
     input_dir = args.input_dir
-    output_dir = os.path.join(os.getcwd(), "pred")
+    output_dir = "pred"
     os.makedirs(output_dir)
 
     # Assign different resources limit for different questions
@@ -250,11 +250,12 @@ def main(syn, args):
 
     # check if any expected file pattern exist
     pred_file_pattern = "*_imputed.csv" if args.question == "1" else "*.bed"
-    pred_files = os.path.join(output_dir, pred_file_pattern)
-    if glob.glob(pred_files):
+    pred_paths = os.path.join(output_dir, pred_file_pattern)
+    if glob.glob(pred_paths):
         # compress in to a tarball using pigz
-        cmd = f"cd {output_dir} && tar -I pigz -cf predictions.tar.gz {pred_files}"
-        subprocess.check_output(cmd, shell=True)
+        tar(output_dir, "predictions.tar.gz")
+        # cmd = f"cd {output_dir} && tar -I pigz -cf predictions.tar.gz {pred_file_pattern}"
+        # subprocess.check_output(cmd, shell=True)
         sub_status = "VALIDATED"
     else:
         sub_status = "INVALID"

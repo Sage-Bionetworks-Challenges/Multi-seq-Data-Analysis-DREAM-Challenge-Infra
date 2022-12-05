@@ -70,7 +70,7 @@ outputs:
   - id: submission_file
     type: File?
     outputBinding:
-      glob: pred/predictions.tar.gz
+      glob: predictions.tar.gz
   - id: results
     type: File
     outputBinding:
