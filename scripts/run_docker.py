@@ -143,7 +143,7 @@ def main(syn, args):
     # create a local volume and set size limit
     output_volume = client.volumes.create(name=args.submissionid,
                                           driver='local',
-                                          driver_opts={"size": "100m"})
+                                          driver_opts={"size": "80g"})
     # set volumes used to mount
     input_mount = [input_dir, "input"]
     output_mount = [args.submissionid, "output"]
