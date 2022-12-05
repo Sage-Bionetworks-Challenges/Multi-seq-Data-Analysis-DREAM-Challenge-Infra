@@ -105,19 +105,6 @@ def untar(directory, tar_filename):
         tar_o.extractall(path=directory)
 
 
-def get_folder_size(path):
-    total_size = os.path.getsize(path)
-    for item in os.listdir(path):
-        itempath = os.path.join(path, item)
-        if os.path.islink(itempath):
-            pass
-        elif os.path.isfile(itempath):
-            total_size += os.path.getsize(itempath)
-        elif os.path.isdir(itempath):
-            total_size += get_folder_size(itempath)
-    return total_size
-
-
 def main(syn, args):
     """Run docker model"""
     if args.docker_status == "INVALID":
@@ -219,13 +206,7 @@ def main(syn, args):
                     f"Submission time limit of {int(docker_runtime_quot/3600)}h reached.")
                 container.stop()
                 break
-            # monitor the size of output folder
-            # if it exceeds 80G, stop the container
-            if get_folder_size(output_dir)/10**9 > 0.1:
-                sub_errors.append(
-                    f"Submission output file size limit reached.")
-                container.stop()
-                break
+
             log_text = container.logs(stdout=False)
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
@@ -247,10 +228,6 @@ def main(syn, args):
     print("finished training")
     # Try to remove the image
     remove_docker_image(docker_image)
-
-    if get_folder_size(output_dir)/10**9 > 0.1:
-        sub_status = "INVALID"
-        sub_errors.append(f"Submission output file size limit reached.")
 
     # check if any expected file pattern exist
     pred_file_pattern = "*_imputed.csv" if args.question == "1" else "*.bed"
