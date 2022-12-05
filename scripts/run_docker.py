@@ -2,6 +2,7 @@
 from __future__ import print_function
 import argparse
 import getpass
+import glob
 import os
 import tarfile
 import time
@@ -43,10 +44,10 @@ def store_log_file(syn, log_filename, parentid, store=True):
     """Store log file"""
     statinfo = os.stat(log_filename)
     if statinfo.st_size > 0:
-        # only save last 20 lines.
-        log_tail = get_last_lines(log_filename, n=20)
-        create_log_file(log_filename, log_tail)
-
+        # If log file is larger than 50Kb, only save last 10 lines.
+        if statinfo.st_size/1000.0 > 50:
+            log_tail = get_last_lines(log_filename, n=10)
+            create_log_file(log_filename, log_tail)
         ent = synapseclient.File(log_filename, parent=parentid)
 
         if store:
@@ -130,7 +131,8 @@ def main(syn, args):
 
     # These are the volumes that you want to mount onto your docker container
     input_dir = args.input_dir
-    output_dir = os.getcwd()
+    os.makedirs("pred")
+    output_dir = os.path.join(os.getcwd(), "pred")
 
     # Assign different resources limit for different questions
     # allow three submissions at a time
@@ -225,13 +227,16 @@ def main(syn, args):
     # Try to remove the image
     remove_docker_image(docker_image)
 
-    output_folder = os.listdir(output_dir)
-    if not output_folder or "predictions.tar.gz" not in output_folder:
-        sub_status = "INVALID"
-        sub_errors.append("It seems error encountered while running your Docker container and no 'predictions.tar.gz' file written to '/output' folder. "
-                          "Please check docker inference, as well as ensuring all results are compressed to '/output/predictions.tar.gz'")
-    else:
+    # check if any expected file pattern exist
+    pred_file_pattern = "*_imputed.csv" if args.question == "1" else "*.bed"
+    if glob.glob(os.path.join("pred", pred_file_pattern)):
+        tar("pred", "predictions.tar.gz")
         sub_status = "VALIDATED"
+    else:
+        sub_status = "INVALID"
+        sub_errors.append(
+            f"It seems error encountered while running your Docker container and "
+            f"no '{pred_file_pattern}' file written to '/output' folder.")
 
     with open("results.json", "w") as out:
         out.write(json.dumps({
