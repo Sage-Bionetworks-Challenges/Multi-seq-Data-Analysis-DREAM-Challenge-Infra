@@ -221,6 +221,10 @@ def main(syn, args):
                 break
             # monitor the size of output folder
             # if it exceeds 80G, stop the container
+            print(
+                f"******** working dir size is {get_folder_size(os.getcwd())}")
+            print(
+                f">>>>>>> output dir size is {get_folder_size(output_dir)}")
             if get_folder_size(output_dir)/10**9 > 0.5:
                 sub_errors.append(
                     f"Submission output file size limit reached.")
@@ -251,10 +255,7 @@ def main(syn, args):
     # check if any expected file pattern exist
     pred_file_pattern = "*_imputed.csv" if args.question == "1" else "*.bed"
     if glob.glob(os.path.join("pred", pred_file_pattern)):
-        # compress in to a tarball using pigz
         tar("pred", "predictions.tar.gz")
-        # cmd = f"cd {output_dir} && tar -I pigz -cf predictions.tar.gz {pred_file_pattern}"
-        # subprocess.check_output(cmd, shell=True)
         sub_status = "VALIDATED"
     else:
         sub_status = "INVALID"
