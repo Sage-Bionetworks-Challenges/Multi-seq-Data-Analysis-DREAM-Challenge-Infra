@@ -131,28 +131,24 @@ def main(syn, args):
 
     # These are the volumes that you want to mount onto your docker container
     input_dir = args.input_dir
-    os.makedirs("pred")
-    output_dir = os.path.join(os.getcwd(), "pred")
 
     # Assign different resources limit for different questions
     # allow three submissions at a time
     docker_mem = "160g" if args.question == "1" else "20g"
     docker_cpu = 20000000000 if args.question == "1" else 10000000000
     docker_runtime_quot = 21600 if args.public_phase else 43200
+    pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
 
     print("mounting volumes")
-    # These are the locations on the docker that you want your mounted
-    # volumes to be + permissions in docker (ro, rw)
-    # It has to be in this format '/output:rw'
-    mounted_volumes = {output_dir: '/output:rw',
-                       input_dir: '/input:ro'}
-    # All mounted volumes here in a list
-    all_volumes = [output_dir, input_dir]
-    # Mount volumes
-    volumes = {}
-    for vol in all_volumes:
-        volumes[vol] = {'bind': mounted_volumes[vol].split(":")[0],
-                        'mode': mounted_volumes[vol].split(":")[1]}
+    # create a local volume and set size limit
+    output_volume = client.volumes.create(name=args.submissionid,
+                                          driver='local',
+                                          driver_opts={"size": "80g"})
+    # set volumes used to mount
+    input_mount = [input_dir, "input"]
+    output_mount = [args.submissionid, "output"]
+    volumes = [f"{input_mount[0]}:/{input_mount[1]}:ro",
+               f"{output_mount[0]}:/{output_mount[1]}:rw"]
 
     # Look for if the container exists already, if so, reconnect
     print("checking for containers")
@@ -214,6 +210,9 @@ def main(syn, args):
         log_text = container.logs(stdout=False)
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
+        # copy the prediction dir to working dir before removed
+        subprocess.check_call(
+            ["docker", "cp", f"{output_mount[0]}:/{output_mount[1]}", "."])
         # Remove container after being done
         container.remove()
 
@@ -226,17 +225,17 @@ def main(syn, args):
     print("finished training")
     # Try to remove the image
     remove_docker_image(docker_image)
+    output_volume.remove()
 
     # check if any expected file pattern exist
-    pred_file_pattern = "*_imputed.csv" if args.question == "1" else "*.bed"
-    if glob.glob(os.path.join("pred", pred_file_pattern)):
-        tar("pred", "predictions.tar.gz")
+    if glob.glob(os.path.join(output_mount[1], pred_file_suffix)):
+        tar(output_mount[1], "predictions.tar.gz")
         sub_status = "VALIDATED"
     else:
         sub_status = "INVALID"
         sub_errors.append(
             f"It seems error encountered while running your Docker container and "
-            f"no '{pred_file_pattern}' file written to '/output' folder.")
+            f"no '{pred_file_suffix}' file written to '/{output_mount[1]}' folder.")
 
     with open("results.json", "w") as out:
         out.write(json.dumps({
