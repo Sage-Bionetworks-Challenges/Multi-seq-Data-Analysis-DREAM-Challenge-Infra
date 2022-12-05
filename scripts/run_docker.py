@@ -141,18 +141,15 @@ def main(syn, args):
     docker_runtime_quot = 21600 if args.public_phase else 43200
 
     print("mounting volumes")
+    # create a local volume used to mount to /output
+    output_volume = client.volumes.create(name="args.submissionid",
+                                          driver='local', driver_opts={"size": "100m"})
     # These are the locations on the docker that you want your mounted
     # volumes to be + permissions in docker (ro, rw)
-    # It has to be in this format '/output:rw'
-    mounted_volumes = {output_dir: '/output:rw',
-                       input_dir: '/input:ro'}
-    # All mounted volumes here in a list
-    all_volumes = [output_dir, input_dir]
-    # Mount volumes
-    volumes = {}
-    for vol in all_volumes:
-        volumes[vol] = {'bind': mounted_volumes[vol].split(":")[0],
-                        'mode': mounted_volumes[vol].split(":")[1]}
+    # It has to be in this format
+    # '<folder-path/volume-name>: {'bind': <mount-path>, 'mode': <permission>}'
+    volumes = {input_dir: {'bind': '/input', 'mode': 'ro'},
+               'args.submissionid': {'bind': '/output', 'mode': 'rw'}}
 
     # Look for if the container exists already, if so, reconnect
     print("checking for containers")
@@ -226,6 +223,7 @@ def main(syn, args):
     print("finished training")
     # Try to remove the image
     remove_docker_image(docker_image)
+    output_volume.remove()
 
     # check if any expected file pattern exist
     pred_file_pattern = "*_imputed.csv" if args.question == "1" else "*.bed"
