@@ -221,7 +221,7 @@ def main(syn, args):
                 break
             # monitor the size of output folder
             # if it exceeds 80G, stop the container
-            if get_folder_size(output_dir)/10**9 > 0.5:
+            if get_folder_size(output_dir)/10**9 > 0.1:
                 sub_errors.append(
                     f"Submission output file size limit reached.")
                 container.stop()
@@ -248,7 +248,7 @@ def main(syn, args):
     # Try to remove the image
     remove_docker_image(docker_image)
 
-    if get_folder_size(output_dir)/10**9 > 0.5:
+    if get_folder_size(output_dir)/10**9 > 0.1:
         sub_status = "INVALID"
         sub_errors.append(f"Submission output file size limit reached.")
 
