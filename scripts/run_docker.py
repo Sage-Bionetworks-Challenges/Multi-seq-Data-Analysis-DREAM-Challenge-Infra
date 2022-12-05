@@ -143,7 +143,7 @@ def main(syn, args):
     print("mounting volumes")
     # create a local volume used to mount to /output
     output_volume = client.volumes.create(name="args.submissionid",
-                                          driver='local', driver_opts={"size": "100m"})
+                                          driver='local', driver_opts={"size": "80g"})
     # These are the locations on the docker that you want your mounted
     # volumes to be + permissions in docker (ro, rw)
     # It has to be in this format
