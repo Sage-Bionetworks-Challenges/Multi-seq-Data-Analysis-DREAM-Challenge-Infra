@@ -40,10 +40,11 @@ if (is.null(args$submission_file)) {
   untar(args$submission_file)
 }
 
+# determine phase
+if (args$public_phase) phase <- "public" else phase <- "private"
+
 # retrieve all file names
-basenames <- all_gs$down_basenames
-# filter to subset data if it's public phase
-if (args$public_phase) basenames <- basenames[grep("ds1_c3", basenames)]
+basenames <- all_gs$down_basenames[[phase]]
 true_pred_files <- paste0(basenames, "_imputed.csv")
 pred_files <- list.files(pred_dir, pattern = "*_imputed.csv")
 
@@ -74,10 +75,9 @@ if (length(diff) == 0) {
     # detect file prefix used to read gs
     info <- strsplit(pred_file, "_")[[1]]
     prefix <- info[1]
-    condition <- info[2]
 
-    gs_cells <- colnames(all_gs$gs_data[[prefix]][[condition]])
-    gs_genes <- rownames(all_gs$gs_data[[prefix]][[condition]])
+    gs_cells <- colnames(all_gs$gs_data[[prefix]])
+    gs_genes <- rownames(all_gs$gs_data[[prefix]])
 
     # validate if minimumn shared cell/genes is matched
     n_shared_cells <- length(intersect(colnames(pred_data), gs_cells)) / length(gs_cells)
