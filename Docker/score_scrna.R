@@ -88,7 +88,7 @@ result_list <- list(
   primary_average = mean(all_scores$primary_score, na.rm = TRUE),
   secondary_average = mean(all_scores$secondary_score, na.rm = TRUE),
   submission_status = "SCORED",
-  submission_phase = ifelse(args$public_phase, "public", "private")
+  submission_phase = phase
 )
 
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)
