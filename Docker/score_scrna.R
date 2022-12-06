@@ -32,10 +32,11 @@ untar(args$submission_file)
 # read ground truth data
 all_gs <- readRDS(args$goldstandard)
 
-# read the filenames of all imputed data
-basenames <- all_gs$down_basenames
-# filter to subset data if it's public phase
-if (args$public_phase) basenames <- basenames[grep("ds1_c3", basenames)]
+# determine phase
+if (args$public_phase) phase <- "public" else phase <- "private"
+
+# read the filenames of all input data
+basenames <- all_gs$down_basenames[[phase]]
 true_pred_files <- paste0(basenames, "_imputed.csv")
 
 # calculate scores each test case across different configurations
@@ -45,7 +46,6 @@ scores_df <- mclapply(true_pred_files, function(pred_file) {
       # detect file prefix used to read gs
       info <- strsplit(pred_file, "_")[[1]]
       prefix <- info[1]
-      condition <- info[2]
 
       # read prediction
       pred_path <- file.path(pred_dir, pred_file)
@@ -53,12 +53,12 @@ scores_df <- mclapply(true_pred_files, function(pred_file) {
       pred_data <- NormalizeData(pred_data, verbose = FALSE)
 
       # read gs
-      gs <- all_gs$gs_data[[prefix]][[condition]]
+      gs <- all_gs$gs_data[[prefix]]
 
       eval_data <- .prepare(true = gs, pred = pred_data)
 
       # scoring
-      use_pseudobulk <- prefix %in% c("ds2", "ds3c")
+      use_pseudobulk <- prefix %in% c("ds2", "ds3_p00625", "ds3_p0125", "ds3_p025")
       nrmse_score <- calculate_nrmse(eval_data, pseudobulk = use_pseudobulk)
       spearman_score <- calculate_spearman(eval_data, pseudobulk = use_pseudobulk)
 
@@ -88,7 +88,7 @@ result_list <- list(
   primary_average = mean(all_scores$primary_score, na.rm = TRUE),
   secondary_average = mean(all_scores$secondary_score, na.rm = TRUE),
   submission_status = "SCORED",
-  submission_phase = ifelse(args$public_phase, "public", "private")
+  submission_phase = phase
 )
 
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)

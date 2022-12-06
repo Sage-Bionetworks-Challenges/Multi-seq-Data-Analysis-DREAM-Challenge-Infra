@@ -9,27 +9,22 @@ syn$login(silent = TRUE)
 
 # Update all listed submission views
 submission_views <- list(
-  task1 = c(view = "syn36625504", basenames = "syn36397657"),
-  task2 = c(view = "syn36625445", basenames = "syn36397602")
+  task1 = c(view = "syn36625504", gs = "syn34612394"),
+  task2 = c(view = "syn36625445", gs = "syn35294386")
 )
 
 for (task_n in seq_along(submission_views)) {
   task_name <- names(submission_views)[task_n]
   task_sub_id <- submission_views[[task_n]]["view"]
-  task_basenames_id <- submission_views[[task_n]]["basenames"]
-
-  # create basenames of predictions to filter submission view
-  basenames_path <- syn$get(task_basenames_id)["path"]
-  basenames <- read.table(basenames_path, header = FALSE)[, 1]
+  task_gs_id <- submission_views[[task_n]]["gs"]
 
   phase <- Sys.getenv("SUBMISSION_PHASE")
-  # filter to subset of data used for public phase
-  if (phase == "public" && task_n == 1) basenames <- basenames[grep("ds1_c3", basenames)]
-  if (phase == "public" && task_n == 2) {
-    odd_pgs <- paste0("ds1.*pg_", seq(1, by = 2, len = 16)) %>%
-      paste0(collapse = "\\.|")
-    basenames <- basenames[grep(odd_pgs, basenames)]
-  }
+  stopifnot(phase %in% c("public", "private"))
+
+  # retrieve the basenames from gs to filter submission view
+  gs_path <- syn$get(task_gs_id)["path"]
+  gs <- readRDS(gs_path)
+  basenames <- gs$down_basenames[[phase]]
   pred_filenames <- paste0(basenames, "_imputed.csv")
 
   # query the submission view

@@ -30,14 +30,11 @@ untar(args$submission_file)
 # read ground truth data
 all_gs <- readRDS(args$goldstandard)
 
-# read the filenames of all imputed data
-basenames <- all_gs$down_basenames
-# filter to subset data if it's public phase
-if (args$public_phase) {
-  odd_pgs <- paste0("ds1.*pg_", seq(1, by = 2, len = 16)) %>%
-    stringr::str_c(collapse = "\\.|")
-  basenames <- basenames[grep(odd_pgs, basenames)]
-}
+# determine phase
+if (args$public_phase) phase <- "public" else phase <- "private"
+
+# read the filenames of all input data
+basenames <- all_gs$down_basenames[[phase]]
 pred_files <- paste0(basenames, ".bed")
 
 chunks <- split(pred_files, ceiling(seq_along(pred_files) / 40))
@@ -122,7 +119,7 @@ result_list <- list(
   primary_average = mean(all_scores$summed_score, na.rm = TRUE),
   secondary_average = mean(all_scores$jaccard_similarity, na.rm = TRUE),
   submission_status = "SCORED",
-  submission_phase = ifelse(args$public_phase, "public", "private")
+  submission_phase = phase
 )
 
 export_json <- jsonlite::toJSON(result_list, auto_unbox = TRUE, pretty = TRUE)

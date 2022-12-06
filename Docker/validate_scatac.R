@@ -39,14 +39,11 @@ if (is.null(args$submission_file)) {
   untar(args$submission_file)
 }
 
+# determine phase
+if (args$public_phase) phase <- "public" else phase <- "private"
+
 # retrieve all file names
-basenames <- all_gs$down_basenames
-# filter to subset data if it's public phase
-if (args$public_phase) {
-  odd_pgs <- paste0("ds1.*pg_", seq(1, by = 2, len = 16)) %>%
-    stringr::str_c(collapse = "\\.|")
-  basenames <- basenames[grep(odd_pgs, basenames)]
-}
+basenames <- all_gs$down_basenames[[phase]]
 true_pred_files <- paste0(basenames, ".bed")
 pred_files <- list.files(pred_dir, pattern = "*.bed")
 

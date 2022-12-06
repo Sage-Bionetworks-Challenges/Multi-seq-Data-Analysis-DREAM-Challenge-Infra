@@ -41,7 +41,7 @@ expression: |
       var question = "1"
 
       if (inputs.public_phase) {
-        var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna-synthetic"
+        var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna-subset"
       } else {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna"
       }
@@ -52,7 +52,7 @@ expression: |
       var question = "2"
 
       if (inputs.public_phase) {
-        var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac-synthetic"
+        var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac-subset"
       } else {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac"
       }
