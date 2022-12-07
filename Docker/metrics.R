@@ -1,14 +1,16 @@
 ## Function to calculate scores on scRNAseq data ------------------
-.prepare <- function(true, pred, pseudobulk = FALSE, true_cells = NULL) {
+.prepare <- function(true, pred, pseudobulk = FALSE, proportion = NULL) {
   shared_cells <- intersect(colnames(pred), colnames(true))
   shared_genes <- intersect(rownames(pred), rownames(true))
 
   # number of missing cells and genes
-  if (pseudobulk && !is.null(true_cells)) {
+  if (pseudobulk) {
+    stopifnot(!is.null(proportion))
+    proportion <- as.numeric(gsub("p0", "0.", proportion)) # i.e, 'p025' -> 0.25
     # using pseudobulk means the cells of training data are subsetted
-    # use cells of subsetted dataset instead of raw's
-    n_na_cells <- sum(!true_cells %in% colnames(pred))
-    total_cells <- length(true_cells)
+    # calculate expected number of cells
+    total_cells <- floor(ncol(true) * proportion)
+    n_na_cells <- total_cells - length(shared_cells)
   } else {
     n_na_cells <- sum(!colnames(true) %in% colnames(pred))
     total_cells <- ncol(true)

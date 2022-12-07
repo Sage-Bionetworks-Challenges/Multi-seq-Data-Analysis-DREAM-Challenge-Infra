@@ -18,7 +18,6 @@ args <- parser$parse_args()
 
 options(useFancyQuotes = FALSE) # ensure to encode single quotes properly
 
-ncores <- 10
 pred_dir <- "output"
 
 invalid_reasons <- list()
@@ -54,14 +53,14 @@ if (length(diff) > 0) {
     invalid_reasons,
     paste0(
       length(diff), " file not found : ",
-      paste0(sQuote(diff), collapse = ", ") %>% stringr::str_trunc(250)
+      paste0(sQuote(diff), collapse = ", ") %>% stringr::str_trunc(80)
     )
   )
 }
 
 # iterate to validate each prediction file
 if (length(diff) == 0) {
-  res <- parallel::mclapply(true_pred_files, function(pred_file) {
+  res <- lapply(true_pred_files, function(pred_file) {
     pred_data <- data.table::fread(file.path(pred_dir, pred_file)) %>%
       tibble::column_to_rownames("V1")
 
@@ -74,9 +73,7 @@ if (length(diff) == 0) {
 
     # validate if all data are non-negative
     if (any(pred_data[, 2:3] < 0)) neg_files <<- append(neg_files, pred_data)
-
-    # TODO
-  }, mc.cores = ncores)
+  })
 
   # add invalid file names with specific reasons
   if (length(col_n_files) > 0) {
@@ -84,7 +81,7 @@ if (length(diff) == 0) {
       invalid_reasons,
       paste0(
         "The called peak file should have at least three columns ('chr', 'start', 'stop') : ",
-        paste0(sQuote(col_n_files), collapse = ", ") %>% stringr::str_trunc(250)
+        paste0(sQuote(col_n_files), collapse = ", ") %>% stringr::str_trunc(160)
       )
     )
   }
@@ -94,7 +91,7 @@ if (length(diff) == 0) {
       invalid_reasons,
       paste0(
         "Types of columns are not matched, please make sure the types of first three columns are 'string', 'numeric' and 'numeric' : ",
-        paste0(sQuote(col_n_files), collapse = ", ") %>% stringr::str_trunc(250)
+        paste0(sQuote(col_n_files), collapse = ", ") %>% stringr::str_trunc(160)
       )
     )
   }
@@ -104,7 +101,7 @@ if (length(diff) == 0) {
       invalid_reasons,
       paste0(
         "Not all values are numeric : ",
-        paste0(sQuote(neg_files), collapse = ", ") %>% stringr::str_trunc(250)
+        paste0(sQuote(neg_files), collapse = ", ") %>% stringr::str_trunc(80)
       )
     )
   }

@@ -18,7 +18,6 @@ args <- parser$parse_args()
 
 options(useFancyQuotes = FALSE) # ensure to encode single quotes properly
 
-ncores <- 20
 pred_dir <- "output"
 
 invalid_reasons <- list()
@@ -55,14 +54,14 @@ if (length(diff) > 0) {
     invalid_reasons,
     paste0(
       length(diff), " file(s) not found : ",
-      paste0(sQuote(diff), collapse = ", ") %>% stringr::str_trunc(250)
+      paste0(sQuote(diff), collapse = ", ") %>% stringr::str_trunc(80)
     )
   )
 }
 
 # iterate to validate each prediction file
 if (length(diff) == 0) {
-  parallel::mclapply(true_pred_files, function(pred_file) {
+  res <- lapply(true_pred_files, function(pred_file) {
     pred_data <- data.table::fread(file.path(pred_dir, pred_file), verbose = FALSE) %>%
       tibble::column_to_rownames("V1")
 
@@ -75,24 +74,35 @@ if (length(diff) == 0) {
     # detect file prefix used to read gs
     info <- strsplit(pred_file, "_")[[1]]
     prefix <- info[1]
+    prop <- info[2]
 
     gs_cells <- colnames(all_gs$gs_data[[prefix]])
     gs_genes <- rownames(all_gs$gs_data[[prefix]])
 
     # validate if minimumn shared cell/genes is matched
-    n_shared_cells <- length(intersect(colnames(pred_data), gs_cells)) / length(gs_cells)
-    n_shared_genes <- length(intersect(rownames(pred_data), gs_genes)) / length(gs_genes)
-    if (n_shared_cells < 0.5) cells_files <<- append(cells_files, pred_file)
-    if (n_shared_genes < 0.5) genes_files <<- append(genes_files, pred_file)
-  }, mc.cores = ncores)
+    shared_cells <- intersect(colnames(pred_data), gs_cells)
+    shared_genes <- intersect(rownames(pred_data), gs_genes)
+    if (prop %in% c("p00625", "p0125", "p025")) {
+      prop <- as.numeric(gsub("p0", "0.", prop)) # i.e, 'p025' -> 0.25
+      n_down_cells <- floor(length(gs_cells) * prop)
+      pct_shared_cells <- length(shared_cells) / length(n_down_cells)
+    } else {
+      pct_shared_cells <- length(shared_cells) / length(gs_cells)
+    }
+    pct_shared_genes <- length(shared_genes) / length(gs_genes)
+
+    if (pct_shared_cells < 0.5) cells_files <<- append(cells_files, pred_file)
+    if (pct_shared_genes < 0.5) genes_files <<- append(genes_files, pred_file)
+  })
+
 
   # add invalid file names with specific reasons
   if (length(neg_files) > 0) {
     invalid_reasons <- append(
       invalid_reasons,
       paste0(
-        "Not all values are numeric : ",
-        paste0(sQuote(neg_files), collapse = ", ") %>% stringr::str_trunc(250)
+        "Negative value is not allowed : ",
+        paste0(sQuote(neg_files), collapse = ", ") %>% stringr::str_trunc(80)
       )
     )
   }
@@ -101,8 +111,8 @@ if (length(diff) == 0) {
     invalid_reasons <- append(
       invalid_reasons,
       paste0(
-        "Negative value is not allowed : ",
-        paste0(sQuote(non_num_files), collapse = ", ") %>% stringr::str_trunc(250)
+        "Not all values are numeric : ",
+        paste0(sQuote(non_num_files), collapse = ", ") %>% stringr::str_trunc(80)
       )
     )
   }
@@ -112,7 +122,7 @@ if (length(diff) == 0) {
       invalid_reasons,
       paste0(
         "Not enough matched cells (50%) are found : ",
-        paste0(sQuote(cells_files), collapse = ", ") %>% stringr::str_trunc(250)
+        paste0(sQuote(cells_files), collapse = ", ") %>% stringr::str_trunc(80)
       )
     )
   }
@@ -122,7 +132,7 @@ if (length(diff) == 0) {
       invalid_reasons,
       paste0(
         "Not enough matched genes (50%) are found : ",
-        paste0(sQuote(genes_files), collapse = ", ") %>% stringr::str_trunc(250)
+        paste0(sQuote(genes_files), collapse = ", ") %>% stringr::str_trunc(80)
       )
     )
   }

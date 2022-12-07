@@ -56,20 +56,14 @@ scores_df <- mclapply(true_pred_files, function(pred_file) {
       # read gs
       gs <- all_gs$gs_data[[prefix]]
 
-      use_pseudobulk <- prefix %in% c(
-        "ds2",
-        "ds1c_p00625", "ds1c_p0125", "ds1c_p025",
-        "ds3_p00625", "ds3_p0125", "ds3_p025"
-      )
-
-      if (use_pseudobulk) down_cells <- all_gs$down_cells[[prefix]][[prop]] else down_cells <- NULL
+      use_pseudobulk <- prop %in% c("p00625", "p0125", "p025")
 
       # prepare the scrna data for evaluation
       eval_data <- .prepare(
         true = gs,
         pred = pred_data,
         pseudobulk = use_pseudobulk,
-        true_cells = down_cells
+        proportion = prop
       )
 
       # scoring
