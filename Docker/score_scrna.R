@@ -46,6 +46,7 @@ scores_df <- mclapply(true_pred_files, function(pred_file) {
       # detect file prefix used to read gs
       info <- strsplit(pred_file, "_")[[1]]
       prefix <- info[1]
+      prop <- info[2]
 
       # read prediction
       pred_path <- file.path(pred_dir, pred_file)
@@ -55,10 +56,23 @@ scores_df <- mclapply(true_pred_files, function(pred_file) {
       # read gs
       gs <- all_gs$gs_data[[prefix]]
 
-      eval_data <- .prepare(true = gs, pred = pred_data)
+      use_pseudobulk <- prefix %in% c(
+        "ds2",
+        "ds1c_p00625", "ds1c_p0125", "ds1c_p025",
+        "ds3_p00625", "ds3_p0125", "ds3_p025"
+      )
+
+      if (use_pseudobulk) down_cells <- all_gs$down_cells[[prefix]][[prop]] else down_cells <- NULL
+
+      # prepare the scrna data for evaluation
+      eval_data <- .prepare(
+        true = gs,
+        pred = pred_data,
+        pseudobulk = use_pseudobulk,
+        true_cells = down_cells
+      )
 
       # scoring
-      use_pseudobulk <- prefix %in% c("ds2", "ds3_p00625", "ds3_p0125", "ds3_p025")
       nrmse_score <- calculate_nrmse(eval_data, pseudobulk = use_pseudobulk)
       spearman_score <- calculate_spearman(eval_data, pseudobulk = use_pseudobulk)
 

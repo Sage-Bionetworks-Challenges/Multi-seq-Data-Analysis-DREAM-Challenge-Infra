@@ -1,19 +1,29 @@
 ## Function to calculate scores on scRNAseq data ------------------
-.prepare <- function(true, pred) {
+.prepare <- function(true, pred, pseudobulk = FALSE, true_cells = NULL) {
   shared_cells <- intersect(colnames(pred), colnames(true))
   shared_genes <- intersect(rownames(pred), rownames(true))
 
   # number of missing cells and genes
-  n_na_cells <- sum(!colnames(true) %in% colnames(pred))
+  if (pseudobulk && !is.null(true_cells)) {
+    # using pseudobulk means the cells of training data are subsetted
+    # use cells of subsetted dataset instead of raw's
+    n_na_cells <- sum(!true_cells %in% colnames(pred))
+    total_cells <- length(true_cells)
+  } else {
+    n_na_cells <- sum(!colnames(true) %in% colnames(pred))
+    total_cells <- ncol(true)
+  }
   n_na_genes <- sum(!rownames(true) %in% rownames(pred))
-  total_cells <- ncol(true)
   total_genes <- nrow(true)
 
-
-  # reorder
-  out_true <- as.matrix(true[shared_genes, shared_cells])
-  out_pred <- as.matrix(pred[shared_genes, shared_cells])
-
+  # match the orders of genes and cells
+  if (pseudobulk) {
+    out_true <- as.matrix(true[shared_genes, ])
+    out_pred <- as.matrix(pred[shared_genes, ])
+  } else {
+    out_true <- as.matrix(true[shared_genes, shared_cells])
+    out_pred <- as.matrix(pred[shared_genes, shared_cells])
+  }
   return(list(
     true = out_true,
     pred = out_pred,
