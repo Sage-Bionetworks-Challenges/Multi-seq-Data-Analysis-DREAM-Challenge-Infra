@@ -44,7 +44,14 @@ for (task_n in seq_along(submission_views)) {
   if (nrow(sub_df) > 0) { # validate if any valid submission to prevent from failing
     # read all valid scores results
     message("Getting scores for each valid submission ...")
-    valid_colnames <- c("dataset", "primary_score", "secondary_score")
+    if (task_n == 1) {
+      primary_score <- "nrmse_score"
+      secondary_score <- "spearman_score"
+    } else {
+      primary_score <- "summed_score"
+      secondary_score <- "jaccard_similarity"
+    }
+    valid_colnames <- c("dataset", primary_score, secondary_score)
     all_scores <- lapply(1:nrow(sub_df), function(i) {
       syn_id <- sub_df$submission_scores[i]
       score_path <- syn$get(syn_id)$path
@@ -58,6 +65,10 @@ for (task_n in seq_along(submission_views)) {
       score_df$id <- sub_df$id[i]
       return(score_df)
     }) %>% bind_rows()
+
+    # rename columns
+    colnames(all_scores)[which(colnames(all_scores) == primary_score)] <- "primary_score"
+    colnames(all_scores)[which(colnames(all_scores) == secondary_score)] <- "secondary_score"
 
     if (nrow(all_scores) == 0) {
       message("No valid submission found \u274C")

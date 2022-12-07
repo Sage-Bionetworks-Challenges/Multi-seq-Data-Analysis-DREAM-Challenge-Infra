@@ -74,8 +74,8 @@ scores_df <- mclapply(true_pred_files, function(pred_file) {
       return(
         tibble(
           dataset = pred_file,
-          primary_score = nrmse_score,
-          secondary_score = abs(spearman_score)
+          nrmse_score = nrmse_score,
+          spearman_score = abs(spearman_score)
         )
       )
     },
