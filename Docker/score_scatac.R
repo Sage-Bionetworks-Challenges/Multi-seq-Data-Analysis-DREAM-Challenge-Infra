@@ -116,8 +116,8 @@ write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
 # add annotations
 result_list <- list(
-  primary_average = mean(all_scores$summed_score, na.rm = TRUE),
-  secondary_average = mean(all_scores$jaccard_similarity, na.rm = TRUE),
+  primary_metric_average = mean(all_scores$summed_score, na.rm = TRUE),
+  secondary_metric_average = mean(all_scores$jaccard_similarity, na.rm = TRUE),
   submission_status = "SCORED",
   submission_phase = phase
 )
