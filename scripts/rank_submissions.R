@@ -25,7 +25,11 @@ for (task_n in seq_along(submission_views)) {
   gs_path <- syn$get(task_gs_id)["path"]
   gs <- readRDS(gs_path)
   basenames <- gs$down_basenames[[phase]]
-  pred_filenames <- paste0(basenames, "_imputed.csv")
+  if (task_n == 1) {
+    pred_filenames <- paste0(basenames, "_imputed.csv")
+  } else {
+    pred_filenames <- paste0(basenames, ".bed")
+  }
 
   # query the submission view
   message("Querying table - ", task_name, " in the ", phase, " phase ...")
