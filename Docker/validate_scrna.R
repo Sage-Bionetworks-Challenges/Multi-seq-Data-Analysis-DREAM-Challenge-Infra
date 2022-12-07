@@ -12,7 +12,7 @@ parser <- argparse::ArgumentParser()
 parser$add_argument("-g", "--goldstandard_file", help = "Goldstandard file")
 parser$add_argument("-s", "--submission_file", help = "Submission file")
 parser$add_argument("-e", "--entity_type", help = "Synapse entity type downloaded")
-parser$add_argument("--public_phase", action = "store_true", help = "Public leaderborder phase")
+parser$add_argument("--public_phase", help = "Public leaderborder phase")
 parser$add_argument("-r", "--results", help = "Results path")
 args <- parser$parse_args()
 
@@ -40,7 +40,7 @@ if (is.null(args$submission_file)) {
 }
 
 # determine phase
-if (args$public_phase) phase <- "public" else phase <- "private"
+phase <- args$public_phase
 
 # retrieve all file names
 basenames <- all_gs$down_basenames[[phase]]

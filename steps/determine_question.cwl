@@ -17,7 +17,7 @@ inputs:
   - id: queue
     type: string
   - id: public_phase
-    type: boolean
+    type: string
 
 outputs:
   - id: question
@@ -27,7 +27,7 @@ outputs:
   - id: gs_synId
     type: string
   - id: public_phase
-    type: boolean
+    type: string
 
 requirements:
   - class: InlineJavascriptRequirement
@@ -40,7 +40,7 @@ expression: |
       var gs_synId = "syn34612394"
       var question = "1"
 
-      if (inputs.public_phase) {
+      if (inputs.public_phase == "public") {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna-subset"
       } else {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna"
@@ -51,7 +51,7 @@ expression: |
       var gs_synId = "syn35294386"
       var question = "2"
 
-      if (inputs.public_phase) {
+      if (inputs.public_phase == "public") {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac-subset"
       } else {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac"

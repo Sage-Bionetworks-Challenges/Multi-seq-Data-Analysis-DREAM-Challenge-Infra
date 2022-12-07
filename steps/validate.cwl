@@ -20,7 +20,7 @@ inputs:
   - id: question
     type: string
   - id: public_phase
-    type: boolean
+    type: string
 
 arguments:
   - position: 0

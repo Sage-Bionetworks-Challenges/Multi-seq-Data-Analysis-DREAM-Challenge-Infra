@@ -32,7 +32,7 @@ inputs:
   - id: question
     type: string
   - id: public_phase
-    type: boolean
+    type: string
 
 arguments: 
   - valueFrom: $(inputs.docker_script.path)

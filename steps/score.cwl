@@ -20,7 +20,7 @@ inputs:
   - id: check_validation_finished
     type: boolean?
   - id: public_phase
-    type: boolean
+    type: string
 
 arguments:
   - position: 0
