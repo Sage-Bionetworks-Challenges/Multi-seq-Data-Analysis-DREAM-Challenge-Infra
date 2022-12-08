@@ -82,6 +82,26 @@ def remove_docker_image(image_name):
         print("Unable to remove image")
 
 
+def prune_docker_system():
+    """Remove unused containers, images and volumes"""
+    client = docker.from_env()
+    try:
+        client.containers.prune()
+        client.images.prune()
+        client.volumes.prune()
+    except Exception:
+        print("Unable to prune docker system")
+
+
+def prune_docker_containers(image_name):
+    """Remove docker image"""
+    client = docker.from_env()
+    try:
+        client.images.remove(image_name, force=True)
+    except Exception:
+        print("Unable to remove image")
+
+
 def tar(directory, tar_filename):
     """Tar all files in a directory
 
