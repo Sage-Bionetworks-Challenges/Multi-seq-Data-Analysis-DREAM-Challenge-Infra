@@ -143,7 +143,7 @@ def main(syn, args):
     # create a local volume and set size limit
     output_volume = client.volumes.create(name=args.submissionid,
                                           driver='local',
-                                          driver_opts={"size": "80g"})
+                                          driver_opts={"size": "120g"})
     # set volumes used to mount
     input_mount = [input_dir, "input"]
     output_mount = [args.submissionid, "output"]
@@ -176,7 +176,8 @@ def main(syn, args):
                                               name=args.submissionid,
                                               network_disabled=True,
                                               mem_limit=docker_mem,
-                                              nano_cpus=docker_cpu)
+                                              nano_cpus=docker_cpu,
+                                              storage_opt={"size": "120g"})
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             docker_errors = str(err) + "\n"
