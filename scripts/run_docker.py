@@ -191,9 +191,9 @@ def main(syn, args):
     # Open log file first
     open(log_filename, 'w').close()
 
-    # If the container doesn't exist or there is docker_errors, aka failed to run the docker container,
+    # If the container doesn't exist,
     # there are no logs to write out and no container to remove
-    if container is not None and not docker_errors:
+    if container is not None:
         # Check if container is still running
         while container in client.containers.list():
             # monitor the time elapsed
