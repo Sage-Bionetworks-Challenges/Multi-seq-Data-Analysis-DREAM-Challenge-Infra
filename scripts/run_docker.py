@@ -183,11 +183,6 @@ def main(syn, args):
             remove_docker_container(args.submissionid)
             docker_errors.append(str(err))
 
-        if container.status == "created":
-            remove_docker_container(args.submissionid)
-            docker_errors.append(
-                f"Unable to run the container for {args.submissionid}")
-
     print("creating logfile")
     # Create the logfile
     log_filename = args.submissionid + "_log.txt"
@@ -218,19 +213,22 @@ def main(syn, args):
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         # copy the prediction dir from model container to working dir before removed
-        subprocess.check_call(
-            ["docker", "cp", f"{args.submissionid}:/{output_mount[1]}", "."])
-        # Remove container after being done
-        container.remove()
+        try:
+            subprocess.check_call(
+                ["docker", "cp", f"{args.submissionid}:/{output_mount[1]}", "."])
+        except docker.errors.APIError as err:
+            docker_errors.append(str(err))
 
     statinfo = os.stat(log_filename)
 
-    if statinfo.st_size == 0:
+    # if not succesfully run the docker container or no log
+    if docker_errors or statinfo.st_size == 0:
         create_log_file(log_filename, log_text="\n".join(docker_errors))
         store_log_file(syn, log_filename, args.parentid, store=args.store)
 
     print("finished training")
-    # Try to remove the image
+    # try to remove image and volume
+    container.remove()
     remove_docker_image(docker_image)
     output_volume.remove()
 
