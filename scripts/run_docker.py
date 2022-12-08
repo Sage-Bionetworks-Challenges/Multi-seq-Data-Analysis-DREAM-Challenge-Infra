@@ -178,7 +178,8 @@ def main(syn, args):
                                               network_disabled=True,
                                               mem_limit=docker_mem,
                                               nano_cpus=docker_cpu,
-                                              storage_opt={"size": "120g"})
+                                              storage_opt={"size": "120g"},
+                                              stderr=True)
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             docker_errors.append(str(err))
@@ -203,21 +204,24 @@ def main(syn, args):
                 container.stop()
                 break
 
-            log_text = container.logs(stdout=False)
+            log_text = container.logs()
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
             time.sleep(60)
 
         # Must run again to make sure all the logs are captured
-        log_text = container.logs(stdout=False)
+        log_text = container.logs()
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         # copy the prediction dir from model container to working dir before removed
         try:
             subprocess.check_call(
                 ["docker", "cp", f"{args.submissionid}:/{output_mount[1]}", "."])
-        except docker.errors.APIError as err:
+        except subprocess.CalledProcessError as err:
             docker_errors.append(str(err))
+            container.stop()
+
+        container.remove()
 
     statinfo = os.stat(log_filename)
 
@@ -228,7 +232,6 @@ def main(syn, args):
 
     print("finished training")
     # try to remove image and volume
-    container.remove()
     remove_docker_image(docker_image)
     output_volume.remove()
 
