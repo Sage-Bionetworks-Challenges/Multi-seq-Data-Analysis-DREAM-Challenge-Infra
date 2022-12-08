@@ -154,7 +154,7 @@ def main(syn, args):
     # Look for if the container exists already, if so, reconnect
     print("checking for containers")
     container = None
-    docker_errors = None  # errors raised from docker container
+    docker_errors = []  # errors raised from docker container
     sub_errors = []  # friendly errors sent to participants about failed submission
 
     for cont in client.containers.list(all=True):
@@ -181,7 +181,7 @@ def main(syn, args):
                                               storage_opt={"size": "120g"})
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
-            docker_errors = str(err) + "\n"
+            docker_errors.append(str(err))
 
     print("creating logfile")
     # Create the logfile
@@ -189,9 +189,9 @@ def main(syn, args):
     # Open log file first
     open(log_filename, 'w').close()
 
-    # If the container doesn't exist,
+    # If the container doesn't exist or there is docker_errors, aka failed to run the docker container,
     # there are no logs to write out and no container to remove
-    if container is not None:
+    if container is not None and not docker_errors:
         # Check if container is still running
         while container in client.containers.list():
             # monitor the time elapsed
@@ -203,13 +203,13 @@ def main(syn, args):
                 container.stop()
                 break
 
-            log_text = container.logs()
+            log_text = container.logs(stderr=True, stdout=True)
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
             time.sleep(60)
 
         # Must run again to make sure all the logs are captured
-        log_text = container.logs()
+        log_text = container.logs(stderr=True, stdout=True)
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         # copy the prediction dir from model container to working dir before removed
@@ -217,7 +217,7 @@ def main(syn, args):
             subprocess.check_call(
                 ["docker", "cp", f"{args.submissionid}:/{output_mount[1]}", "."])
         except subprocess.CalledProcessError as err:
-            docker_errors = str(err) + "\n"
+            docker_errors.append(str(err))
             container.stop()
 
         container.remove()
@@ -225,8 +225,8 @@ def main(syn, args):
     statinfo = os.stat(log_filename)
 
     # if not succesfully run the docker container or no log
-    if statinfo.st_size == 0:
-        create_log_file(log_filename, log_text=docker_errors)
+    if docker_errors or statinfo.st_size == 0:
+        create_log_file(log_filename, log_text="\n".join(docker_errors))
         store_log_file(syn, log_filename, args.parentid, store=args.store)
 
     print("finished training")
