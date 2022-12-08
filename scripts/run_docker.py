@@ -178,8 +178,7 @@ def main(syn, args):
                                               network_disabled=True,
                                               mem_limit=docker_mem,
                                               nano_cpus=docker_cpu,
-                                              storage_opt={"size": "120g"},
-                                              stderr=True)
+                                              storage_opt={"size": "120g"})
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             docker_errors.append(str(err))
@@ -204,13 +203,13 @@ def main(syn, args):
                 container.stop()
                 break
 
-            log_text = container.logs()
+            log_text = container.logs(stderr=True, stdout=True)
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
             time.sleep(60)
 
         # Must run again to make sure all the logs are captured
-        log_text = container.logs()
+        log_text = container.logs(stderr=True, stdout=True)
         create_log_file(log_filename, log_text=log_text)
         store_log_file(syn, log_filename, args.parentid, store=args.store)
         # copy the prediction dir from model container to working dir before removed
