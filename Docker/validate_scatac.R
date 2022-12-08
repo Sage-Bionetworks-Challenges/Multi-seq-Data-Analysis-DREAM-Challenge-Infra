@@ -61,8 +61,7 @@ if (length(diff) > 0) {
 # iterate to validate each prediction file
 if (length(diff) == 0) {
   res <- lapply(true_pred_files, function(pred_file) {
-    pred_data <- data.table::fread(file.path(pred_dir, pred_file)) %>%
-      tibble::column_to_rownames("V1")
+    pred_data <- data.table::fread(file.path(pred_dir, pred_file))
 
     # validate if there are at least three columns used for evaluations
     if (any(ncol(pred_data < 3))) col_n_files <<- append(col_n_files, pred_data)
