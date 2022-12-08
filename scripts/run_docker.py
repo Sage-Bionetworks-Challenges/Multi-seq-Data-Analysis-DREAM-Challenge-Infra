@@ -82,17 +82,6 @@ def remove_docker_image(image_name):
         print("Unable to remove image")
 
 
-def prune_docker_system():
-    """Remove unused containers, images and volumes"""
-    client = docker.from_env()
-    try:
-        client.containers.prune()
-        client.images.prune()
-        client.volumes.prune()
-    except Exception:
-        print("Unable to prune docker system")
-
-
 def tar(directory, tar_filename):
     """Tar all files in a directory
 
@@ -125,8 +114,6 @@ def main(syn, args):
     # .docker/config.json...
     # client = docker.from_env()
     client = docker.DockerClient(base_url='unix://var/run/docker.sock')
-    # clean up existing unused containers, volumes, images just in case
-    prune_docker_system()
 
     config = synapseclient.Synapse().getConfigFile(
         configPath=args.synapse_config
