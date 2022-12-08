@@ -178,8 +178,7 @@ def main(syn, args):
                                               network_disabled=True,
                                               mem_limit=docker_mem,
                                               nano_cpus=docker_cpu,
-                                              storage_opt={"size": "120g"},
-                                              stderr=True)
+                                              storage_opt={"size": "120g"})
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             docker_errors = str(err) + "\n"
