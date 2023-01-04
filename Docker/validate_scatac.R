@@ -63,15 +63,17 @@ if (length(diff) == 0) {
   res <- lapply(true_pred_files, function(pred_file) {
     pred_data <- data.table::fread(file.path(pred_dir, pred_file), data.table = FALSE, verbose = FALSE)
 
-    # validate if there are at least three columns used for evaluations
-    if (any(ncol(pred_data) < 3)) col_n_files <<- append(col_n_files, pred_file)
+    if (nrow(pred_data) > 0) { # if it's not an empty file
+      # validate if there are at least three columns used for evaluations
+      if (any(ncol(pred_data) < 3)) col_n_files <<- append(col_n_files, pred_file)
 
-    # validate if first three columns follows right tyep
-    # try not to limit to only int for now (numeric could be int or float in r)
-    if (!is.character(pred_data[, 1]) || any(!sapply(pred_data[, 2:3], is.numeric))) col_type_files <<- append(col_type_files, pred_file)
+      # validate if first three columns follows right type
+      # try not to limit to only int for now (numeric could be int or float in r)
+      if (!is.character(pred_data[, 1]) || any(!sapply(pred_data[, 2:3], is.numeric))) col_type_files <<- append(col_type_files, pred_file)
 
-    # validate if all data are non-negative
-    if (any(pred_data[, 2:3] < 0)) neg_files <<- append(neg_files, pred_file)
+      # validate if all data are non-negative
+      if (any(pred_data[, 2:3] < 0)) neg_files <<- append(neg_files, pred_file)
+    }
   })
 
   # add invalid file names with specific reasons
