@@ -75,16 +75,17 @@ for (task_n in seq_along(submission_views)) {
     } else {
       message("Ranking scores ...")
 
-      # correct direction of correlation scores
-      if (task_n == 1) all_scores$secondary_score <- -all_scores$secondary_score
+      # correct direction of nrmse scores
+      if (task_n == 1) all_scores$primary_score <- -all_scores$primary_score
       # rank the scores
       rank_df <-
         all_scores %>%
         group_by(dataset) %>%
         # rank each testcase score of one submission compared to all submissions
+        # the smaller values, the smaller ranks, aka higher ranks
         mutate(
-          testcase_primary_rank = rank(primary_score),
-          testcase_secondary_rank = rank(secondary_score)
+          testcase_primary_rank = rank(-primary_score),
+          testcase_secondary_rank = rank(-secondary_score)
         ) %>%
         group_by(id) %>%
         # get average scores of all testcases ranks in one submission
