@@ -224,11 +224,14 @@ def main(syn, args):
             # manually monitor the memory usage - log error and kill container if exceeds
             mem_stats = container.stats(stream=False)["memory_stats"]
             # ideally, mem_stats should not be empty for running containers, just in case
-            if mem_stats != {} and mem_stats["usage"]/2**30 > docker_mem:
-                sub_errors.append(
-                    f"Submission memory limit of {docker_mem}G reached.")
-                container.stop()
-                break
+            if mem_stats != {}:
+                mem_usage = mem_stats["usage"] - \
+                    mem_stats["stats"]["inactive_file"]
+                if mem_usage/2**30 > docker_mem:
+                    sub_errors.append(
+                        f"Submission memory limit of {docker_mem}G reached.")
+                    container.stop()
+                    break
             # monitor the time elapsed - log error and kill container if exceeds
             time_elapsed = time.time() - start_time
             if time_elapsed > docker_runtime_quot:
