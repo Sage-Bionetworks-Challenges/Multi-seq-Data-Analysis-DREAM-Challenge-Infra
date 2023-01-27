@@ -135,7 +135,7 @@ def main(syn, args):
 
     # Assign different resources limit for different questions
     # allow three submissions at a time
-    docker_mem = "160g" if args.question == "1" else "20g"
+    docker_mem = 160.0 if args.question == "1" else 20.0
     docker_cpu = 20000000000 if args.question == "1" else 10000000000
     docker_runtime_quot = 43200 if args.public_phase else 86400
     pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
@@ -169,24 +169,24 @@ def main(syn, args):
     if container is None:
         # Run as detached, logs will stream below
         print("running container")
-        try:
-            container = client.containers.run(docker_image,
-                                              detach=True,
-                                              volumes=volumes,
-                                              name=args.submissionid,
-                                              network_disabled=True,
-                                              mem_limit=docker_mem,
-                                              nano_cpus=docker_cpu,
-                                              storage_opt={"size": "120g"})
-        except docker.errors.APIError as err:
-            remove_docker_container(args.submissionid)
-            docker_errors.append(str(err))
 
-    print("creating logfile")
-    # Create the logfile
-    log_filename = args.submissionid + "_log.txt"
-    # Open log file first
-    open(log_filename, 'w').close()
+    try:
+        container = client.containers.run(docker_image,
+                                          detach=True,
+                                          volumes=volumes,
+                                          name=args.submissionid,
+                                          network_disabled=True,
+                                          nano_cpus=docker_cpu,
+                                          storage_opt={"size": "120g"})
+    except docker.errors.APIError as err:
+        remove_docker_container(args.submissionid)
+        docker_errors.append(str(err))
+
+        print("creating logfile")
+        # Create the logfile
+        log_filename = args.submissionid + "_log.txt"
+        # Open log file first
+        open(log_filename, 'w').close()
 
     # If the container doesn't exist or there is docker_errors, aka failed to run the docker container,
     # there are no logs to write out and no container to remove
@@ -195,15 +195,21 @@ def main(syn, args):
         start_time = time.time()
         time_elapsed = 0
         while container in client.containers.list():
-            # monitor the time elapsed
-            # if it exceeds the runtime quota, stop the container
+            # manually monitor the memory usage - log error and kill container if exceeds
+            mem_stats = container.stats(stream=False)["memory_stats"]
+            # ideally, mem_stats should not be empty for running containers, just in case
+            if mem_stats != {} and mem_stats["usage"]/2**30 > docker_mem:
+                sub_errors.append(
+                    f"Submission memory limit of {docker_mem}G reached.")
+                container.stop()
+                break
+            # monitor the time elapsed - log error and kill container if exceeds
             time_elapsed = time.time() - start_time
             if time_elapsed > docker_runtime_quot:
                 sub_errors.append(
                     f"Submission time limit of {int(docker_runtime_quot/3600)}h reached.")
                 container.stop()
                 break
-
             log_text = container.logs(stderr=True, stdout=True)
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
