@@ -278,17 +278,20 @@ def main(syn, args):
 
     has_error = docker_errors or sub_errors
 
-    # check if any expected file pattern exist and don't tar if has error
-    if glob.glob(os.path.join(output_mount[1], pred_file_suffix)) and not has_error:
-        tar(output_mount[1], "predictions.tar.gz")
-        sub_status = "VALIDATED"
+    # check if any expected file pattern exist
+    if glob.glob(os.path.join(output_mount[1], pred_file_suffix)):
+        # don't create submission file, otherwise the validate.cwl will be triggered (weird)
+        if not has_error:
+            tar(output_mount[1], "predictions.tar.gz")
     else:
         sub_errors.append(
             f"It seems error encountered while running your Docker container and "
             f"no '{pred_file_suffix}' file written to '/{output_mount[1]}' folder.\n"
             f"To view the tree structure of your output folder, please go here:"
             f"https://www.synapse.org/#!Synapse:{args.parentid}.")
-        sub_status = "INVALID"
+
+    # bypass run_docker check if no error
+    sub_status = "INVALID" if docker_errors or sub_errors else "VALIDATED"
 
     with open("results.json", "w") as out:
         out.write(json.dumps({
