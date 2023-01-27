@@ -7,6 +7,7 @@ import os
 import tarfile
 import time
 import json
+from pathlib import Path
 
 import docker
 import subprocess
@@ -29,15 +30,39 @@ def get_last_lines(log_filename, n=5):
     return last_lines
 
 
+def tree(dir_path):
+    """Generate directory tree structure."""
+    # TODO: consider to add level param to limit recursive
+    # TODO: consider the PermissionError
+    tree_str = []
+    n = 0
+
+    def inner(dir_path, n, tree_str):
+        dir_path = Path(dir_path)
+        if dir_path.is_file():
+            tree_str.append(f"{'    |' * n}{'-' * 4}{dir_path.name}")
+        elif dir_path.is_dir():
+            root = str(dir_path.relative_to(dir_path.parent))
+            tree_str.append(f"{'    |' * n}{'-' * 4}{root}/")
+            for child_path in dir_path.iterdir():
+                # remove hidden dirs/files
+                if not os.path.basename(child_path).startswith("."):
+                    inner(child_path, n + 1, tree_str)
+            tree_str.append('    |' * n)
+    inner(dir_path, n, tree_str)
+    return '\n'.join(tree_str)
+
+
 def create_log_file(log_filename, log_text=None, mode="w"):
     """Create log file"""
     with open(log_filename, mode) as log_file:
-        if log_text is not None:
+        empty_text = [None, b'', '']
+        if log_text in empty_text or log_text.isspace():
+            log_file.write("No Logs")
+        else:
             if isinstance(log_text, bytes):
                 log_text = log_text.decode("utf-8")
             log_file.write(log_text.encode("ascii", "ignore").decode("ascii"))
-        else:
-            log_file.write("No Logs")
 
 
 def store_log_file(syn, log_filename, parentid, store=True):
@@ -134,7 +159,7 @@ def main(syn, args):
 
     # Assign different resources limit for different questions
     # allow three submissions at a time
-    docker_mem = "160g" if args.question == "1" else "20g"
+    docker_mem = 160 if args.question == "1" else 20  # unit is Gib
     docker_cpu = 20000000000 if args.question == "1" else 10000000000
     docker_runtime_quot = 43200 if args.public_phase else 86400
     pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
@@ -168,15 +193,15 @@ def main(syn, args):
     if container is None:
         # Run as detached, logs will stream below
         print("running container")
-        start_time = time.time()
-        time_elapsed = 0
+
         try:
             container = client.containers.run(docker_image,
                                               detach=True,
                                               volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
-                                              mem_limit=docker_mem,
+                                              # TODO: think about a better default mem
+                                              mem_limit=f"{docker_mem+10}g",
                                               nano_cpus=docker_cpu,
                                               storage_opt={"size": "120g"})
         except docker.errors.APIError as err:
@@ -189,20 +214,28 @@ def main(syn, args):
     # Open log file first
     open(log_filename, 'w').close()
 
-    # If the container doesn't exist or there is docker_errors, aka failed to run the docker container,
+    # If the container doesn't exist or there is no docker_errors, aka failed to run the docker container,
     # there are no logs to write out and no container to remove
     if container is not None and not docker_errors:
         # Check if container is still running
+        start_time = time.time()
+        time_elapsed = 0
         while container in client.containers.list():
-            # monitor the time elapsed
-            # if it exceeds the runtime quota, stop the container
+            # manually monitor the memory usage - log error and kill container if exceeds
+            mem_stats = container.stats(stream=False)["memory_stats"]
+            # ideally, mem_stats should not be empty for running containers, just in case
+            if mem_stats != {} and mem_stats["usage"]/2**30 > docker_mem:
+                sub_errors.append(
+                    f"Submission memory limit of {docker_mem}G reached.")
+                container.stop()
+                break
+            # monitor the time elapsed - log error and kill container if exceeds
             time_elapsed = time.time() - start_time
             if time_elapsed > docker_runtime_quot:
                 sub_errors.append(
                     f"Submission time limit of {int(docker_runtime_quot/3600)}h reached.")
                 container.stop()
                 break
-
             log_text = container.logs(stderr=True, stdout=True)
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
@@ -226,6 +259,7 @@ def main(syn, args):
 
     # if not succesfully run the docker container or no log
     if docker_errors or statinfo.st_size == 0:
+        # write the docker error to log.txt if any
         create_log_file(log_filename, log_text="\n".join(docker_errors))
         store_log_file(syn, log_filename, args.parentid, store=args.store)
 
@@ -234,15 +268,28 @@ def main(syn, args):
     remove_docker_image(docker_image)
     output_volume.remove()
 
+    # return a tree structure of output folder
+    tree_filename = "output_tree_structure.txt"
+    tree_structure = tree(output_mount[1])
+    create_log_file(tree_filename, log_text=tree_structure)
+    store_log_file(syn, tree_filename, args.parentid, store=args.store)
+
+    has_error = docker_errors or sub_errors
+
     # check if any expected file pattern exist
     if glob.glob(os.path.join(output_mount[1], pred_file_suffix)):
-        tar(output_mount[1], "predictions.tar.gz")
-        sub_status = "VALIDATED"
+        # don't create submission file, otherwise the validate.cwl will be triggered (weird)
+        if not has_error:
+            tar(output_mount[1], "predictions.tar.gz")
     else:
-        sub_status = "INVALID"
         sub_errors.append(
             f"It seems error encountered while running your Docker container and "
-            f"no '{pred_file_suffix}' file written to '/{output_mount[1]}' folder.")
+            f"no '{pred_file_suffix}' file written to '/{output_mount[1]}' folder.\n"
+            f"To view the tree structure of your output folder, please go here:"
+            f"https://www.synapse.org/#!Synapse:{args.parentid}.")
+
+    # bypass run_docker check if no error
+    sub_status = "INVALID" if docker_errors or sub_errors else "VALIDATED"
 
     with open("results.json", "w") as out:
         out.write(json.dumps({
