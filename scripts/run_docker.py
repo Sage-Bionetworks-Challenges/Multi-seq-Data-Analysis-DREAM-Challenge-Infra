@@ -162,7 +162,7 @@ def main(syn, args):
 
     # Assign different resources limit for different questions
     # allow three submissions at a time
-    docker_mem = 160 if args.question == "1" else 1  # unit is Gib
+    docker_mem = 160 if args.question == "1" else 20  # unit is Gib
     docker_cpu = 20000000000 if args.question == "1" else 10000000000
     docker_runtime_quot = 43200 if args.public_phase else 86400
     pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
@@ -203,6 +203,7 @@ def main(syn, args):
                                               volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
+                                              # TODO: think about a better default mem
                                               mem_limit=f"{docker_mem+10}g",
                                               nano_cpus=docker_cpu,
                                               storage_opt={"size": "120g"})
