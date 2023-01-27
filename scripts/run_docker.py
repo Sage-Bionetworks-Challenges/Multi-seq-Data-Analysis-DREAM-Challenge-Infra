@@ -32,12 +32,13 @@ def get_last_lines(log_filename, n=5):
 def create_log_file(log_filename, log_text=None, mode="w"):
     """Create log file"""
     with open(log_filename, mode) as log_file:
-        if log_text is not None:
+        empty_text = [None, b'', '']
+        if log_text in empty_text or log_text.isspace():
+            log_file.write("No Logs")
+        else:
             if isinstance(log_text, bytes):
                 log_text = log_text.decode("utf-8")
             log_file.write(log_text.encode("ascii", "ignore").decode("ascii"))
-        else:
-            log_file.write("No Logs")
 
 
 def store_log_file(syn, log_filename, parentid, store=True):
@@ -168,8 +169,6 @@ def main(syn, args):
     if container is None:
         # Run as detached, logs will stream below
         print("running container")
-        start_time = time.time()
-        time_elapsed = 0
         try:
             container = client.containers.run(docker_image,
                                               detach=True,
@@ -193,6 +192,8 @@ def main(syn, args):
     # there are no logs to write out and no container to remove
     if container is not None and not docker_errors:
         # Check if container is still running
+        start_time = time.time()
+        time_elapsed = 0
         while container in client.containers.list():
             # monitor the time elapsed
             # if it exceeds the runtime quota, stop the container
