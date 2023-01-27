@@ -135,7 +135,7 @@ def main(syn, args):
 
     # Assign different resources limit for different questions
     # allow three submissions at a time
-    docker_mem = 160 if args.question == "1" else 20  # unit is Gib
+    docker_mem = 160 if args.question == "1" else 5  # unit is Gib
     docker_cpu = 20000000000 if args.question == "1" else 10000000000
     docker_runtime_quot = 43200 if args.public_phase else 86400
     pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
@@ -188,9 +188,9 @@ def main(syn, args):
     # Open log file first
     open(log_filename, 'w').close()
 
-    # If the container doesn't exist or there is docker_errors, aka failed to run the docker container,
+    # If the container doesn't exist or there is no docker_errors, aka failed to run the docker container,
     # there are no logs to write out and no container to remove
-    if container is not None and not docker_errors:
+    if container is not None and docker_errors:
         # Check if container is still running
         start_time = time.time()
         time_elapsed = 0
@@ -242,7 +242,7 @@ def main(syn, args):
     output_volume.remove()
 
     # check if any expected file pattern exist
-    if glob.glob(os.path.join(output_mount[1], pred_file_suffix)):
+    if glob.glob(os.path.join(output_mount[1], pred_file_suffix)) and sub_errors:
         tar(output_mount[1], "predictions.tar.gz")
         sub_status = "VALIDATED"
     else:
