@@ -53,9 +53,6 @@ def tree(dir_path):
     return '\n'.join(tree_str)
 
 
-print(tree("challenge-data"))
-
-
 def create_log_file(log_filename, log_text=None, mode="w"):
     """Create log file"""
     with open(log_filename, mode) as log_file:
