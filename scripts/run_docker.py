@@ -7,6 +7,7 @@ import os
 import tarfile
 import time
 import json
+from pathlib import Path
 
 import docker
 import subprocess
@@ -27,6 +28,32 @@ def get_last_lines(log_filename, n=5):
             f.seek(0)
         last_lines = f.read().decode()
     return last_lines
+
+
+def tree(dir_path):
+    """Generate directory tree structure."""
+    # TODO: consider to add level param to limit recursive
+    # TODO: consider the PermissionError
+    tree_str = []
+    n = 0
+
+    def inner(dir_path, n, tree_str):
+        dir_path = Path(dir_path)
+        if dir_path.is_file():
+            tree_str.append(f"{'    |' * n}{'-' * 4}{dir_path.name}")
+        elif dir_path.is_dir():
+            root = str(dir_path.relative_to(dir_path.parent))
+            tree_str.append(f"{'    |' * n}{'-' * 4}{root}/")
+            for child_path in dir_path.iterdir():
+                # remove hidden dirs/files
+                if not os.path.basename(child_path).startswith("."):
+                    inner(child_path, n + 1, tree_str)
+            tree_str.append('    |' * n)
+    inner(dir_path, n, tree_str)
+    return '\n'.join(tree_str)
+
+
+print(tree("challenge-data"))
 
 
 def create_log_file(log_filename, log_text=None, mode="w"):
@@ -234,6 +261,7 @@ def main(syn, args):
 
     # if not succesfully run the docker container or no log
     if docker_errors or statinfo.st_size == 0:
+        # write the docker error to log.txt if any
         create_log_file(log_filename, log_text="\n".join(docker_errors))
         store_log_file(syn, log_filename, args.parentid, store=args.store)
 
@@ -242,15 +270,24 @@ def main(syn, args):
     remove_docker_image(docker_image)
     output_volume.remove()
 
+    # return a tree structure of output folder
+    tree_filename = "output_tree_structure.txt"
+    tree_structure = tree(output_mount[1])
+    create_log_file(tree_filename, log_text=tree_structure)
+    store_log_file(syn, tree_filename, args.parentid, store=args.store)
+
     # check if any expected file pattern exist
-    if glob.glob(os.path.join(output_mount[1], pred_file_suffix)) and not sub_errors:
+    if glob.glob(os.path.join(output_mount[1], pred_file_suffix)):
         tar(output_mount[1], "predictions.tar.gz")
-        sub_status = "VALIDATED"
     else:
-        sub_status = "INVALID"
         sub_errors.append(
             f"It seems error encountered while running your Docker container and "
-            f"no '{pred_file_suffix}' file written to '/{output_mount[1]}' folder.")
+            f"no '{pred_file_suffix}' file written to '/{output_mount[1]}' folder.\n"
+            f"To view the tree structure of your output folder, please go here:"
+            f"https://www.synapse.org/#!Synapse:{args.parentid}.")
+
+    # bypass run_docker check if no error
+    sub_status = "INVALID" if docker_errors or sub_errors else "VALIDATED"
 
     with open("results.json", "w") as out:
         out.write(json.dumps({
