@@ -135,7 +135,7 @@ def main(syn, args):
 
     # Assign different resources limit for different questions
     # allow three submissions at a time
-    docker_mem = 160.0 if args.question == "1" else 20.0
+    docker_mem = 160 if args.question == "1" else 20  # unit is Gib
     docker_cpu = 20000000000 if args.question == "1" else 10000000000
     docker_runtime_quot = 43200 if args.public_phase else 86400
     pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
@@ -170,23 +170,23 @@ def main(syn, args):
         # Run as detached, logs will stream below
         print("running container")
 
-    try:
-        container = client.containers.run(docker_image,
-                                          detach=True,
-                                          volumes=volumes,
-                                          name=args.submissionid,
-                                          network_disabled=True,
-                                          nano_cpus=docker_cpu,
-                                          storage_opt={"size": "120g"})
-    except docker.errors.APIError as err:
-        remove_docker_container(args.submissionid)
-        docker_errors.append(str(err))
+        try:
+            container = client.containers.run(docker_image,
+                                              detach=True,
+                                              volumes=volumes,
+                                              name=args.submissionid,
+                                              network_disabled=True,
+                                              nano_cpus=docker_cpu,
+                                              storage_opt={"size": "120g"})
+        except docker.errors.APIError as err:
+            remove_docker_container(args.submissionid)
+            docker_errors.append(str(err))
 
-        print("creating logfile")
-        # Create the logfile
-        log_filename = args.submissionid + "_log.txt"
-        # Open log file first
-        open(log_filename, 'w').close()
+            print("creating logfile")
+            # Create the logfile
+            log_filename = args.submissionid + "_log.txt"
+            # Open log file first
+            open(log_filename, 'w').close()
 
     # If the container doesn't exist or there is docker_errors, aka failed to run the docker container,
     # there are no logs to write out and no container to remove
