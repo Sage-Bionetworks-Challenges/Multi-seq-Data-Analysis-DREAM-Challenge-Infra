@@ -276,18 +276,19 @@ def main(syn, args):
     create_log_file(tree_filename, log_text=tree_structure)
     store_log_file(syn, tree_filename, args.parentid, store=args.store)
 
-    # check if any expected file pattern exist
-    if glob.glob(os.path.join(output_mount[1], pred_file_suffix)):
+    has_error = docker_errors or sub_errors
+
+    # check if any expected file pattern exist and don't tar if has error
+    if glob.glob(os.path.join(output_mount[1], pred_file_suffix)) and not has_error:
         tar(output_mount[1], "predictions.tar.gz")
+        sub_status = "VALIDATED"
     else:
         sub_errors.append(
             f"It seems error encountered while running your Docker container and "
             f"no '{pred_file_suffix}' file written to '/{output_mount[1]}' folder.\n"
             f"To view the tree structure of your output folder, please go here:"
             f"https://www.synapse.org/#!Synapse:{args.parentid}.")
-
-    # bypass run_docker check if no error
-    sub_status = "INVALID" if docker_errors or sub_errors else "VALIDATED"
+        sub_status = "INVALID"
 
     with open("results.json", "w") as out:
         out.write(json.dumps({
