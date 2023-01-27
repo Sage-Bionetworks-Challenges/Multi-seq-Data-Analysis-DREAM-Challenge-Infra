@@ -53,7 +53,7 @@ if (length(diff) > 0) {
   invalid_reasons <- append(
     invalid_reasons,
     paste0(
-      length(diff), " file(s) not found : ",
+      length(diff), " expected file(s) not found : ",
       paste0(sQuote(diff), collapse = ", ") %>% stringr::str_trunc(80)
     )
   )

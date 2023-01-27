@@ -182,11 +182,11 @@ def main(syn, args):
             remove_docker_container(args.submissionid)
             docker_errors.append(str(err))
 
-            print("creating logfile")
-            # Create the logfile
-            log_filename = args.submissionid + "_log.txt"
-            # Open log file first
-            open(log_filename, 'w').close()
+    print("creating logfile")
+    # Create the logfile
+    log_filename = args.submissionid + "_log.txt"
+    # Open log file first
+    open(log_filename, 'w').close()
 
     # If the container doesn't exist or there is docker_errors, aka failed to run the docker container,
     # there are no logs to write out and no container to remove
