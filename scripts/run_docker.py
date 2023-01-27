@@ -191,7 +191,7 @@ def main(syn, args):
 
     # If the container doesn't exist or there is no docker_errors, aka failed to run the docker container,
     # there are no logs to write out and no container to remove
-    if container is not None and docker_errors:
+    if container is not None and not docker_errors:
         # Check if container is still running
         start_time = time.time()
         time_elapsed = 0
@@ -243,7 +243,7 @@ def main(syn, args):
     output_volume.remove()
 
     # check if any expected file pattern exist
-    if glob.glob(os.path.join(output_mount[1], pred_file_suffix)) and sub_errors:
+    if glob.glob(os.path.join(output_mount[1], pred_file_suffix)) and not sub_errors:
         tar(output_mount[1], "predictions.tar.gz")
         sub_status = "VALIDATED"
     else:
