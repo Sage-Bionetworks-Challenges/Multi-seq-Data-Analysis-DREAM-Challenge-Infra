@@ -176,6 +176,7 @@ def main(syn, args):
                                               volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
+                                              mem_limit=f"{docker_mem+10}g",
                                               nano_cpus=docker_cpu,
                                               storage_opt={"size": "120g"})
         except docker.errors.APIError as err:
