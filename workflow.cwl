@@ -183,6 +183,7 @@ steps:
     out:
       - id: submission_file
       - id: results
+      - id: image_layers
       - id: status
       - id: invalid_reasons
 
@@ -230,10 +231,12 @@ steps:
     out: [finished]
 
   upload_results:
-    run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/upload_to_synapse.cwl
+    run: steps/upload_to_synapse.cwl
     in:
       - id: infile
         source: "#run_docker/submission_file"
+      - id: image_layers_file
+        source: "#run_docker/image_layers_file"
       - id: parentid
         source: "#adminUploadSynId"
       - id: used_entity
@@ -243,8 +246,6 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
     out:
-      - id: uploaded_fileid
-      - id: uploaded_file_version
       - id: results
 
   annotate_docker_upload_results:

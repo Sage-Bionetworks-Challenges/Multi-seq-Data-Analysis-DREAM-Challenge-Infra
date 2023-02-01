@@ -8,6 +8,7 @@ import tarfile
 import time
 import json
 from pathlib import Path
+import pickle
 
 import docker
 import subprocess
@@ -87,6 +88,25 @@ def store_log_file(syn, log_filename, parentid, store=True):
             )
 
 
+def pull_docker_image(image_name):
+    """Pull docker image"""
+    client = docker.from_env()
+    try:
+        image = client.images.pull(image_name)
+        return image.id
+    except docker.errors.APIError:
+        print("Unable to pull image")
+
+
+def inspect_docker_image_layers(image_id):
+    """Pull docker image"""
+    client = docker.from_env()
+    try:
+        return client.api.inspect_image(image_id)["RootFS"]["Layers"]
+    except docker.errors.APIError:
+        print("Unable to inspect image layers")
+
+
 def remove_docker_container(container_name):
     """Remove docker container"""
     client = docker.from_env()
@@ -153,6 +173,10 @@ def main(syn, args):
 
     # Add docker.config file
     docker_image = args.docker_repository + "@" + args.docker_digest
+    image_id = pull_docker_image(docker_image)
+    images_layers = inspect_docker_image_layers(image_id) if image_id else []
+    with open("image_layers.pkl", "w") as f:
+        pickle.dump(images_layers, f)
 
     # These are the volumes that you want to mount onto your docker container
     input_dir = args.input_dir
