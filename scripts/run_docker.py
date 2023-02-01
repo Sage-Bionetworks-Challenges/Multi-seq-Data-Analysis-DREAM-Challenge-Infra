@@ -220,6 +220,7 @@ def main(syn, args):
         # Check if container is still running
         start_time = time.time()
         time_elapsed = 0
+        max_memory = 0
         while container in client.containers.list():
             # manually monitor the memory usage - log error and kill container if exceeds
             mem_stats = container.stats(stream=False)["memory_stats"]
@@ -227,6 +228,8 @@ def main(syn, args):
             if mem_stats != {}:
                 mem_usage = mem_stats["usage"] - \
                     mem_stats["stats"]["inactive_file"]
+                if mem_usage > max_memory:  # update max memory usage
+                    max_memory = mem_usage
                 if mem_usage/2**30 > docker_mem:
                     sub_errors.append(
                         f"Submission memory limit of {docker_mem}G reached.")
@@ -297,7 +300,9 @@ def main(syn, args):
     with open("results.json", "w") as out:
         out.write(json.dumps({
             'submission_status': sub_status,
-            'submission_errors': "\n".join(sub_errors)
+            'submission_errors': "\n".join(sub_errors),
+            'submission_runtime': float(round(time_elapsed, 1)),
+            'submission_max_memory': int(round(max_memory/2**30, 0))
         }))
 
 
