@@ -174,8 +174,8 @@ steps:
         source: "#determine_question/question"
       - id: input_dir
         source: "#determine_question/input_dir"
-      - id: public_phase
-        source: "#determine_question/public_phase"
+      - id: submission_phase
+        source: "#determine_question/submission_phase"
       - id: docker_script
         default:
           class: File
@@ -287,8 +287,8 @@ steps:
         source: "#get_docker_submission/entity_type"
       - id: question
         source: "#determine_question/question"
-      - id: public_phase
-        source: "#determine_question/public_phase"
+      - id: submission_phase
+        source: "#determine_question/submission_phase"
     out:
       - id: results
       - id: status
@@ -348,8 +348,8 @@ steps:
         source: "#determine_question/question"
       - id: check_validation_finished 
         source: "#check_status/finished"
-      - id: public_phase
-        source: "#determine_question/public_phase"
+      - id: submission_phase
+        source: "#determine_question/submission_phase"
     out:
       - id: results
       - id: all_scores
