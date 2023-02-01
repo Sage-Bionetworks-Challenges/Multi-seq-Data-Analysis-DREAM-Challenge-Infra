@@ -301,8 +301,8 @@ def main(syn, args):
         out.write(json.dumps({
             'submission_status': sub_status,
             'submission_errors': "\n".join(sub_errors),
-            'submission_runtime': f"{round(time_elapsed), 1} s",
-            'submission_max_memory': f"{round(max_memory/2**30, 1)} Gib"
+            'submission_runtime': float(round(time_elapsed, 1)),
+            'submission_max_memory': int(round(max_memory/2**30, 0))
         }))
 
 

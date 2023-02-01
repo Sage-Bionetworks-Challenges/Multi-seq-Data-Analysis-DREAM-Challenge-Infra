@@ -20,10 +20,10 @@ inputs:
     type: string
   - id: all_scores
     type: File
-  - id: max_memory
-    type: string
   - id: runtime
-    type: string
+    type: float
+  - id: max_memory
+    type: int
 
 arguments:
   - valueFrom: $(inputs.create_annotations_script.path)
