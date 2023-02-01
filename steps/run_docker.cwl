@@ -75,7 +75,7 @@ outputs:
     type: File
     outputBinding:
       glob: results.json
-  - id: image_layers
+  - id: image_layers_file
     type: File
     outputBinding:
       glob: image_layers.pkl

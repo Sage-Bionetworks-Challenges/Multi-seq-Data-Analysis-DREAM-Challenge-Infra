@@ -183,7 +183,7 @@ steps:
     out:
       - id: submission_file
       - id: results
-      - id: image_layers
+      - id: image_layers_file
       - id: status
       - id: invalid_reasons
 
