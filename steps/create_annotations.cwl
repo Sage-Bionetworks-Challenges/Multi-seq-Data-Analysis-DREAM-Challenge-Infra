@@ -10,7 +10,7 @@ class: CommandLineTool
 baseCommand: python3
 
 inputs:
-  - id: update_score_script
+  - id: create_annotations_script
     type: File
   - id: synapse_config
     type: File
@@ -20,15 +20,23 @@ inputs:
     type: string
   - id: all_scores
     type: File
+  - id: max_memory
+    type: string
+  - id: runtime
+    type: string
 
 arguments:
-  - valueFrom: $(inputs.update_score_script.path)
+  - valueFrom: $(inputs.create_annotations_script.path)
   - valueFrom: $(inputs.synapse_config.path)
     prefix: -c
   - valueFrom: $(inputs.parent_id)
     prefix: -o
   - valueFrom: $(inputs.results)
     prefix: -r
+  - valueFrom: $(inputs.runtime)
+    prefix: -t
+  - valueFrom: $(inputs.max_memory)
+    prefix: -m
   - valueFrom: $(inputs.all_scores.path)
     prefix: -f
 
@@ -36,11 +44,10 @@ requirements:
   - class: InlineJavascriptRequirement
   - class: InitialWorkDirRequirement
     listing:
-      - $(inputs.update_score_script)
-
+      - $(inputs.create_annotations_script)
 
 outputs:
-  - id: new_results
+  - id: annotations_json
     type: File
     outputBinding:
       glob: results.json

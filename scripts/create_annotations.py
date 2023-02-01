@@ -1,6 +1,7 @@
 """
-1. upload the collected scores to synapse and
+1. upload the collected scores to synapse
 2. add the scores entity id to annotation
+3. add the max memory and runtime of submission to annotation
 """
 
 #!/usr/bin/env python
@@ -20,7 +21,10 @@ def get_args():
                         help="Resulting scores")
     parser.add_argument("-f", "--all_scores", required=True,
                         help="A csv table collected all submssion scores")
-
+    parser.add_argument("-t", "--runtime", required=True,
+                        help="Runtime of the submission")
+    parser.add_argument("-m", "--max_memory", required=True,
+                        help="Max memory the submission used")
     return parser.parse_args()
 
 
@@ -43,6 +47,10 @@ def main():
         csv = syn.store(csv)
         # add scores csv to annotations
         annots["submission_scores"] = csv.id
+        # add other annotations as needed
+        annots["submission_runtime"] = args.runtime
+        annots["submission_max_memory"] = args.max_memory
+
         with open("results.json", "w") as o:
             o.write(json.dumps(annots))
 

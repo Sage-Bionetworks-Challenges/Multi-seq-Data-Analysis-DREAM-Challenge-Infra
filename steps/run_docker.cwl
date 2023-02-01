@@ -81,9 +81,15 @@ outputs:
       glob: results.json
       loadContents: true
       outputEval: $(JSON.parse(self[0].contents)['submission_status'])
-  - id: invalid_reasons
+  - id: runtime
     type: string
     outputBinding:
       glob: results.json
       loadContents: true
-      outputEval: $(JSON.parse(self[0].contents)['submission_errors'])
+      outputEval: $(JSON.parse(self[0].contents)['submission_runtime'])
+  - id: max_memory
+    type: string
+    outputBinding:
+      glob: results.json
+      loadContents: true
+      outputEval: $(JSON.parse(self[0].contents)['submission_max_memory'])
