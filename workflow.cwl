@@ -401,7 +401,7 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
       - id: results
-        source: "#create_annotations/annotation_json"
+        source: "#create_annotations/annotations_json"
       - id: private_annotations
         default: ["submission_scores", "submission_status", "submission_phase"]
     out: []
