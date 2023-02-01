@@ -88,13 +88,13 @@ outputs:
       loadContents: true
       outputEval: $(JSON.parse(self[0].contents)['submission_errors'])
   - id: runtime
-    type: string
+    type: float
     outputBinding:
       glob: results.json
       loadContents: true
       outputEval: $(JSON.parse(self[0].contents)['submission_runtime'])
   - id: max_memory
-    type: string
+    type: int
     outputBinding:
       glob: results.json
       loadContents: true
