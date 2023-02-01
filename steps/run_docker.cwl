@@ -81,6 +81,12 @@ outputs:
       glob: results.json
       loadContents: true
       outputEval: $(JSON.parse(self[0].contents)['submission_status'])
+  - id: invalid_reasons
+    type: string
+    outputBinding:
+      glob: results.json
+      loadContents: true
+      outputEval: $(JSON.parse(self[0].contents)['submission_errors'])
   - id: runtime
     type: string
     outputBinding:
