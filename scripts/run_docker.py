@@ -175,7 +175,7 @@ def main(syn, args):
     docker_image = args.docker_repository + "@" + args.docker_digest
     image_id = pull_docker_image(docker_image)
     images_layers = inspect_docker_image_layers(image_id) if image_id else []
-    with open("image_layers.pkl", "w") as f:
+    with open("image_layers.pkl", "wb") as f:
         pickle.dump(images_layers, f)
 
     # These are the volumes that you want to mount onto your docker container
