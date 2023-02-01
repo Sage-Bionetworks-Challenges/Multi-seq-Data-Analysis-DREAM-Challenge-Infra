@@ -161,7 +161,7 @@ def main(syn, args):
     # allow three submissions at a time
     docker_mem = 160 if args.question == "1" else 20  # unit is Gib
     docker_cpu = 20000000000 if args.question == "1" else 10000000000
-    docker_runtime_quot = 43200 if args.public_phase else 86400
+    docker_runtime_quot = 43200 if args.submission_phase == "public" else 86400
     pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
 
     print("mounting volumes")
@@ -313,8 +313,8 @@ if __name__ == '__main__':
                         help="Challenge question")
     parser.add_argument("-i", "--input_dir", required=True,
                         help="Input directory of downsampled data")
-    parser.add_argument("--public_phase", action="store_true", required=True,
-                        help="Public leaderborder phase")
+    parser.add_argument("--submission_phase", required=True,
+                        help="Submission phase")
     parser.add_argument("-c", "--synapse_config", required=True,
                         help="credentials file")
     parser.add_argument("--store", action='store_true',

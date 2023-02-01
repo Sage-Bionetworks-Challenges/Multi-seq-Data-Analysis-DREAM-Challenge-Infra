@@ -141,13 +141,13 @@ steps:
     in:
       - id: queue
         source: "#get_docker_submission/evaluation_id"
-      - id: public_phase
-        default: true # no need to change elsewhere
+      - id: phase
+        default: "private" # no need to change elsewhere
     out:
       - id: question
       - id: input_dir
       - id: gs_synId
-      - id: public_phase
+      - id: submission_phase
   
   run_docker:
     run: steps/run_docker.cwl

@@ -1,8 +1,8 @@
 name: rank_submissions
 
 on:
-  schedule:
-    - cron: '0 * * * *'
+  # schedule:
+  #   - cron: '0 * * * *'
   workflow_dispatch:
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
           '
           echo SUBMISSION_PHASE="$SUBMISSION_PHASE" >> ~/.Renviron
         env:
-          SUBMISSION_PHASE: public
+          SUBMISSION_PHASE: private
 
       - name: Annotate submission with ranks
         run: |

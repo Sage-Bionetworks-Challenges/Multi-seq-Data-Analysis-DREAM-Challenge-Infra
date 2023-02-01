@@ -12,7 +12,7 @@ suppressPackageStartupMessages({
 parser <- argparse::ArgumentParser()
 parser$add_argument("-s", "--submission_file", help = "Submission file")
 parser$add_argument("-g", "--goldstandard", help = "Goldstandard file")
-parser$add_argument("--public_phase", action = "store_true", help = "Public leaderborder phase")
+parser$add_argument("--submission_phase", help = "Submission phase")
 parser$add_argument("-o", "--results", help = "Results path")
 args <- parser$parse_args()
 
@@ -31,7 +31,7 @@ untar(args$submission_file)
 all_gs <- readRDS(args$goldstandard)
 
 # determine phase
-if (args$public_phase) phase <- "public" else phase <- "private"
+phase <- args$submission_phase
 
 # read the filenames of all input data
 basenames <- all_gs$down_basenames[[phase]]
@@ -50,7 +50,7 @@ for (c in chunks) {
         jaccards <- list()
 
         # read gs
-        sub_phase <- ifelse(args$public_phase, "public", "prviate")
+        sub_phase <- args$submission_phase
         gs <- all_gs$gs_data[[sub_phase]][[prefix]]
         gs_ranked_filtered <- gs[["gs_ranked_filtered"]]
         gs_sort <- gs[["gs_sort"]]
