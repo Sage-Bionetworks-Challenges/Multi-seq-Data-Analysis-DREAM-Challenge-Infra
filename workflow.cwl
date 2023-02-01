@@ -403,5 +403,5 @@ steps:
       - id: results
         source: "#create_annotations/annotations_json"
       - id: private_annotations
-        default: ["submission_scores", "submission_status", "submission_phase"]
+        default: ["submission_scores", "submission_status", "submission_phase", "submission_runtime", "submission_max_memory"]
     out: []

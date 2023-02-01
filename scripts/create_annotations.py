@@ -47,6 +47,9 @@ def main():
         csv = syn.store(csv)
         # add scores csv to annotations
         annots["submission_scores"] = csv.id
+        # add other annotations as needed
+        annots["submission_runtime"] = args.runtime
+        annots["submission_max_memory"] = args.max_memory
 
         with open("results.json", "w") as o:
             o.write(json.dumps(annots))
