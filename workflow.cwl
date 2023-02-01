@@ -185,8 +185,6 @@ steps:
       - id: results
       - id: status
       - id: invalid_reasons
-      - id: runtime
-      - id: max_memory
 
   email_run_docker_results:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.2/cwl/validate_email.cwl
@@ -354,8 +352,8 @@ steps:
       - id: results
       - id: all_scores
 
-  create_annotations:
-    run: steps/create_annotations.cwl
+  update_score:
+    run: steps/update_score.cwl
     in:
       - id: synapse_config
         source: "#synapseConfig"
@@ -365,16 +363,12 @@ steps:
         source: "#score/results"
       - id: all_scores
         source: "#score/all_scores"
-      - id: runtime
-        source: "#run_docker/runtime"
-      - id: max_memory
-        source: "#run_docker/max_memory"
-      - id: create_annotations_script
+      - id: update_score_script
         default:
           class: File
-          location: "scripts/create_annotations.py"
+          location: "scripts/update_score.py"
     out: 
-      - id: annotations_json
+      - id: new_results
 
   annotate_submission_with_output:
     run: https://raw.githubusercontent.com/Sage-Bionetworks/ChallengeWorkflowTemplates/v3.1/cwl/annotate_submission.cwl
@@ -382,7 +376,7 @@ steps:
       - id: submissionid
         source: "#submissionId"
       - id: annotation_values
-        source: "#create_annotations/annotations_json"
+        source: "#update_score/new_results"
       - id: to_public
         default: true
       - id: force
@@ -401,7 +395,7 @@ steps:
       - id: synapse_config
         source: "#synapseConfig"
       - id: results
-        source: "#create_annotations/annotations_json"
+        source: "#update_score/new_results"
       - id: private_annotations
-        default: ["submission_scores", "submission_status", "submission_phase", "submission_runtime", "submission_max_memory"]
+        default: ["submission_scores", "submission_status", "submission_phase"]
     out: []
