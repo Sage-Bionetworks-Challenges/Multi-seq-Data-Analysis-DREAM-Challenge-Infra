@@ -40,7 +40,7 @@ expression: |
       var gs_synId = "syn34612394"
       var question = "1"
 
-      if (inputs.submission_phase == "public") {
+      if (inputs.phase == "public") {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna-subset"
       } else {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna"
@@ -51,7 +51,7 @@ expression: |
       var gs_synId = "syn35294386"
       var question = "2"
 
-      if (inputs.submission_phase == "public") {
+      if (inputs.phase == "public") {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac-subset"
       } else {
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scatac"
@@ -65,6 +65,6 @@ expression: |
       question: question, 
       input_dir: input_dir,
       gs_synId: gs_synId,
-      submission_phase: inputs.submission_phase
+      submission_phase: inputs.phase
     };
   }
