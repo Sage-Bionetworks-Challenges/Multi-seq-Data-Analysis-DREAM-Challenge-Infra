@@ -8,7 +8,7 @@ baseCommand: Rscript
 
 hints:
   DockerRequirement:
-    dockerPull: docker.synapse.org/syn26720921/evaluation:v1
+    dockerPull: docker.synapse.org/syn26720921/evaluation:v2
 
 inputs:
   - id: goldstandard_file
@@ -19,8 +19,8 @@ inputs:
     type: string
   - id: check_validation_finished
     type: boolean?
-  - id: public_phase
-    type: boolean
+  - id: submission_phase
+    type: string
 
 arguments:
   - position: 0
@@ -36,8 +36,8 @@ arguments:
     prefix: -s
   - valueFrom: $(inputs.goldstandard_file.path)
     prefix: -g
-  - valueFrom: $(inputs.public_phase)
-    prefix: --public_phase
+  - valueFrom: $(inputs.submission_phase)
+    prefix: --submission_phase
   - valueFrom: results.json
     prefix: -o
 

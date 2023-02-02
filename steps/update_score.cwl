@@ -2,8 +2,6 @@
 #
 # 1. upload the collected scores to synapse and
 # 2. add the scores entity id to annotation
-# 3. query all scored submission results
-# 4. update a leader board with rankings of the submission
 #
 cwlVersion: v1.0
 class: CommandLineTool
@@ -37,7 +35,6 @@ requirements:
   - class: InitialWorkDirRequirement
     listing:
       - $(inputs.update_score_script)
-
 
 outputs:
   - id: new_results
