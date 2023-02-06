@@ -161,7 +161,7 @@ def main(syn, args):
     # allow three submissions at a time
     docker_mem = 160 if args.question == "1" else 20  # unit is Gib
     docker_cpu = 20000000000 if args.question == "1" else 10000000000
-    docker_runtime_quot = 43200 if args.submission_phase == "public" else 86400
+    docker_runtime_quot = 43200 if args.submission_phase == "public" else 172800
     pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
 
     print("mounting volumes")
