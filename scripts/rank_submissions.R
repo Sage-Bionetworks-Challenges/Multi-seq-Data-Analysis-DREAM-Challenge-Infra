@@ -38,9 +38,9 @@ for (task_n in seq_along(submission_views)) {
 
   sub_df <- syn$tableQuery(query)$asDataFrame() %>%
     filter(!is.na(submission_scores), submission_phase == phase) %>%
-    select(id, submission_scores, submission_phase) %>%
+    select(id, submitterid, submission_scores, submission_phase) %>%
     mutate(across(everything(), as.character))
-
+  
   if (nrow(sub_df) > 0) { # validate if any valid submission to prevent from failing
     # read all valid scores results
     message("Getting scores for each valid submission ...")
@@ -63,6 +63,7 @@ for (task_n in seq_along(submission_views)) {
         return(data.frame())
       }
       score_df$id <- sub_df$id[i]
+      score_df$submitterid <- sub_df$submitterid[i]
       return(score_df)
     }) %>% bind_rows()
 
@@ -87,16 +88,28 @@ for (task_n in seq_along(submission_views)) {
           testcase_primary_rank = rank(-primary_score),
           testcase_secondary_rank = rank(-secondary_score)
         ) %>%
-        group_by(id) %>%
+        group_by(id, submitterid) %>%
         # get average scores of all testcases ranks in one submission
         summarise(
           avg_primary_rank = mean(testcase_primary_rank),
-          avg_secondary_rank = mean(testcase_secondary_rank)
+          avg_secondary_rank = mean(testcase_secondary_rank),
+          .groups = 'drop'
         ) %>%
         # rank overall rank on primary, tie breaks by secondary
         arrange(avg_primary_rank, avg_secondary_rank) %>%
         mutate(overall_rank = row_number())
-
+      
+      if (phase == "private") {
+       # if private phase, re-rank the overall_rank by only ranking the BEST submission
+       # non-best submissions will not be assigned overall_rank
+       rank_df <-
+          rank_df %>%
+          group_by(submitterid) %>%
+          slice_min(overall_rank, n = 1) %>%
+          arrange(overall_rank) %>%
+          ungroup() %>%
+          mutate(overall_rank = row_number())
+      }
       tryCatch(
         {
           for (j in 1:nrow(rank_df)) { # use for loop to prevent from request error
