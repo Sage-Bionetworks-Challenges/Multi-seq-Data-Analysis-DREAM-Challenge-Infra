@@ -100,15 +100,15 @@ for (task_n in seq_along(submission_views)) {
         mutate(overall_rank = row_number())
       
       if (phase == "private") {
-       # if private phase, re-rank the overall_rank by only ranking the BEST submission
-       # non-best submissions will not be assigned overall_rank
-       rank_df <-
-          rank_df %>%
-          group_by(submitterid) %>%
-          slice_min(overall_rank, n = 1) %>%
-          arrange(overall_rank) %>%
-          ungroup() %>%
-          mutate(overall_rank = row_number())
+        # if private phase, re-rank the overall_rank by only ranking the BEST submission
+        # non-best submissions will not be assigned overall_rank
+        rank_df <-
+           rank_df %>%
+           group_by(submitterid) %>%
+           slice_min(overall_rank, n = 1) %>%
+           arrange(overall_rank) %>%
+           ungroup() %>%
+           mutate(overall_rank = row_number())
       }
       tryCatch(
         {
