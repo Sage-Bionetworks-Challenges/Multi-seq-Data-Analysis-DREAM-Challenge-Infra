@@ -109,11 +109,6 @@ for (c in chunks) {
 # save scores table to record all the test cases
 write.csv(all_scores, "all_scores.csv", row.names = FALSE)
 
-# use cells specific from ds2 as tie-breaker
-# secondary_score <- all_scores %>%
-#   filter(grepl("ds2", dataset)) %>%
-#   pull(recall_cellspecific)
-
 # add annotations
 result_list <- list(
   primary_metric_average = mean(all_scores$summed_score, na.rm = TRUE),

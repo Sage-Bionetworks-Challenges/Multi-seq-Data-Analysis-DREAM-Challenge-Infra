@@ -33,9 +33,9 @@ requirements:
   - class: InlineJavascriptRequirement
 
 expression: |
-
+  # detemine the tasks and gs synaspe id for test, real, post evaluations
   ${
-    if (inputs.queue == "9615023" || inputs.queue == "9614943") {
+    if (inputs.queue == "9615023" || inputs.queue == "9614943" || inputs.queue == "9615324") {
       // sc1
       var gs_synId = "syn34612394"
       var question = "1"
@@ -46,7 +46,7 @@ expression: |
         var input_dir = "/home/ec2-user/challenge-data/downsampled/scrna"
       }
       
-    } else if (inputs.queue == "9615024" || inputs.queue == "9615021") {
+    } else if (inputs.queue == "9615024" || inputs.queue == "9615021" || inputs.queue == "9615302") {
       // sc2
       var gs_synId = "syn35294386"
       var question = "2"
