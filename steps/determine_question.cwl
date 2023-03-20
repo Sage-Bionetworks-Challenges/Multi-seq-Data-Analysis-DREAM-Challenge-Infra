@@ -33,7 +33,7 @@ requirements:
   - class: InlineJavascriptRequirement
 
 expression: |
-  # detemine the tasks and gs synaspe id for test, real, post evaluations
+  // detemine the tasks and gs synaspe id for test, real, post evaluations
   ${
     if (inputs.queue == "9615023" || inputs.queue == "9614943" || inputs.queue == "9615324") {
       // sc1

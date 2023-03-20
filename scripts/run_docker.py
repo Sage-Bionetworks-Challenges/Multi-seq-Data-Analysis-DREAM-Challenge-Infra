@@ -162,7 +162,7 @@ def main(syn, args):
     docker_mem = 240 if args.question == "1" else 40  # unit is Gib
     docker_cpu = 30000000000 if args.question == "1" else 20000000000
     docker_ds = "120g" if args.question == "1" else "400g"
-    docker_runtime_quot = 43200 if args.submission_phase == "public" else 172800
+    # docker_runtime_quot = 43200 if args.submission_phase == "public" else 172800
     pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
 
     print("mounting volumes")
@@ -238,11 +238,11 @@ def main(syn, args):
                     break
             # monitor the time elapsed - log error and kill container if exceeds
             time_elapsed = time.time() - start_time
-            if time_elapsed > docker_runtime_quot:
-                sub_errors.append(
-                    f"Submission time limit of {int(docker_runtime_quot/3600)}h reached.")
-                container.stop()
-                break
+            # if time_elapsed > docker_runtime_quot:
+            #     sub_errors.append(
+            #         f"Submission time limit of {int(docker_runtime_quot/3600)}h reached.")
+            #     container.stop()
+            #     break
             log_text = container.logs(stderr=True, stdout=True)
             create_log_file(log_filename, log_text=log_text)
             store_log_file(syn, log_filename, args.parentid, store=args.store)
