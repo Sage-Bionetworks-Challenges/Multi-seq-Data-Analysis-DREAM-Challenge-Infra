@@ -159,7 +159,7 @@ def main(syn, args):
 
     # Assign different resources limit for different questions
     # allow three submissions at a time
-    docker_mem = 240 if args.question == "1" else 40  # unit is Gib
+    docker_mem = 480 if args.question == "1" else 60  # unit is Gib
     docker_cpu = 30000000000 if args.question == "1" else 20000000000
     docker_ds = "120g" if args.question == "1" else "400g"
     # docker_runtime_quot = 43200 if args.submission_phase == "public" else 172800
