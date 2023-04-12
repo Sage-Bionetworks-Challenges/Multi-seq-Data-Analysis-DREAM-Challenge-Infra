@@ -47,7 +47,6 @@ for (c in chunks) {
         # detect file prefix used to read gs
         info <- strsplit(pred_file, "\\.")[[1]]
         prefix <- info[1]
-        jaccards <- list()
 
         # read gs
         sub_phase <- args$submission_phase

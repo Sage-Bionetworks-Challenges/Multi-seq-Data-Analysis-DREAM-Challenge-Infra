@@ -55,6 +55,7 @@ scores_df <- mclapply(true_pred_files, function(pred_file) {
 
       # read gs
       gs <- all_gs$gs_data[[prefix]]
+      gs <- NormalizeData(gs, verbose = FALSE)
 
       use_pseudobulk <- prop %in% c("p00625", "p0125", "p025")
 
