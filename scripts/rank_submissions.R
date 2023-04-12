@@ -9,13 +9,14 @@ syn$login(silent = TRUE)
 
 # Update all listed submission views
 submission_views <- list(
-  task1 = c(view = "syn36625504", gs = "syn34612394"),
-  task2 = c(view = "syn36625445", gs = "syn35294386")
+  task1 = c(view = "syn51157023", eval_id = "9615023", gs = "syn34612394"),
+  task2 = c(view = "syn51157023", eval_id = "9615024", gs = "syn35294386")
 )
 
 for (task_n in seq_along(submission_views)) {
   task_name <- names(submission_views)[task_n]
   task_sub_id <- submission_views[[task_n]]["view"]
+  task_eval_id <- submission_views[[task_n]]["eval_id"]
   task_gs_id <- submission_views[[task_n]]["gs"]
 
   phase <- Sys.getenv("SUBMISSION_PHASE")
@@ -37,10 +38,10 @@ for (task_n in seq_along(submission_views)) {
 
 
   sub_df <- syn$tableQuery(query)$asDataFrame() %>%
-    filter(!is.na(submission_scores), submission_phase == phase) %>%
+    filter(!is.na(submission_scores), evaluationid == task_eval_id, submission_phase == phase) %>%
     select(id, submitterid, submission_scores, submission_phase) %>%
     mutate(across(everything(), as.character))
-  
+
   if (nrow(sub_df) > 0) { # validate if any valid submission to prevent from failing
     # read all valid scores results
     message("Getting scores for each valid submission ...")
@@ -93,22 +94,22 @@ for (task_n in seq_along(submission_views)) {
         summarise(
           avg_primary_rank = mean(testcase_primary_rank),
           avg_secondary_rank = mean(testcase_secondary_rank),
-          .groups = 'drop'
+          .groups = "drop"
         ) %>%
         # rank overall rank on primary, tie breaks by secondary
         arrange(avg_primary_rank, avg_secondary_rank) %>%
         mutate(overall_rank = row_number())
-      
+
       if (phase == "private") {
         # if private phase, re-rank the overall_rank by only ranking the BEST submission
         # non-best submissions will not be assigned overall_rank
         rank_df <-
-           rank_df %>%
-           group_by(submitterid) %>%
-           slice_min(overall_rank, n = 1) %>%
-           arrange(overall_rank) %>%
-           ungroup() %>%
-           mutate(overall_rank = row_number())
+          rank_df %>%
+          group_by(submitterid) %>%
+          slice_min(overall_rank, n = 1) %>%
+          arrange(overall_rank) %>%
+          ungroup() %>%
+          mutate(overall_rank = row_number())
       }
       tryCatch(
         {
