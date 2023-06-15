@@ -204,7 +204,8 @@ def main(syn, args):
                                               # TODO: think about a better default mem
                                               mem_limit=f"{docker_mem+10}g",
                                               nano_cpus=docker_cpu,
-                                              storage_opt={"size": docker_ds})
+                                              storage_opt={"size": docker_ds},
+                                              runtime="nvidia")
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             docker_errors.append(str(err))
