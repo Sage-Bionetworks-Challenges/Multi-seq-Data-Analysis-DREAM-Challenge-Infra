@@ -161,7 +161,7 @@ def main(syn, args):
     # allow three submissions at a time
     docker_mem = 480 if args.question == "1" else 60  # unit is Gib
     docker_cpu = 30000000000 if args.question == "1" else 20000000000
-    docker_ds = "120g" if args.question == "1" else "400g"
+    # docker_ds = "120g" if args.question == "1" else "400g"
     # docker_runtime_quot = 43200 if args.submission_phase == "public" else 172800
     pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
 
@@ -169,8 +169,9 @@ def main(syn, args):
     # create a local volume and set size limit
     output_volume_name = f"{args.submissionid}-output"
     output_volume = client.volumes.create(name=output_volume_name,
-                                          driver='local',
-                                          driver_opts={"size": docker_ds})
+                                          driver='local'
+                                          #   driver_opts={"size": docker_ds}
+                                          )
     # set volumes used to mount
     input_mount = [input_dir, "input"]
     output_mount = [output_volume_name, "output"]
@@ -203,8 +204,9 @@ def main(syn, args):
                                               network_disabled=True,
                                               # TODO: think about a better default mem
                                               mem_limit=f"{docker_mem+10}g",
-                                              nano_cpus=docker_cpu,
-                                              storage_opt={"size": docker_ds})
+                                              nano_cpus=docker_cpu
+                                              #   storage_opt={"size": docker_ds}
+                                              )
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             docker_errors.append(str(err))
