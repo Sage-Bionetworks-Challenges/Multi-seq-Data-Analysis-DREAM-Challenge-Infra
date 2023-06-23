@@ -159,7 +159,7 @@ def main(syn, args):
 
     # Assign different resources limit for different questions
     # allow three submissions at a time
-    docker_mem = 480 if args.question == "1" else 60  # unit is Gib
+    # docker_mem = 480 if args.question == "1" else 60  # unit is Gib
     docker_cpu = 30000000000 if args.question == "1" else 20000000000
     # docker_ds = "120g" if args.question == "1" else "400g"
     # docker_runtime_quot = 43200 if args.submission_phase == "public" else 172800
@@ -202,8 +202,7 @@ def main(syn, args):
                                               volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
-                                              # TODO: think about a better default mem
-                                              mem_limit=f"{docker_mem+10}g",
+                                              #   mem_limit=f"{docker_mem+10}g",
                                               nano_cpus=docker_cpu
                                               #   storage_opt={"size": docker_ds}
                                               )
@@ -226,18 +225,18 @@ def main(syn, args):
         max_memory = 0
         while container in client.containers.list():
             # manually monitor the memory usage - log error and kill container if exceeds
-            mem_stats = container.stats(stream=False)["memory_stats"]
+            # mem_stats = container.stats(stream=False)["memory_stats"]
             # ideally, mem_stats should not be empty for running containers, just in case
-            if mem_stats != {}:
-                mem_usage = mem_stats["usage"] - \
-                    mem_stats["stats"]["inactive_file"]
-                if mem_usage > max_memory:  # update max memory usage
-                    max_memory = mem_usage
-                if mem_usage/2**30 > docker_mem:
-                    sub_errors.append(
-                        f"Submission memory limit of {docker_mem}G reached.")
-                    container.stop()
-                    break
+            # if mem_stats != {}:
+            #     mem_usage = mem_stats["usage"] - \
+            #         mem_stats["stats"]["inactive_file"]
+            #     if mem_usage > max_memory:  # update max memory usage
+            #         max_memory = mem_usage
+            #     if mem_usage/2**30 > docker_mem:
+            #         sub_errors.append(
+            #             f"Submission memory limit of {docker_mem}G reached.")
+            #         container.stop()
+            #         break
             # monitor the time elapsed - log error and kill container if exceeds
             time_elapsed = time.time() - start_time
             # if time_elapsed > docker_runtime_quot:
