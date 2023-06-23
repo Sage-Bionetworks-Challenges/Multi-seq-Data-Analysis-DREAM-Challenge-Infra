@@ -160,7 +160,7 @@ def main(syn, args):
     # Assign different resources limit for different questions
     # allow three submissions at a time
     # docker_mem = 480 if args.question == "1" else 60  # unit is Gib
-    docker_cpu = 30000000000 if args.question == "1" else 20000000000
+    # docker_cpu = 30000000000 if args.question == "1" else 20000000000
     # docker_ds = "120g" if args.question == "1" else "400g"
     # docker_runtime_quot = 43200 if args.submission_phase == "public" else 172800
     pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
@@ -203,7 +203,7 @@ def main(syn, args):
                                               name=args.submissionid,
                                               network_disabled=True,
                                               #   mem_limit=f"{docker_mem+10}g",
-                                              nano_cpus=docker_cpu
+                                              #   nano_cpus=docker_cpu
                                               #   storage_opt={"size": docker_ds}
                                               )
         except docker.errors.APIError as err:
