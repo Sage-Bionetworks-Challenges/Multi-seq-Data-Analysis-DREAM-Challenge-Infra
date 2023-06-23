@@ -225,13 +225,13 @@ def main(syn, args):
         max_memory = 0
         while container in client.containers.list():
             # manually monitor the memory usage - log error and kill container if exceeds
-            # mem_stats = container.stats(stream=False)["memory_stats"]
+            mem_stats = container.stats(stream=False)["memory_stats"]
             # ideally, mem_stats should not be empty for running containers, just in case
-            # if mem_stats != {}:
-            #     mem_usage = mem_stats["usage"] - \
-            #         mem_stats["stats"]["inactive_file"]
-            #     if mem_usage > max_memory:  # update max memory usage
-            #         max_memory = mem_usage
+            if mem_stats != {}:
+                mem_usage = mem_stats["usage"] - \
+                    mem_stats["stats"]["inactive_file"]
+                if mem_usage > max_memory:  # update max memory usage
+                    max_memory = mem_usage
             #     if mem_usage/2**30 > docker_mem:
             #         sub_errors.append(
             #             f"Submission memory limit of {docker_mem}G reached.")
