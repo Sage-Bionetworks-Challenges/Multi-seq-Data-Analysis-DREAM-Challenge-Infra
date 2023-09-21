@@ -159,9 +159,9 @@ def main(syn, args):
 
     # Assign different resources limit for different questions
     # allow three submissions at a time
-    docker_mem = 480 if args.question == "1" else 60  # unit is Gib
-    docker_cpu = 30000000000 if args.question == "1" else 20000000000
-    docker_ds = "120g" if args.question == "1" else "400g"
+    # docker_mem = 480 if args.question == "1" else 60  # unit is Gib
+    # docker_cpu = 30000000000 if args.question == "1" else 20000000000
+    # docker_ds = "120g" if args.question == "1" else "400g"
     # docker_runtime_quot = 43200 if args.submission_phase == "public" else 172800
     pred_file_suffix = "*_imputed.csv" if args.question == "1" else "*.bed"
 
@@ -169,8 +169,9 @@ def main(syn, args):
     # create a local volume and set size limit
     output_volume_name = f"{args.submissionid}-output"
     output_volume = client.volumes.create(name=output_volume_name,
-                                          driver='local',
-                                          driver_opts={"size": docker_ds})
+                                          driver='local'
+                                          #   driver_opts={"size": docker_ds}
+                                          )
     # set volumes used to mount
     input_mount = [input_dir, "input"]
     output_mount = [output_volume_name, "output"]
@@ -201,11 +202,11 @@ def main(syn, args):
                                               volumes=volumes,
                                               name=args.submissionid,
                                               network_disabled=True,
-                                              # TODO: think about a better default mem
-                                              mem_limit=f"{docker_mem+10}g",
-                                              nano_cpus=docker_cpu,
-                                              storage_opt={"size": docker_ds},
+                                              #   mem_limit=f"{docker_mem+10}g",
+                                              #   nano_cpus=docker_cpu
+                                              #   storage_opt={"size": docker_ds}
                                               runtime="nvidia")
+
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             docker_errors.append(str(err))
@@ -232,11 +233,11 @@ def main(syn, args):
                     mem_stats["stats"]["inactive_file"]
                 if mem_usage > max_memory:  # update max memory usage
                     max_memory = mem_usage
-                if mem_usage/2**30 > docker_mem:
-                    sub_errors.append(
-                        f"Submission memory limit of {docker_mem}G reached.")
-                    container.stop()
-                    break
+            #     if mem_usage/2**30 > docker_mem:
+            #         sub_errors.append(
+            #             f"Submission memory limit of {docker_mem}G reached.")
+            #         container.stop()
+            #         break
             # monitor the time elapsed - log error and kill container if exceeds
             time_elapsed = time.time() - start_time
             # if time_elapsed > docker_runtime_quot:

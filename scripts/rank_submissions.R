@@ -1,3 +1,4 @@
+# this script is used to uppdate the running leaderboard rankings
 library(reticulate)
 library(dplyr)
 library(data.table)
