@@ -233,6 +233,7 @@ def main(syn, args):
                     mem_stats["stats"]["inactive_file"]
                 if mem_usage > max_memory:  # update max memory usage
                     max_memory = mem_usage
+            # remove memory limit for post analysis
             #     if mem_usage/2**30 > docker_mem:
             #         sub_errors.append(
             #             f"Submission memory limit of {docker_mem}G reached.")
@@ -240,6 +241,7 @@ def main(syn, args):
             #         break
             # monitor the time elapsed - log error and kill container if exceeds
             time_elapsed = time.time() - start_time
+            # remove runtime limit for post analysis
             # if time_elapsed > docker_runtime_quot:
             #     sub_errors.append(
             #         f"Submission time limit of {int(docker_runtime_quot/3600)}h reached.")
