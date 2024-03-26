@@ -101,7 +101,7 @@ if (length(diff) == 0) {
     invalid_reasons <- append(
       invalid_reasons,
       paste0(
-        "Not all values are numeric : ",
+        "Negative values are not allowed : ",
         paste0(sQuote(neg_files), collapse = ", ") %>% stringr::str_trunc(80)
       )
     )
