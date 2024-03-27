@@ -201,11 +201,12 @@ def main(syn, args):
                                               detach=True,
                                               volumes=volumes,
                                               name=args.submissionid,
-                                              network_disabled=True,
+                                              network_disabled=True
                                               #   mem_limit=f"{docker_mem+10}g",
                                               #   nano_cpus=docker_cpu
                                               #   storage_opt={"size": docker_ds}
-                                              runtime="nvidia")
+                                              #   runtime="nvidia"
+                                              )
 
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
