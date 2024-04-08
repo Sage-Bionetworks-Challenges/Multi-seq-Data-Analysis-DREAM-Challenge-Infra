@@ -87,6 +87,49 @@ calculate_spearman <- function(.data, pseudobulk = FALSE, na.rm = TRUE) {
 }
 
 ## Function to calculate scores on scATACseq data ------------------
+# correct the bed
+correct_peaks <- function(bed_data) {
+  peak_data <- bed_data[, 1:3]
+  bp <- peak_data[, 3] - peak_data[, 2]
+  if (!all(bp == 1)) {
+    # choose middle point as summit if summit is not reported
+    summit <- floor((peak_data[, 2] + peak_data[, 3]) / 2)
+    peak_data[, 2] <- summit
+    peak_data[, 3] <- summit + 1
+  }
+
+  return(peak_data)
+}
+
+# pad the peaks
+pad_peaks <- function(peak_data, genome, padding = 150) {
+
+  # correct the bed file
+  colnames(peak_data)[1:3] <- c("chr", "start", "end")
+
+  summit <- peak_data$start
+  chr_ranges <- lapply(unique(peak_data$chr), function(chr) {
+    list(
+      chr = chr,
+      start = start(genome[[chr]])[1],
+      end = end(genome[[chr]])[1]
+    )
+  }) %>% rbindlist()
+
+  # add padding using vectorized method to speed up runtime
+  new_start_loc <- pmax(summit - padding, chr_ranges$start[match(peak_data$chr, chr_ranges$chr)])
+  new_end_loc <- pmin(summit + padding, chr_ranges$end[match(peak_data$chr, chr_ranges$chr)])
+
+  new_peak_data <- data.frame(
+    chr = peak_data$chr,
+    start = new_start_loc,
+    end = new_end_loc
+  )
+
+  return(new_peak_data)
+}
+
+# load evaluation metrics
 category_recall <- function(a, b, verbose = FALSE) {
   a.int2 <- tryCatch(
     {

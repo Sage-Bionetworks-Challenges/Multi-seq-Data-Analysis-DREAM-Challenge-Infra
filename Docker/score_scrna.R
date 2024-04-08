@@ -22,7 +22,7 @@ args <- parser$parse_args()
 source("/metrics.R")
 
 ncores <- 15
-pred_dir <- "output"
+output_dir <- "output"
 all_scores <- tibble()
 
 # decompress
@@ -49,7 +49,7 @@ scores_df <- mclapply(true_pred_files, function(pred_file) {
       prop <- info[2]
 
       # read prediction
-      pred_path <- file.path(pred_dir, pred_file)
+      pred_path <- file.path(output_dir, pred_file)
       pred_data <- fread(pred_path, data.table = FALSE, verbose = FALSE) %>% tibble::column_to_rownames("V1")
       pred_data <- NormalizeData(pred_data, verbose = FALSE)
 

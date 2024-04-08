@@ -6,4 +6,4 @@
 **/*.narrowPeak
 *.Rhistory
 *.RData
-tmp/
+temp/

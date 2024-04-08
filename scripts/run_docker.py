@@ -201,11 +201,13 @@ def main(syn, args):
                                               detach=True,
                                               volumes=volumes,
                                               name=args.submissionid,
-                                              network_disabled=True,
+                                              network_disabled=True
                                               #   mem_limit=f"{docker_mem+10}g",
                                               #   nano_cpus=docker_cpu
                                               #   storage_opt={"size": docker_ds}
+                                              #   runtime="nvidia"
                                               )
+
         except docker.errors.APIError as err:
             remove_docker_container(args.submissionid)
             docker_errors.append(str(err))
@@ -232,6 +234,7 @@ def main(syn, args):
                     mem_stats["stats"]["inactive_file"]
                 if mem_usage > max_memory:  # update max memory usage
                     max_memory = mem_usage
+            # remove memory limit for post analysis
             #     if mem_usage/2**30 > docker_mem:
             #         sub_errors.append(
             #             f"Submission memory limit of {docker_mem}G reached.")
@@ -239,6 +242,7 @@ def main(syn, args):
             #         break
             # monitor the time elapsed - log error and kill container if exceeds
             time_elapsed = time.time() - start_time
+            # remove runtime limit for post analysis
             # if time_elapsed > docker_runtime_quot:
             #     sub_errors.append(
             #         f"Submission time limit of {int(docker_runtime_quot/3600)}h reached.")
