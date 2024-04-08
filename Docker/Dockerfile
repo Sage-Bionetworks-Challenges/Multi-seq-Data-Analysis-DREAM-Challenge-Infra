@@ -10,6 +10,7 @@ RUN apt-get update && \
 RUN R -e "install.packages('BiocManager')"
 # Install the specified Bioconductor packages
 RUN R -e "BiocManager::install(c('BSgenome.Mmusculus.UCSC.mm10', 'BSgenome.Hsapiens.UCSC.hg38'))"
+RUN R -e "install.packages('pbmcapply')"
 
 COPY validate_scrna.R /validate_scrna.R
 COPY validate_scatac.R /validate_scatac.R

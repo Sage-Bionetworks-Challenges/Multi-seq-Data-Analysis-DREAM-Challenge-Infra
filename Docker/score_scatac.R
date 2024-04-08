@@ -28,7 +28,6 @@ submission_file <- args$submission_file
 goldstandard_file <- args$goldstandard
 phase <- args$submission_phase
 ncores <- 10
-output_dir <- "output"
 all_scores <- tibble()
 
 # get submissions files
@@ -40,49 +39,52 @@ all_gs <- readRDS(goldstandard_file)
 bed_files <- paste0(all_gs$down_basenames[[phase]], ".bed")
 
 ## Dataset 1 ------------------------------------
-message("Loading data from '", submission_folder, "' ...")
 ds1_bed_files <- bed_files[grepl("ds1", bed_files)]
 
-ds1_merged_filename <- paste0(submission_folder, "_DATASET1_merged_peak_", phase, ".bed")
-if (file.exists(file.path(output_dir, ds1_merged_filename))) {
-  ds1_merged_peaks <- data.table::fread(file.path(output_dir, ds1_merged_filename), data.table = FALSE, verbose = FALSE)
-} else {
-  message("Pad peaks for DATASET1 - mouse mm10")
-  all_ds1_peaks <- pbmclapply(ds1_bed_files, function(bed_file) {
-    peak_data <- data.table::fread(file.path(submission_folder, bed_file), data.table = FALSE, verbose = FALSE)
-    if (nrow(peak_data) > 0) {
-      peak_data <- correct_peaks(peak_data)
-      peak_data <- pad_peaks(peak_data, genome = Mmusculus, padding = 150)
+message("Pad peaks for DATASET1 - mouse mm10")
+all_ds1_peaks <- pbmclapply(ds1_bed_files, function(bed_file) {
+  tryCatch(
+    {
+      peak_data <- data.table::fread(file.path("output", bed_file), data.table = FALSE, verbose = FALSE)
+      if (nrow(peak_data) > 0) {
+        peak_data <- correct_peaks(peak_data)
+        peak_data <- pad_peaks(peak_data, genome = Mmusculus, padding = 150)
+      }
+      return(peak_data)
+    },
+    error = function(e) {
+      message(sprintf("Error processing file %s: %s", bed_file, e$message))
+      return(list(error = e$message))
     }
-    return(peak_data)
-  }, mc.cores = ncores)
+  )
+}, mc.cores = ncores)
 
-  message("Merge peaks for DATASET1")
+message("Merge peaks for DATASET1")
 
-  ds1_merged_peaks <- all_ds1_peaks %>%
-    rbindlist(fill = TRUE) %>%
-    as.data.frame() %>%
-    bedr.sort.region(
-      check.zero.based = FALSE,
-      check.chr = FALSE,
-      check.valid = FALSE,
-      check.merge = FALSE,
-      verbose = FALSE
-    ) %>%
-    bedr.merge.region(
-      check.sort = FALSE,
-      check.valid = FALSE,
-      check.chr = FALSE,
-      check.zero.based = FALSE,
-      verbose = FALSE
-    )
-  # Although GenomicRanges's merging is faster, but stick with bedr to have consistent sorting
-  # ds1_gr <- GRanges(seqnames = ds1_gr$chr, ranges = IRanges(start = ds1_gr$start, end = ds1_gr$end))
-  # ds1_gr_sorted <- GenomicRanges::sort(ds1_gr)
-  # ds1_gr_merged <- GenomicRanges::reduce(ds1_gr_sorted)
-  # ds1_merged_peaks <- as.data.frame(ds1_gr_merged)
-  fwrite(ds1_merged_peaks, file.path(output_dir, paste0(submission_folder, "_DATASET1_merged_peak_", phase, ".bed")))
-}
+ds1_merged_peaks <- all_ds1_peaks %>%
+  rbindlist(fill = TRUE) %>%
+  as.data.frame() %>%
+  bedr.sort.region(
+    check.zero.based = FALSE,
+    check.chr = FALSE,
+    check.valid = FALSE,
+    check.merge = FALSE,
+    verbose = FALSE
+  ) %>%
+  bedr.merge.region(
+    check.sort = FALSE,
+    check.valid = FALSE,
+    check.chr = FALSE,
+    check.zero.based = FALSE,
+    verbose = FALSE
+  )
+
+# Although GenomicRanges's merging is faster, but stick with bedr to have consistent sorting
+# ds1_gr <- GRanges(seqnames = ds1_gr$chr, ranges = IRanges(start = ds1_gr$start, end = ds1_gr$end))
+# ds1_gr_sorted <- GenomicRanges::sort(ds1_gr)
+# ds1_gr_merged <- GenomicRanges::reduce(ds1_gr_sorted)
+# ds1_merged_peaks <- as.data.frame(ds1_gr_merged)
+# fwrite(ds1_merged_peaks, file.path(paste0("DATASET1_merged_peak_", phase, ".bed"))
 
 message("Scoring ...")
 all_scores <-
@@ -129,41 +131,45 @@ all_scores <-
 # repeat on dataset 2 scores for private phase
 if (phase == "private") {
   ds2_bed_files <- bed_files[grepl("ds2", bed_files)]
-  ds2_merged_filename <- paste0(submission_folder, "_DATASET2_merged_peak_", phase, ".bed")
 
-  if (file.exists(file.path(output_dir, ds2_merged_filename))) {
-    ds2_merged_peaks <- data.table::fread(file.path(output_dir, ds2_merged_filename), data.table = FALSE, verbose = FALSE)
-  } else {
-    message("Pad peaks for DATASET2 - human hg38")
-    all_ds2_peaks <- pbmclapply(ds2_bed_files, function(bed_file) {
-      peak_data <- data.table::fread(file.path(submission_folder, bed_file), data.table = FALSE, verbose = FALSE)
-      if (nrow(peak_data) > 0) {
-        peak_data <- correct_peaks(peak_data)
-        peak_data <- pad_peaks(peak_data, genome = Hsapiens, padding = 150)
+  message("Pad peaks for DATASET2 - human hg38")
+  all_ds2_peaks <- pbmclapply(ds2_bed_files, function(bed_file) {
+    tryCatch(
+      {
+        peak_data <- data.table::fread(file.path("output", bed_file), data.table = FALSE, verbose = FALSE)
+        if (nrow(peak_data) > 0) {
+          peak_data <- correct_peaks(peak_data)
+          peak_data <- pad_peaks(peak_data, genome = Mmusculus, padding = 150)
+        }
+        return(peak_data)
+      },
+      error = function(e) {
+        message(sprintf("Error processing file %s: %s", bed_file, e$message))
+        return(list(error = e$message))
       }
-      return(peak_data)
-    }, mc.cores = ncores)
+    )
+  }, mc.cores = ncores)
 
-    message("Merge peaks for DATASET2 ...")
-    ds2_merged_peaks <- all_ds2_peaks %>%
-      rbindlist(fill = TRUE) %>%
-      as.data.frame() %>%
-      bedr.sort.region(
-        check.zero.based = FALSE,
-        check.chr = FALSE,
-        check.valid = FALSE,
-        check.merge = FALSE,
-        verbose = FALSE
-      ) %>%
-      bedr.merge.region(
-        check.sort = FALSE,
-        check.valid = FALSE,
-        check.chr = FALSE,
-        check.zero.based = FALSE,
-        verbose = FALSE
-      )
-    fwrite(ds2_merged_peaks, file.path(output_dir, paste0(submission_folder, "_DATASET2_merged_peak_", phase, ".bed")))
-  }
+  message("Merge peaks for DATASET2 ...")
+  ds2_merged_peaks <- all_ds2_peaks %>%
+    rbindlist(fill = TRUE) %>%
+    as.data.frame() %>%
+    bedr.sort.region(
+      check.zero.based = FALSE,
+      check.chr = FALSE,
+      check.valid = FALSE,
+      check.merge = FALSE,
+      verbose = FALSE
+    ) %>%
+    bedr.merge.region(
+      check.sort = FALSE,
+      check.valid = FALSE,
+      check.chr = FALSE,
+      check.zero.based = FALSE,
+      verbose = FALSE
+    )
+  # fwrite(ds2_merged_peaks, paste0("DATASET2_merged_peak_", phase, ".bed"))
+
 
   ds2_scores <-
     tryCatch(
